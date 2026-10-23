@@ -81,6 +81,8 @@ Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `np
 - No PowerShell, se o `npm` for bloqueado: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 - Não rode `npm audit fix --force`: rebaixaria `eslint-config-next` e `drizzle-kit` para versões antigas. Os avisos atuais são de ferramentas de desenvolvimento (veja `docs/arquitetura.md`).
 - Acentos quebrados na saída dos scripts ("concluÃ­do") no Windows PowerShell 5.1: é só a exibição. Corrige com `[Console]::OutputEncoding = [Text.Encoding]::UTF8` (pode ir no perfil do PowerShell).
+- PostgreSQL local com memória ajustada por `ALTER SYSTEM` (veja `docs/arquitetura.md`). Reiniciar o serviço exige administrador; o Claude não consegue.
+- O comando `tar` do Git Bash é outro programa e quebra caminhos com "C:". Rode os testes da importação da base pelo PowerShell.
 - Fontes vêm do pacote `geist`, não do Google Fonts.
 - O PGlite em modo servidor só aceita várias conexões com `maxConnections` maior que 1. Isso é só do ambiente de teste, não do produto.
 
