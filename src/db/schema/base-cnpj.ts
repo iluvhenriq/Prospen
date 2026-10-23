@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, date, index, pgTable, text } from "drizzle-orm/pg-core";
+import { boolean, check, date, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
 
 // Base pública de CNPJ (dados abertos da Receita Federal), carregada por
 // `npm run cnpj:importar`. EXCEÇÃO CONSCIENTE à regra de isolamento: estas
@@ -60,6 +60,45 @@ export const baseCnpjEstabelecimentos = pgTable(
     check("base_cnpj_estab_cnpj_formato", sql`${tabela.cnpj} ~ '^[0-9A-Z]{12}[0-9]{2}$'`),
     check("base_cnpj_estab_uf_formato", sql`${tabela.uf} ~ '^[A-Z]{2}$'`),
   ],
+);
+
+// Tabelas de apoio da busca (etapa 5d). Pequenas, preenchidas pela importação.
+
+// Atividades econômicas (CNAE) com a descrição, para buscar por palavra.
+export const baseCnpjCnaes = pgTable("base_cnpj_cnaes", {
+  codigo: text("codigo").primaryKey(),
+  descricao: text("descricao").notNull(),
+});
+
+// Cidades que têm estabelecimento importado, por estado. O arquivo de
+// municípios da Receita não diz o estado; ele vem dos estabelecimentos.
+export const baseCnpjMunicipios = pgTable(
+  "base_cnpj_municipios",
+  {
+    codigo: text("codigo").primaryKey(),
+    nome: text("nome").notNull(),
+    uf: text("uf").notNull(),
+  },
+  (tabela) => [index("base_cnpj_municipios_uf_idx").on(tabela.uf, tabela.nome)],
+);
+
+// Estados já carregados e de qual mês. A tela de busca só oferece estes.
+export const baseCnpjCargas = pgTable("base_cnpj_cargas", {
+  uf: text("uf").primaryKey(),
+  mesReferencia: text("mes_referencia").notNull(),
+  estabelecimentos: integer("estabelecimentos").notNull(),
+  concluidaEm: timestamp("concluida_em", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Lista de exclusão (LGPD, decisão de 23/10/2026): CNPJ que pediu para sair.
+// Nunca aparece na busca nem vira lead pela busca, mesmo depois de nova importação.
+export const baseCnpjExclusoes = pgTable(
+  "base_cnpj_exclusoes",
+  {
+    cnpj: text("cnpj").primaryKey(),
+    pedidoEm: timestamp("pedido_em", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (tabela) => [check("base_cnpj_exclusoes_cnpj_formato", sql`${tabela.cnpj} ~ '^[0-9A-Z]{12}[0-9]{2}$'`)],
 );
 
 export type EstabelecimentoBase = typeof baseCnpjEstabelecimentos.$inferInsert;

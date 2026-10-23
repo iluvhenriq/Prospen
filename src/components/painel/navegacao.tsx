@@ -9,6 +9,7 @@ const itens = [
   { href: "/painel", rotulo: ptBR.menu.painel, exato: true },
   { href: "/painel/leads", rotulo: ptBR.menu.leads, exato: false },
   { href: "/painel/funil", rotulo: ptBR.menu.funil, exato: false },
+  { href: "/painel/busca", rotulo: ptBR.menu.busca, exato: false },
 ];
 
 // Menu da área logada. Marca a seção atual para quem vê e para leitores de tela.

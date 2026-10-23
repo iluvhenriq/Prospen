@@ -71,6 +71,62 @@ export const ptBR = {
     painel: "Painel",
     leads: "Leads",
     funil: "Funil",
+    busca: "Buscar empresas",
+  },
+  busca: {
+    titulo: "Buscar empresas",
+    descricao:
+      "Empresas ativas da base pública de CNPJ da Receita Federal. Escolha o estado, filtre e adicione as que interessam como leads.",
+    semBaseTitulo: "A base pública ainda não foi carregada",
+    semBaseDescricao:
+      "Nenhum estado da base de CNPJ foi importado neste ambiente. Quem administra o sistema carrega com npm run cnpj:importar.",
+    filtros: {
+      estado: "Estado",
+      escolhaEstado: "Escolha o estado",
+      cidade: "Cidade",
+      todasCidades: "Todas as cidades",
+      cidadeDepoisDoEstado: "Escolha o estado e clique em Buscar para ver as cidades.",
+      atividade: "Atividade",
+      atividadePlaceholder: "Ex.: padaria, oficina mecânica, contabilidade",
+      incluirMei: "Incluir MEI",
+      incluirMeiAjuda: "Microempreendedores individuais são mais da metade da base. Ficam de fora a menos que você marque.",
+      buscar: "Buscar",
+      limpar: "Limpar",
+    },
+    escolhaEstadoTitulo: "Escolha um estado para começar",
+    escolhaEstadoDescricao: "Depois, se quiser, filtre por cidade e atividade.",
+    atividadeNaoEncontrada: (texto: string) => `Nenhuma atividade encontrada para "${texto}". Tente outra palavra.`,
+    atividadesUsadas: (total: number) =>
+      total === 1 ? "Buscando em 1 atividade:" : `Buscando em ${total} atividades:`,
+    atividadesNoLimite: "Muitas atividades casaram. Use uma palavra mais específica para refinar.",
+    semResultadoTitulo: "Nenhuma empresa encontrada",
+    semResultadoDescricao: "Tente outra cidade, outra atividade ou inclua MEIs.",
+    mostrando: (total: number) => quantidade(total, "empresa nesta página", "empresas nesta página"),
+    proxima: "Próximas empresas",
+    voltarAoInicio: "Voltar ao início da lista",
+    colunas: {
+      marcar: (nome: string) => `Marcar ${nome}`,
+      marcarTodas: "Marcar todas as empresas desta página",
+    },
+    jaEhLead: "Já é lead",
+    mei: "MEI",
+    semContato: "Sem telefone nem e-mail",
+    abertaEm: (ano: string) => `Aberta em ${ano}`,
+    adicionar: {
+      botao: "Adicionar marcadas como leads",
+      enviando: "Adicionando...",
+      nenhumMarcado: "Marque ao menos uma empresa.",
+      resultado: (adicionados: number, pulados: number) =>
+        [
+          adicionados === 0 ? "Nenhum lead novo." : `${quantidade(adicionados, "lead adicionado", "leads adicionados")}.`,
+          pulados > 0 ? `${quantidade(pulados, "já existia", "já existiam")} ou saiu da base.` : "",
+        ]
+          .filter(Boolean)
+          .join(" "),
+      verLeads: "Ver leads",
+    },
+    origemDosDados: (mes: string) =>
+      `Fonte: dados abertos do CNPJ, Receita Federal, publicação de ${mes}. Uso para prospecção entre empresas.`,
   },
   leads: {
     titulo: "Leads",

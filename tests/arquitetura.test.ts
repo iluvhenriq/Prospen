@@ -72,6 +72,10 @@ describe("arquitetura", () => {
       invitation: "login (Better Auth): convite para a empresa, coluna organization_id",
       base_cnpj_empresas: "base pública da Receita, só leitura (decisão de 23/10/2026)",
       base_cnpj_estabelecimentos: "base pública da Receita, só leitura (decisão de 23/10/2026)",
+      base_cnpj_cnaes: "tabela pública de atividades da Receita, só leitura",
+      base_cnpj_municipios: "cidades da base pública, só leitura",
+      base_cnpj_cargas: "registro dos estados carregados da base pública",
+      base_cnpj_exclusoes: "LGPD: CNPJs que pediram para sair da base pública, vale para todas as empresas",
     };
     const tabelas = Object.values(schema)
       .filter((valor) => is(valor, PgTable))

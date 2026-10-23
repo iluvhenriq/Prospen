@@ -14,7 +14,9 @@
     "db:migrar": "tsx scripts/migrar.ts",
     "auth:segredo": "tsx scripts/gerar-segredo.ts",
     "cnpj:baixar": "tsx scripts/cnpj-baixar.ts",
-    "cnpj:importar": "tsx scripts/cnpj-importar.ts"
+    "cnpj:importar": "tsx scripts/cnpj-importar.ts",
+    "cnpj:registrar": "tsx scripts/cnpj-registrar.ts",
+    "cnpj:excluir": "tsx scripts/cnpj-excluir.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.11",

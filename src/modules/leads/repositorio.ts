@@ -254,6 +254,47 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
       return gravados;
     },
 
+    // Leads vindos da busca na base pública. O CNPJ identifica o lead: quem já
+    // existe nesta empresa é pulado. Base legal: legítimo interesse sobre dado
+    // tornado público pela Receita, implícita na origem "busca_cnpj" (decisão
+    // de LGPD de 23/10/2026, docs/arquitetura.md). Devolve quantos entraram.
+    async criarDaBaseCnpj(
+      lista: { nome: string; empresa: string | null; email: string | null; telefone: string | null; cnpj: string }[],
+      criadoPorId: string | null,
+    ): Promise<number> {
+      if (lista.length === 0) return 0;
+      if (lista.some((item) => !cnpjValido(item.cnpj))) throw new Error("CNPJ inválido.");
+      const inseridos = await db
+        .insert(leads)
+        .values(
+          lista.map((item) => ({
+            nome: item.nome,
+            empresa: item.empresa,
+            email: item.email,
+            telefone: item.telefone,
+            cnpj: item.cnpj,
+            pais: "BR",
+            origem: "busca_cnpj" as const,
+            ...camposNormalizados(item.email, item.telefone, "BR"),
+            organizacaoId,
+            criadoPorId,
+          })),
+        )
+        .onConflictDoNothing()
+        .returning({ id: leads.id });
+      return inseridos.length;
+    },
+
+    // Quais destes CNPJs já são leads nesta empresa (para marcar na busca).
+    async cnpjsQueJaSaoLeads(cnpjs: string[]): Promise<Set<string>> {
+      if (cnpjs.length === 0) return new Set();
+      const linhas = await db
+        .select({ cnpj: leads.cnpj })
+        .from(leads)
+        .where(and(daOrganizacao, inArray(leads.cnpj, cnpjs)));
+      return new Set(linhas.map((linha) => linha.cnpj).filter((cnpj): cnpj is string => Boolean(cnpj)));
+    },
+
     async atualizar(id: string, dados: DadosAtualizacaoLead): Promise<Lead | null> {
       const atual = await buscar(id);
       if (!atual) return null;

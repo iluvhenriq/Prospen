@@ -71,6 +71,7 @@ export async function importarEstado({
   }
 
   const municipios = await lerMunicipios(pasta);
+  await gravarCnaesDaPasta(repositorio, pasta);
   await repositorio.removerIndicesDeBusca();
   let resumo: ResumoImportacaoBase;
   try {
@@ -81,8 +82,21 @@ export async function importarEstado({
     await repositorio.recriarIndicesDeBusca();
     avisar(`Índices prontos (${segundosDesde(inicio)} s).`);
   }
+  // Só depois dos índices de volta: a lista de cidades lê por estado.
+  await repositorio.registrarCarga(uf, mes);
   resumo.segundos = segundosDesde(inicio);
   return resumo;
+}
+
+// Tabela de atividades (Cnaes.zip), usada pela busca por palavra.
+export async function gravarCnaesDaPasta(repositorio: RepositorioBaseCnpj, pasta: string): Promise<void> {
+  const [arquivo] = arquivosDoTipo(pasta, "Cnaes");
+  if (!arquivo) return;
+  const lista: { codigo: string; descricao: string }[] = [];
+  for await (const [codigo, descricao] of lerZipDaReceita(arquivo)) {
+    if (codigo?.trim() && descricao?.trim()) lista.push({ codigo: codigo.trim(), descricao: descricao.trim() });
+  }
+  await repositorio.gravarCnaes(lista);
 }
 
 async function carregar({

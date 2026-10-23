@@ -26,7 +26,7 @@ PROSPEN é uma plataforma de aquisição de leads e gestão de marketing para em
 | 2 | Login, empresas, papéis, isolamento de dados | concluída |
 | 3 | Leads, importação CSV, notas, etiquetas | concluída, testada no navegador em 22/10/2026 |
 | 4 | Funil de vendas (Novo, Contatado, Em conversa, Proposta, Ganho, Perdido), quadro e histórico de mudanças | concluída, testada no navegador em 22/10/2026 |
-| 5 | Base pública de CNPJ e busca real de leads | em andamento. 5a testes de navegador: concluída. 5b regra de duplicados por CNPJ (banco e repositório): concluída. 5c prova de conceito com SP: concluída (23/10/2026). SP importado no banco local: 8,8 milhões de ativos, 56% MEI, cerca de 4 GB, 131 min. Números e lições para a busca em `docs/arquitetura.md`. Próxima: 5d tela de busca (filtro sem MEI, sem contagem exata, sem `like` em atividade). A carga sem índices ainda não foi medida com a base real. Base legal decidida (padrão de mercado, ver pendências), sem esperar advogado |
+| 5 | Base pública de CNPJ e busca real de leads | em andamento. 5a testes de navegador: concluída. 5b regra de duplicados por CNPJ (banco e repositório): concluída. 5c prova de conceito com SP: concluída (23/10/2026). SP importado no banco local: 8,8 milhões de ativos, 56% MEI, cerca de 4 GB, 131 min. Números e lições para a busca em `docs/arquitetura.md`. 5d tela de busca (`/painel/busca`): concluída (23/10/2026), testada no navegador e com teste em `e2e/busca.spec.ts`. Falta para fechar a etapa 5: aviso "contato compartilhado com N leads", busca por nome ou CNPJ e medir a carga sem índices com a base real |
 | 6 | Enriquecimento com Google Places e pontuação por regras simples | pendente |
 | 7 | Campanhas manuais (sem integração com anúncios) e painel de indicadores | pendente. Começa por motivo de perda (Perdido) e valor da venda (Ganho) no funil |
 | 8 | Revisão final: erros, estados vazios, testes dos fluxos críticos, segurança, celular | pendente |
@@ -51,6 +51,10 @@ TypeScript, Next.js (App Router, versão 16), PostgreSQL, Drizzle ORM, Better Au
 | `npm run db:migrar` | Aplica migrações. Pode rodar várias vezes |
 | `npm run db:criar` | Cria o banco da `DATABASE_URL` |
 | `npm run auth:segredo` | Gera o `AUTH_SECRET` |
+| `npm run cnpj:baixar` | Baixa a base pública de CNPJ do mês para `D:\prospen-dados\cnpj` (retoma de onde parou) |
+| `npm run cnpj:importar -- 2026-10 SP` | Carrega um estado no banco (apaga e refaz). Lê o país inteiro, leva horas |
+| `npm run cnpj:registrar -- 2026-10 SP` | Registra atividades e cidades de um estado já carregado, sem importar de novo |
+| `npm run cnpj:excluir -- CNPJ` | Pedido do titular (LGPD): tira o CNPJ da busca para sempre |
 
 Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `npm run test:e2e`. Teste também no navegador o que for tela nova (Playwright MCP) e, quando o fluxo for crítico, acrescente um teste em `e2e/`. Diga com clareza o que NÃO foi testado.
 
@@ -85,7 +89,7 @@ Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `np
 - Sem recuperação de senha e sem verificação de e-mail (dependem de provedor de e-mail). **Obrigatório antes de abrir para clientes.**
 - **LGPD (decidido em 23/10/2026, padrão de mercado):** leads da base pública usam "legítimo interesse" e guardam origem e base legal. MEIs entram, mas o CPF no fim da razão social é retirado na importação. CNPJ removido a pedido entra numa lista de exclusão e não volta. Página "remover meus dados" e política de privacidade antes de ir ao ar. Detalhes em `docs/arquitetura.md`.
 - O limite de tentativas de login vive na memória do servidor. Com mais de um servidor, mover para o banco. O limite por endereço depende do cabeçalho `x-forwarded-for`.
-- **Regra de duplicados (decidida em 22/10/2026, no banco e no repositório desde 23/10):** lead com CNPJ é único pelo CNPJ dentro da empresa. E-mail e telefone são únicos só entre leads sem CNPJ (manual e planilha). O CNPJ pode ser alfanumérico (regra da Receita desde 07/2026): use `src/modules/leads/cnpj.ts`, nunca "14 números". Falta o aviso na tela "contato compartilhado com N leads" (entra com a busca).
+- **Regra de duplicados (decidida em 22/10/2026, no banco e no repositório desde 23/10):** lead com CNPJ é único pelo CNPJ dentro da empresa. E-mail e telefone são únicos só entre leads sem CNPJ (manual e planilha). O CNPJ pode ser alfanumérico (regra da Receita desde 07/2026): use `src/modules/leads/cnpj.ts`, nunca "14 números". Falta o aviso na tela "contato compartilhado com N leads".
 - Ainda há textos visíveis escritos na lógica (motivos de linha recusada em `src/modules/leads/importacao.ts` e `csv.ts`, mensagens em `acoes.ts`), fora do `pt-BR.ts`. Mover antes da etapa 8.
 - Ao criar exportação de leads, neutralizar células que começam com `=`, `+`, `-` ou `@`.
 - Importação sem limite de frequência por empresa.
