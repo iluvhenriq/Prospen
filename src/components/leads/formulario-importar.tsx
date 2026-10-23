@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useRef, useState, startTransition, type ChangeEvent } from "react";
+import {
+  useActionState,
+  useEffect,
+  useRef,
+  useState,
+  startTransition,
+  type ChangeEvent,
+} from "react";
 import { Alerta } from "@/components/ui/alerta";
 import { Botao, BotaoLink } from "@/components/ui/botao";
 import { Cartao, CartaoConteudo, CartaoCabecalho, CartaoTitulo } from "@/components/ui/cartao";
@@ -46,6 +53,15 @@ export function FormularioImportar() {
         : estado.analise
       : undefined;
   const erroDoServidor = vigente ? estado.erro : undefined;
+
+  // Depois de importar, esvazia o campo de arquivo (o resultado continua na tela).
+  // O navegador não avisa quando a pessoa escolhe de novo o mesmo arquivo que já
+  // está no campo, e sem isso o botão de conferir não voltava.
+  useEffect(() => {
+    if (!estado.resultado) return;
+    const campo = formulario.current?.querySelector<HTMLInputElement>('input[type="file"]');
+    if (campo) campo.value = "";
+  }, [estado.resultado]);
 
   function aoEscolherArquivo(evento: ChangeEvent<HTMLInputElement>) {
     const arquivo = evento.target.files?.[0];

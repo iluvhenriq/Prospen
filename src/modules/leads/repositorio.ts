@@ -5,6 +5,7 @@ import {
   eq,
   exists,
   inArray,
+  isNull,
   ne,
   or,
   sql,
@@ -22,6 +23,7 @@ import {
 } from "@/db/schema";
 import type { Banco } from "@/db/tipos";
 import { regraDeUnicidadeViolada } from "@/lib/erro-unico";
+import { cnpjValido, normalizarCnpj } from "./cnpj";
 import {
   escaparLike,
   normalizarEmail,
@@ -60,12 +62,14 @@ export type ParametrosListagem = FiltrosLeads & {
   deslocamento?: number;
 };
 
-export type CampoDuplicado = "email" | "telefone";
+export type CampoDuplicado = "email" | "telefone" | "cnpj";
 
-// Já existe um lead da mesma empresa com este e-mail ou telefone.
+// Já existe um lead da mesma empresa com este CNPJ, ou, entre os leads sem
+// CNPJ, com este e-mail ou telefone. A mensagem é só para registro: a tela usa
+// o campo para escolher o texto.
 export class ErroLeadDuplicado extends Error {
   constructor(public readonly campo: CampoDuplicado) {
-    super(`Já existe um lead com este ${campo === "email" ? "e-mail" : "telefone"}.`);
+    super(`Lead duplicado (${campo}).`);
     this.name = "ErroLeadDuplicado";
   }
 }
@@ -103,6 +107,7 @@ function camposNormalizados(
 function traduzirErro(erro: unknown): unknown {
   const regra = regraDeUnicidadeViolada(erro);
   if (regra === null) return erro;
+  if (regra.includes("cnpj")) return new ErroLeadDuplicado("cnpj");
   if (regra.includes("email")) return new ErroLeadDuplicado("email");
   if (regra.includes("telefone")) return new ErroLeadDuplicado("telefone");
   return erro;
@@ -191,6 +196,9 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
 
     async criar(dados: NovoLead, criadoPorId: string | null): Promise<Lead> {
       const pais = dados.pais ?? "BR";
+      const cnpj = normalizarCnpj(dados.cnpj);
+      // Quem chama já validou. Esta checagem só impede gravar lixo por engano.
+      if (cnpj && !cnpjValido(cnpj)) throw new Error("CNPJ inválido.");
       try {
         // Só os campos conhecidos são gravados, e organização e autoria vêm
         // depois, para vencerem qualquer valor extra que tenha vindo nos dados.
@@ -203,6 +211,7 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
             telefone: dados.telefone,
             origem: dados.origem,
             pais,
+            cnpj,
             ...camposNormalizados(dados.email, dados.telefone, pais),
             organizacaoId,
             criadoPorId,
@@ -249,7 +258,8 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
       const atual = await buscar(id);
       if (!atual) return null;
 
-      // Só estes campos podem mudar. Organização, origem e autoria ficam de fora.
+      // Só estes campos podem mudar. Organização, origem, autoria e CNPJ (que
+      // identifica o lead) ficam de fora.
       const nome = dados.nome ?? atual.nome;
       const empresa = dados.empresa === undefined ? atual.empresa : dados.empresa;
       const email = dados.email === undefined ? atual.email : dados.email;
@@ -346,32 +356,43 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
       return apagados.length > 0;
     },
 
-    // Leads da empresa que já usam este e-mail ou telefone. Serve para avisar
-    // com clareza antes de gravar. O banco continua sendo a garantia final.
+    // Leads da empresa que já ocupam esta identidade, segundo a mesma regra dos
+    // índices do banco: com CNPJ, só o CNPJ conta; sem CNPJ, contam o e-mail e o
+    // telefone, comparados só com outros leads sem CNPJ. Serve para avisar com
+    // clareza antes de gravar. O banco continua sendo a garantia final.
+    // Na edição (ignorarId), o CNPJ do próprio lead decide qual regra vale.
     async encontrarDuplicados({
+      cnpj,
       email,
       telefone,
       pais = "BR",
       ignorarId,
     }: {
+      cnpj?: string | null;
       email?: string | null;
       telefone?: string | null;
       pais?: string;
       ignorarId?: string;
     }): Promise<DuplicadoEncontrado[]> {
-      const emailNormalizado = normalizarEmail(email);
-      const telefoneNormalizado = normalizarTelefone(telefone, pais);
+      const cnpjNormalizado = normalizarCnpj(cnpj);
+      const temCnpj =
+        cnpjNormalizado !== null || (ignorarId ? Boolean((await buscar(ignorarId))?.cnpj) : false);
+      const emailNormalizado = temCnpj ? null : normalizarEmail(email);
+      const telefoneNormalizado = temCnpj ? null : normalizarTelefone(telefone, pais);
+
       const criterios: SQL[] = [];
-      if (emailNormalizado) criterios.push(eq(leads.emailNormalizado, emailNormalizado));
-      if (telefoneNormalizado) {
-        criterios.push(eq(leads.telefoneNormalizado, telefoneNormalizado));
-      }
+      if (cnpjNormalizado) criterios.push(eq(leads.cnpj, cnpjNormalizado));
+      const contato: SQL[] = [];
+      if (emailNormalizado) contato.push(eq(leads.emailNormalizado, emailNormalizado));
+      if (telefoneNormalizado) contato.push(eq(leads.telefoneNormalizado, telefoneNormalizado));
+      if (contato.length > 0) criterios.push(and(isNull(leads.cnpj), or(...contato)) as SQL);
       if (criterios.length === 0) return [];
 
       const linhas = await db
         .select({
           id: leads.id,
           nome: leads.nome,
+          cnpj: leads.cnpj,
           emailNormalizado: leads.emailNormalizado,
           telefoneNormalizado: leads.telefoneNormalizado,
         })
@@ -383,6 +404,10 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
       const achados: DuplicadoEncontrado[] = [];
       for (const linha of linhas) {
         const lead = { id: linha.id, nome: linha.nome };
+        if (cnpjNormalizado && linha.cnpj === cnpjNormalizado) {
+          achados.push({ campo: "cnpj", lead });
+        }
+        if (linha.cnpj !== null) continue;
         if (emailNormalizado && linha.emailNormalizado === emailNormalizado) {
           achados.push({ campo: "email", lead });
         }
@@ -393,7 +418,8 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
       return achados;
     },
 
-    // Dos e-mails e telefones informados (já padronizados), quais a empresa já tem.
+    // Dos e-mails e telefones informados (já padronizados), quais a empresa já tem
+    // em leads sem CNPJ. Serve para a importação de planilha, que não traz CNPJ.
     async contatosExistentes(
       emails: string[],
       telefones: string[],
@@ -405,7 +431,11 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
           .select({ valor: leads.emailNormalizado })
           .from(leads)
           .where(
-            and(daOrganizacao, inArray(leads.emailNormalizado, emails.slice(i, i + TAMANHO_DA_CONSULTA))),
+            and(
+              daOrganizacao,
+              isNull(leads.cnpj),
+              inArray(leads.emailNormalizado, emails.slice(i, i + TAMANHO_DA_CONSULTA)),
+            ),
           );
         for (const { valor } of linhas) if (valor) encontrados.emails.add(valor);
       }
@@ -416,6 +446,7 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
           .where(
             and(
               daOrganizacao,
+              isNull(leads.cnpj),
               inArray(leads.telefoneNormalizado, telefones.slice(i, i + TAMANHO_DA_CONSULTA)),
             ),
           );

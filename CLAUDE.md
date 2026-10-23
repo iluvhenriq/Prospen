@@ -26,7 +26,7 @@ PROSPEN é uma plataforma de aquisição de leads e gestão de marketing para em
 | 2 | Login, empresas, papéis, isolamento de dados | concluída |
 | 3 | Leads, importação CSV, notas, etiquetas | concluída, testada no navegador em 22/10/2026 |
 | 4 | Funil de vendas (Novo, Contatado, Em conversa, Proposta, Ganho, Perdido), quadro e histórico de mudanças | concluída, testada no navegador em 22/10/2026 |
-| 5 | Base pública de CNPJ e busca real de leads | próxima. Antes, nesta ordem: 5a testes de navegador com Playwright (login, isolamento, importação, funil); 5b regra de duplicados por CNPJ |
+| 5 | Base pública de CNPJ e busca real de leads | em andamento. 5a testes de navegador: concluída. 5b regra de duplicados por CNPJ (banco e repositório): concluída. Próxima: 5c prova de conceito da base de CNPJ (download, leitura, um estado) |
 | 6 | Enriquecimento com Google Places e pontuação por regras simples | pendente |
 | 7 | Campanhas manuais (sem integração com anúncios) e painel de indicadores | pendente. Começa por motivo de perda (Perdido) e valor da venda (Ganho) no funil |
 | 8 | Revisão final: erros, estados vazios, testes dos fluxos críticos, segurança, celular | pendente |
@@ -45,13 +45,14 @@ TypeScript, Next.js (App Router, versão 16), PostgreSQL, Drizzle ORM, Better Au
 | `npm run lint` | Estilo e erros comuns |
 | `npx next typegen` e depois `npx tsc --noEmit` | Checagem de tipos (o typegen vem antes) |
 | `npm test` | Testes automáticos (migrações rodam em PostgreSQL em memória, PGlite) |
+| `npm run test:e2e` | Testes no navegador (pasta `e2e`). Recria o banco `prospen_e2e`, faz build e sobe na porta 3100 com o Chrome instalado |
 | `npm run build` | Versão de produção |
 | `npm run db:gerar` | Gera migração depois de mudar `src/db/schema`. Revise o SQL gerado |
 | `npm run db:migrar` | Aplica migrações. Pode rodar várias vezes |
 | `npm run db:criar` | Cria o banco da `DATABASE_URL` |
 | `npm run auth:segredo` | Gera o `AUTH_SECRET` |
 
-Antes de dizer que uma etapa está pronta, rode lint, tipos, testes e build. Teste também no navegador o que for tela. Diga com clareza o que NÃO foi testado.
+Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `npm run test:e2e`. Teste também no navegador o que for tela nova (Playwright MCP) e, quando o fluxo for crítico, acrescente um teste em `e2e/`. Diga com clareza o que NÃO foi testado.
 
 ## Regras de arquitetura (não quebre)
 
@@ -83,7 +84,8 @@ Antes de dizer que uma etapa está pronta, rode lint, tipos, testes e build. Tes
 - Sem recuperação de senha e sem verificação de e-mail (dependem de provedor de e-mail). **Obrigatório antes de abrir para clientes.**
 - Falta registrar a base legal de cada lead (LGPD) e criar exclusão a pedido do titular. Combinar com advogado.
 - O limite de tentativas de login vive na memória do servidor. Com mais de um servidor, mover para o banco. O limite por endereço depende do cabeçalho `x-forwarded-for`.
-- **Regra de duplicados decidida (22/10/2026), ainda não implementada:** lead com CNPJ é único pelo CNPJ de 14 dígitos dentro da empresa. E-mail e telefone continuam únicos só para leads sem CNPJ (manual e planilha). Contato repetido entre leads com CNPJ gera aviso ("contato compartilhado com N leads"), não bloqueio.
+- **Regra de duplicados (decidida em 22/10/2026, no banco e no repositório desde 23/10):** lead com CNPJ é único pelo CNPJ dentro da empresa. E-mail e telefone são únicos só entre leads sem CNPJ (manual e planilha). O CNPJ pode ser alfanumérico (regra da Receita desde 07/2026): use `src/modules/leads/cnpj.ts`, nunca "14 números". Falta o aviso na tela "contato compartilhado com N leads" (entra com a busca).
+- Ainda há textos visíveis escritos na lógica (motivos de linha recusada em `src/modules/leads/importacao.ts` e `csv.ts`, mensagens em `acoes.ts`), fora do `pt-BR.ts`. Mover antes da etapa 8.
 - Ao criar exportação de leads, neutralizar células que começam com `=`, `+`, `-` ou `@`.
 - Importação sem limite de frequência por empresa.
 - Importação só aceita CSV, até 2 MB e 5.000 linhas.

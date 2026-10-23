@@ -46,6 +46,10 @@ export const leads = pgTable(
     // pelo repositório sempre que o e-mail ou o telefone mudam.
     emailNormalizado: text("email_normalizado"),
     telefoneNormalizado: text("telefone_normalizado"),
+    // CNPJ padronizado (sem pontuação, maiúsculo), só nos leads que vêm da base
+    // pública de empresas. Quando existe, é ele que identifica o lead (veja os
+    // índices abaixo). Pode ser alfanumérico (regra da Receita desde 07/2026).
+    cnpj: text("cnpj"),
     origem: text("origem").$type<OrigemLead>().notNull().default("manual"),
     // Código do país com duas letras (ISO 3166-1). Prepara a expansão internacional.
     pais: text("pais").notNull().default("BR"),
@@ -77,14 +81,23 @@ export const leads = pgTable(
       tabela.etapa,
       tabela.etapaAtualizadaEm,
     ),
-    // Um e-mail ou telefone aparece uma vez por empresa. O banco garante isso
-    // mesmo se duas pessoas cadastrarem o mesmo contato ao mesmo tempo.
+    // Regra de duplicados (decidida em 22/10/2026). O banco garante, mesmo se
+    // duas pessoas gravarem ao mesmo tempo:
+    // - lead com CNPJ: o CNPJ aparece uma vez por empresa;
+    // - lead sem CNPJ (manual, planilha): o e-mail e o telefone aparecem uma vez
+    //   por empresa, contando só os leads sem CNPJ. Na base de CNPJ, vários
+    //   negócios dividem o contato do contador, então ali contato repetido é
+    //   permitido.
+    uniqueIndex("leads_organizacao_cnpj_unico")
+      .on(tabela.organizacaoId, tabela.cnpj)
+      .where(sql`${tabela.cnpj} is not null`),
     uniqueIndex("leads_organizacao_email_unico")
       .on(tabela.organizacaoId, tabela.emailNormalizado)
-      .where(sql`${tabela.emailNormalizado} is not null`),
+      .where(sql`${tabela.emailNormalizado} is not null and ${tabela.cnpj} is null`),
     uniqueIndex("leads_organizacao_telefone_unico")
       .on(tabela.organizacaoId, tabela.telefoneNormalizado)
-      .where(sql`${tabela.telefoneNormalizado} is not null`),
+      .where(sql`${tabela.telefoneNormalizado} is not null and ${tabela.cnpj} is null`),
+    check("leads_cnpj_formato", sql`${tabela.cnpj} ~ '^[0-9A-Z]{12}[0-9]{2}$'`),
     check(
       "leads_origem_valida",
       sql`${tabela.origem} in ('manual', 'importacao', 'busca_cnpj', 'google')`,

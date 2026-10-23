@@ -59,13 +59,12 @@ function camposDoLead(dados: FormData): Record<CampoLead, string> {
 }
 
 function respostaDuplicado(
-  campo: "email" | "telefone",
+  campo: DuplicadoEncontrado["campo"],
   valores: Record<string, string>,
   existente?: DuplicadoEncontrado["lead"],
 ): EstadoAcao {
-  const nomeDoCampo = campo === "email" ? "e-mail" : "telefone";
   return {
-    erros: { [campo]: `Já existe um lead com este ${nomeDoCampo}.` },
+    erros: { [campo]: ptBR.leads.formulario.duplicado[campo] },
     valores,
     duplicado: existente,
   };

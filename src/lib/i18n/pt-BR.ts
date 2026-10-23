@@ -122,6 +122,11 @@ export const ptBR = {
       salvo: "Alterações salvas.",
       falhou: "Não foi possível salvar. Tente novamente em instantes.",
       verExistente: (nome: string) => `Ver o lead já cadastrado: ${nome}`,
+      duplicado: {
+        email: "Já existe um lead com este e-mail.",
+        telefone: "Já existe um lead com este telefone.",
+        cnpj: "Já existe um lead com este CNPJ.",
+      },
     },
     novoPagina: {
       titulo: "Novo lead",

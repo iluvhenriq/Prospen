@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Relatório e resultados gerados pelos testes de navegador.
+    "e2e-relatorio/**",
+    "e2e-resultados/**",
   ]),
 ]);
 

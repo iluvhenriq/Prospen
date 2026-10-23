@@ -25,6 +25,10 @@
 
 # capturas e registros do Playwright MCP (teste no navegador)
 /.playwright-mcp/
+
+# resultados dos testes de navegador (npm run test:e2e)
+/e2e-resultados/
+/e2e-relatorio/
 *.pem
 
 # debug

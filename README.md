@@ -82,6 +82,7 @@ Nada é gravado até você clicar em "Importar". Se enviar o mesmo arquivo de no
 | `npm run dev` | Roda o projeto em modo de desenvolvimento |
 | `npm run lint` | Verifica o estilo e erros comuns do código |
 | `npm test` | Roda os testes automáticos (inclui testar as migrações em um banco de teste em memória) |
+| `npm run test:e2e` | Testes no navegador (login, isolamento, importação, funil). Recria o banco `prospen_e2e` (o seu banco não é tocado), gera a versão de produção e abre o Chrome na porta 3100. Leva cerca de 1 minuto. Se algo falhar, abra `e2e-relatorio/index.html` |
 | `npm run build` | Gera a versão de produção e checa os tipos |
 | `npm run start` | Roda a versão gerada pelo `build` |
 | `npm run db:criar` | Cria o banco indicado no `.env.local`, se ainda não existir |
@@ -113,6 +114,7 @@ docs/
   arquitetura.md  decisões do projeto
   exemplos/       planilha de exemplo (dados fictícios) para testar a importação
 tests/            testes automáticos
+e2e/              testes no navegador (Playwright)
 ```
 
 ## Documentação
@@ -128,7 +130,7 @@ tests/            testes automáticos
 | 2 | Login, organizações, papéis, isolamento de dados, tabelas base | concluída |
 | 3 | Leads, importação CSV, notas, etiquetas | concluída, testada no navegador em 22/10/2026 |
 | 4 | Funil e histórico | concluída, testada no navegador em 22/10/2026 |
-| 5 | Base de CNPJ e busca real (antes: testes de navegador e regra de duplicados por CNPJ) | próxima |
+| 5 | Base de CNPJ e busca real | em andamento: 5a testes de navegador e 5b regra de duplicados por CNPJ concluídas; próxima 5c prova de conceito da base de CNPJ |
 | 6 | Enriquecimento e pontuação | pendente |
 | 7 | Campanhas manuais e painel (começa por motivo de perda e valor da venda no funil) | pendente |
 | 8 | Revisão final, testes, segurança, celular | pendente |
