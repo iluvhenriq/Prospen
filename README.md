@@ -130,7 +130,7 @@ e2e/              testes no navegador (Playwright)
 | 2 | Login, organizações, papéis, isolamento de dados, tabelas base | concluída |
 | 3 | Leads, importação CSV, notas, etiquetas | concluída, testada no navegador em 22/10/2026 |
 | 4 | Funil e histórico | concluída, testada no navegador em 22/10/2026 |
-| 5 | Base de CNPJ e busca real | em andamento: 5a testes de navegador e 5b regra de duplicados por CNPJ concluídas; próxima 5c prova de conceito da base de CNPJ |
+| 5 | Base de CNPJ e busca real | em andamento: 5a testes de navegador e 5b regra de duplicados por CNPJ concluídas; 5c prova de conceito com SP concluída em 23/10/2026 (8,8 milhões de estabelecimentos, cerca de 4 GB); próxima 5d tela de busca |
 | 6 | Enriquecimento e pontuação | pendente |
 | 7 | Campanhas manuais e painel (começa por motivo de perda e valor da venda no funil) | pendente |
 | 8 | Revisão final, testes, segurança, celular | pendente |

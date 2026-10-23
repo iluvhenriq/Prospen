@@ -12,7 +12,9 @@
     "db:criar": "tsx scripts/criar-banco.ts",
     "db:gerar": "drizzle-kit generate",
     "db:migrar": "tsx scripts/migrar.ts",
-    "auth:segredo": "tsx scripts/gerar-segredo.ts"
+    "auth:segredo": "tsx scripts/gerar-segredo.ts",
+    "cnpj:baixar": "tsx scripts/cnpj-baixar.ts",
+    "cnpj:importar": "tsx scripts/cnpj-importar.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.11",

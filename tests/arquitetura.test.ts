@@ -1,6 +1,9 @@
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join, relative, sep } from "node:path";
+import { is } from "drizzle-orm";
+import { getTableConfig, PgTable } from "drizzle-orm/pg-core";
 import { describe, expect, it } from "vitest";
+import * as schema from "@/db/schema";
 
 function arquivos(pasta: string): string[] {
   return readdirSync(pasta).flatMap((nome) => {
@@ -54,6 +57,35 @@ describe("arquitetura", () => {
       const conteudo = readFileSync(`src/db/schema/${arquivo}.ts`, "utf8");
       expect(conteudo, `src/db/schema/${arquivo}.ts`).toMatch(/organizacao_id/);
     }
+  });
+
+  it("toda tabela tem organizacao_id, menos as exceções declaradas aqui", () => {
+    // Cada exceção precisa de motivo. Tabela nova sem organizacao_id faz este
+    // teste falhar até alguém decidir, de propósito, que ela é uma exceção.
+    const EXCECOES: Record<string, string> = {
+      user: "login (Better Auth): a pessoa existe antes de ter empresa",
+      session: "login (Better Auth)",
+      account: "login (Better Auth)",
+      verification: "login (Better Auth)",
+      organization: "é a própria empresa",
+      member: "login (Better Auth): liga pessoa e empresa pela coluna organization_id",
+      invitation: "login (Better Auth): convite para a empresa, coluna organization_id",
+      base_cnpj_empresas: "base pública da Receita, só leitura (decisão de 23/10/2026)",
+      base_cnpj_estabelecimentos: "base pública da Receita, só leitura (decisão de 23/10/2026)",
+    };
+    const tabelas = Object.values(schema)
+      .filter((valor) => is(valor, PgTable))
+      .map((tabela) => getTableConfig(tabela as PgTable));
+    // Garante que o teste está mesmo enxergando as tabelas (hoje são 16).
+    expect(tabelas.length).toBeGreaterThanOrEqual(16);
+    expect(tabelas.map((t) => t.name)).toContain("leads");
+
+    const semEmpresa = tabelas
+      .filter((config) => !config.columns.some((coluna) => coluna.name === "organizacao_id"))
+      .map((config) => config.name)
+      .filter((nome) => !(nome in EXCECOES));
+
+    expect(semEmpresa).toEqual([]);
   });
 
   it("telas e componentes não acessam o banco direto", () => {

@@ -175,6 +175,8 @@ Regras da leitura:
 | 22/10/2026 | Motivo de perda e valor da venda entram no início da etapa 7 | O sistema ainda não tem uso real, então adiantar não guarda dado nenhum. Entram junto com o painel que os usa |
 | 22/10/2026 | Testes de navegador contra a versão de produção (build + start na porta 3100), num banco próprio (`<nome>_e2e`) recriado a cada rodada, com o Chrome instalado e um teste por vez | Testa o que vai ao ar, não atrapalha o `npm run dev` nem o banco de desenvolvimento, não baixa navegador e respeita o limite de cadastros por endereço |
 | 23/10/2026 | CNPJ guardado padronizado (sem pontuação, maiúsculo) e aceito no formato alfanumérico, com o cálculo oficial dos verificadores | A Receita emite CNPJ alfanumérico desde julho de 2026. Guardar como "14 números" recusaria as empresas novas |
+| 23/10/2026 | Prova de conceito da base de CNPJ com São Paulo | Maior volume do país: testa o pior caso de desempenho logo no início |
+| 23/10/2026 | Base pública de CNPJ no mesmo PostgreSQL, em tabela própria sem `organizacao_id`, só de leitura para as empresas. Arquivos brutos em `D:\prospen-dados\cnpj` | Dado público, não pertence a nenhum cliente: exceção consciente à regra 2. O lead copiado para a empresa continua isolado. Um banco só para manter |
 | 23/10/2026 | CNPJ não muda depois de gravado | É a identidade do lead. Corrigir um CNPJ errado, se for preciso, será uma ação própria |
 | 22/10/2026 | Registro das ações do servidor desligado no terminal (`logging.serverFunctions: false`) | Em desenvolvimento, o Next.js escrevia nome, e-mail e telefone de leads no terminal |
 
@@ -189,7 +191,12 @@ Regras da leitura:
 - **Motivo de perda e valor da venda:** decidido que entram no início da etapa 7.
 - **Textos visíveis fora do arquivo de idioma:** os motivos de linha recusada na importação (`src/modules/leads/importacao.ts`, `csv.ts`) e algumas mensagens das ações ainda são escritos na lógica, contra a regra 4. A mensagem de duplicado já foi movida para `pt-BR.ts`. Mover o resto antes da etapa 8.
 - **Ao criar a exportação de leads (futura), neutralizar fórmulas.** Células que começam com `=`, `+`, `-` ou `@` podem ser executadas pelo Excel. Hoje elas são guardadas e exibidas como texto puro (testado), mas uma exportação precisa tratá-las.
-- **Falta registrar a base legal de cada lead** (LGPD). Hoje só existe a origem (manual, importação etc.). Antes de abrir para clientes, definir com um advogado o que registrar e criar a exclusão a pedido do titular.
+- **Base legal dos leads (LGPD), decidida em 23/10/2026 seguindo o padrão do mercado** (Casa dos Dados, Speedio, Econodata), sem consulta a advogado por ora:
+  - Leads da base pública da Receita: base legal "legítimo interesse" (art. 7, IX), com dados tornados públicos pela Receita (art. 7, §§ 3 e 4). Uso só para prospecção entre empresas. Guardar origem e base legal em cada lead.
+  - MEIs entram na busca. O CPF que muitas vezes aparece no fim da razão social do MEI é retirado na importação e nunca é exibido.
+  - Lista de exclusão: um CNPJ removido a pedido do titular não volta em importações futuras.
+  - Antes de ir ao ar (etapa 8): página pública "remover meus dados" e política de privacidade explicando a origem e a finalidade.
+  - Risco aceito: seguir o mercado reduz o risco, mas não o elimina. Reavaliar com um advogado quando houver receita ou antes da expansão internacional.
 - **Importação sem limite de frequência.** Cada importação aceita até 5.000 linhas, mas nada impede enviar várias seguidas. Antes de publicar, limitar por empresa.
 - **Só CSV.** Quem tem a planilha em Excel precisa salvar como CSV UTF-8. Aceitar `.xlsx` pode entrar depois, se a fricção aparecer nos primeiros clientes.
 - **Funil sem motivo de perda nem valor da venda.** Hoje "Perdido" não diz por quê e "Ganho" não diz quanto. Enquanto isso, o motivo pode ir numa nota.
@@ -201,5 +208,15 @@ Regras da leitura:
 - **Página de lead inexistente responde com código 200**, não 404. O conteúdo é a página "não encontrada", sem nenhum dado, mas o código fica 200 porque a página já começou a ser enviada quando a consulta termina (efeito do `cacheComponents`). Não é falha de segurança. Revisar na etapa 8.
 - **Leads importados de uma vez aparecem fora da ordem da planilha** na lista, porque têm o mesmo horário de criação e o desempate é pelo identificador. A paginação continua estável (testado: 35 leads em duas páginas, sem repetição).
 - **Mudança simultânea de etapa não foi testada com duas conexões.** O banco de teste (PGlite) usa uma conexão só. A trava da linha (`for update`) é o comportamento padrão do PostgreSQL, mas o caso de duas pessoas movendo o mesmo lead no mesmo instante só foi verificado pela lógica.
-- **Volume da base de CNPJ:** é a etapa de maior risco técnico. A prova de conceito vem logo depois da etapa 1.
+- **Prova de conceito da base de CNPJ com SP (5c, 23/10/2026), medido no computador do Henrique (4 núcleos):**
+  - Download do mês 2026-10 completo em `D:\prospen-dados\cnpj` (`npm run cnpj:baixar`, retoma de onde parou).
+  - SP: 21,4 milhões de linhas com "SP" lidas, **8.833.178 estabelecimentos ativos**, 8.403.361 empresas, 3 linhas fora do formato, nenhum CNPJ inválido. 7 empresas com estabelecimento ativo não constam no arquivo de Empresas.
+  - **MEI (natureza 2135): 4.979.835 estabelecimentos, 56% de SP.** A busca precisa de filtro "sem MEI", senão o MEI domina o resultado. Nenhuma razão social ficou com CPF no fim (retirado na leitura).
+  - Contato: 97% têm telefone e 92% têm e-mail, mas boa parte é do contador (ver regra de duplicados).
+  - Disco: estabelecimentos 2,97 GB (2,1 GB de dados e o resto índices), empresas 1,07 GB. **SP ocupa cerca de 4 GB.** Projeção para o Brasil, só ativos: 3 a 4 vezes isso, de 12 a 16 GB (estimativa, não medido).
+  - Tempo: 131 minutos com o leitor otimizado e os índices mantidos durante a carga. A primeira tentativa (leitor genérico, um arquivo por vez) passou de 2 horas sem chegar a 30%.
+  - **Gargalo achado: a gravação no banco esperando o disco** (amostras de `pg_stat_activity`), não a leitura. Armadilha: no Windows, `Get-Process` mostra 0 de processador para o PostgreSQL porque ele roda como serviço de outro usuário; isso NÃO quer dizer que está parado. Correções feitas e testadas, mas ainda não medidas com a base real: índices de busca removidos durante a carga e recriados no final (mesmo com falha), remoção sem devolver as linhas e lotes de 3.000. Se continuar lento, próximo passo é gravar com `COPY`.
+  - Cada carga lê o país inteiro (os arquivos não vêm por estado), então **importar o Brasil todo de uma vez custa quase o mesmo tempo de leitura que um estado**.
+  - Busca (primeira execução, sem cache): cidade + atividade com 50 resultados, 0,6 s; atividade sem MEI com 50 resultados, 0,13 s; contar todos de São Paulo capital, 2,2 s; **contar por início de código de atividade (`like '56%'`), 32 s**. Para a 5d: não mostrar contagem exata de conjuntos grandes, paginar sem `offset` e filtrar atividade por lista de códigos (ou índice próprio para prefixo), nunca `like` sem índice.
+  - Achado e corrigido: o total "gravados" do resumo perdia somas com arquivos em paralelo (`total += await ...`). O banco estava certo.
 - **Qualidade do contato:** o telefone e o e-mail da base pública nem sempre chegam ao dono. O enriquecimento do Google compensa em parte.

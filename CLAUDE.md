@@ -26,7 +26,7 @@ PROSPEN é uma plataforma de aquisição de leads e gestão de marketing para em
 | 2 | Login, empresas, papéis, isolamento de dados | concluída |
 | 3 | Leads, importação CSV, notas, etiquetas | concluída, testada no navegador em 22/10/2026 |
 | 4 | Funil de vendas (Novo, Contatado, Em conversa, Proposta, Ganho, Perdido), quadro e histórico de mudanças | concluída, testada no navegador em 22/10/2026 |
-| 5 | Base pública de CNPJ e busca real de leads | em andamento. 5a testes de navegador: concluída. 5b regra de duplicados por CNPJ (banco e repositório): concluída. Próxima: 5c prova de conceito da base de CNPJ (download, leitura, um estado) |
+| 5 | Base pública de CNPJ e busca real de leads | em andamento. 5a testes de navegador: concluída. 5b regra de duplicados por CNPJ (banco e repositório): concluída. 5c prova de conceito com SP: concluída (23/10/2026). SP importado no banco local: 8,8 milhões de ativos, 56% MEI, cerca de 4 GB, 131 min. Números e lições para a busca em `docs/arquitetura.md`. Próxima: 5d tela de busca (filtro sem MEI, sem contagem exata, sem `like` em atividade). A carga sem índices ainda não foi medida com a base real. Base legal decidida (padrão de mercado, ver pendências), sem esperar advogado |
 | 6 | Enriquecimento com Google Places e pontuação por regras simples | pendente |
 | 7 | Campanhas manuais (sem integração com anúncios) e painel de indicadores | pendente. Começa por motivo de perda (Perdido) e valor da venda (Ganho) no funil |
 | 8 | Revisão final: erros, estados vazios, testes dos fluxos críticos, segurança, celular | pendente |
@@ -76,13 +76,14 @@ Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `np
 - Senha do PostgreSQL com símbolos (`@ # / :`) precisa ser codificada na `DATABASE_URL` (`@` vira `%40`).
 - No PowerShell, se o `npm` for bloqueado: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 - Não rode `npm audit fix --force`: rebaixaria `eslint-config-next` e `drizzle-kit` para versões antigas. Os avisos atuais são de ferramentas de desenvolvimento (veja `docs/arquitetura.md`).
+- Acentos quebrados na saída dos scripts ("concluÃ­do") no Windows PowerShell 5.1: é só a exibição. Corrige com `[Console]::OutputEncoding = [Text.Encoding]::UTF8` (pode ir no perfil do PowerShell).
 - Fontes vêm do pacote `geist`, não do Google Fonts.
 - O PGlite em modo servidor só aceita várias conexões com `maxConnections` maior que 1. Isso é só do ambiente de teste, não do produto.
 
 ## Pendências e riscos conhecidos
 
 - Sem recuperação de senha e sem verificação de e-mail (dependem de provedor de e-mail). **Obrigatório antes de abrir para clientes.**
-- Falta registrar a base legal de cada lead (LGPD) e criar exclusão a pedido do titular. Combinar com advogado.
+- **LGPD (decidido em 23/10/2026, padrão de mercado):** leads da base pública usam "legítimo interesse" e guardam origem e base legal. MEIs entram, mas o CPF no fim da razão social é retirado na importação. CNPJ removido a pedido entra numa lista de exclusão e não volta. Página "remover meus dados" e política de privacidade antes de ir ao ar. Detalhes em `docs/arquitetura.md`.
 - O limite de tentativas de login vive na memória do servidor. Com mais de um servidor, mover para o banco. O limite por endereço depende do cabeçalho `x-forwarded-for`.
 - **Regra de duplicados (decidida em 22/10/2026, no banco e no repositório desde 23/10):** lead com CNPJ é único pelo CNPJ dentro da empresa. E-mail e telefone são únicos só entre leads sem CNPJ (manual e planilha). O CNPJ pode ser alfanumérico (regra da Receita desde 07/2026): use `src/modules/leads/cnpj.ts`, nunca "14 números". Falta o aviso na tela "contato compartilhado com N leads" (entra com a busca).
 - Ainda há textos visíveis escritos na lógica (motivos de linha recusada em `src/modules/leads/importacao.ts` e `csv.ts`, mensagens em `acoes.ts`), fora do `pt-BR.ts`. Mover antes da etapa 8.
