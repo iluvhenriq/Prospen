@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { CampanhasDoLead } from "@/components/campanhas/campanhas-do-lead";
 import { FormularioEtapa } from "@/components/funil/formulario-etapa";
+import { FormularioResultado } from "@/components/funil/formulario-resultado";
 import { HistoricoEtapas } from "@/components/funil/historico-etapas";
 import { SeloEtapa } from "@/components/funil/selo-etapa";
 import { EtiquetasLead } from "@/components/leads/etiquetas-lead";
 import { FormularioLead } from "@/components/leads/formulario-lead";
+import { SeloPontuacao, textoDosMotivos } from "@/components/pontuacao/selo-pontuacao";
 import { NotasLead } from "@/components/leads/notas-lead";
 import { Alerta } from "@/components/ui/alerta";
 import { Botao } from "@/components/ui/botao";
@@ -20,10 +23,12 @@ import {
 } from "@/components/ui/cartao";
 import { formatarData, formatarDataHora } from "@/lib/formato";
 import { ptBR } from "@/lib/i18n/pt-BR";
+import { obterCampanhasDoLead } from "@/modules/campanhas/consultas";
 import { atualizarLead, excluirLead } from "@/modules/leads/acoes";
 import { formatarCnpj } from "@/modules/leads/cnpj";
 import { obterDetalheDoLead } from "@/modules/leads/consultas";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
+import { pontuar } from "@/modules/pontuacao/regras";
 import { papelPode } from "@/modules/organizacoes/membros";
 
 export const metadata: Metadata = { title: ptBR.leads.detalhe.dados };
@@ -41,6 +46,8 @@ async function ConteudoDoLead({
 
   const { lead } = detalhe;
   const t = ptBR.leads;
+  const pontuacao = pontuar(lead);
+  const campanhas = await obterCampanhasDoLead(contexto, lead.id);
 
   return (
     <div className="flex flex-col gap-6">
@@ -111,6 +118,20 @@ async function ConteudoDoLead({
         <div className="flex flex-col gap-6">
           <Cartao>
             <CartaoCabecalho>
+              <CartaoTitulo>{ptBR.pontuacao.titulo}</CartaoTitulo>
+              <CartaoDescricao>{ptBR.pontuacao.pontos(pontuacao.pontos)}</CartaoDescricao>
+            </CartaoCabecalho>
+            <CartaoConteudo className="flex flex-col gap-2 text-sm text-texto-suave">
+              <div>
+                <SeloPontuacao {...pontuacao} />
+              </div>
+              <p>{textoDosMotivos(pontuacao.motivos)}</p>
+              {lead.cnpj ? null : <p className="text-xs">{ptBR.pontuacao.semDadosDaReceita}</p>}
+            </CartaoConteudo>
+          </Cartao>
+
+          <Cartao>
+            <CartaoCabecalho>
               <CartaoTitulo>{ptBR.funil.cartaoTitulo}</CartaoTitulo>
             </CartaoCabecalho>
             <CartaoConteudo className="flex flex-col gap-5">
@@ -128,10 +149,30 @@ async function ConteudoDoLead({
                 rotuloVisivel
                 rotuloBotao={ptBR.funil.salvarEtapa}
               />
+              <FormularioResultado
+                leadId={lead.id}
+                etapa={lead.etapa}
+                motivoPerda={lead.motivoPerda}
+                valorCentavos={lead.valorVendaCentavos}
+                moeda={lead.moedaVenda ?? detalhe.moeda}
+              />
               <HistoricoEtapas
                 historico={detalhe.historico}
                 criadoEm={lead.criadoEm}
                 fusoHorario={detalhe.fusoHorario}
+              />
+            </CartaoConteudo>
+          </Cartao>
+
+          <Cartao>
+            <CartaoCabecalho>
+              <CartaoTitulo>{ptBR.campanhas.doLeadTitulo}</CartaoTitulo>
+            </CartaoCabecalho>
+            <CartaoConteudo>
+              <CampanhasDoLead
+                leadId={lead.id}
+                doLead={campanhas.doLead.map(({ id, nome }) => ({ id, nome }))}
+                ativas={campanhas.ativas.map(({ id, nome }) => ({ id, nome }))}
               />
             </CartaoConteudo>
           </Cartao>

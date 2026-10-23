@@ -8,3 +8,4 @@ export * from "./historico-etapas";
 export * from "./importacoes";
 export * from "./organizacao-config";
 export * from "./base-cnpj";
+export * from "./campanhas";

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SeloEtapa } from "@/components/funil/selo-etapa";
+import { SeloPontuacao } from "@/components/pontuacao/selo-pontuacao";
 import { Botao, BotaoLink } from "@/components/ui/botao";
 import { Campo } from "@/components/ui/campo";
 import { Selecao } from "@/components/ui/campo-texto";
@@ -11,6 +12,7 @@ import {
   type ParametrosLista,
 } from "@/modules/leads/parametros";
 import { formatarTelefone } from "@/modules/leads/normalizacao";
+import { pontuar } from "@/modules/pontuacao/regras";
 import {
   ETAPAS_FUNIL,
   ORIGENS_LEAD,
@@ -127,6 +129,7 @@ export function ListaLeads({
                 <p className="min-w-0 truncate text-sm text-texto-suave sm:flex-1">{contato}</p>
               ) : null}
               <div className="flex flex-wrap items-center gap-1.5 sm:max-w-64 sm:justify-end">
+                <SeloPontuacao {...pontuar(lead)} />
                 <SeloEtapa etapa={lead.etapa} />
                 <Etiqueta>{ptBR.leads.origens[lead.origem]}</Etiqueta>
                 {etiquetas.map((etiqueta) => (

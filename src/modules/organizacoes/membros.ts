@@ -20,6 +20,10 @@ export const PAPEL_MINIMO = {
   trabalharComLeads: "member",
   // Apagar uma etiqueta tira ela de todos os leads, por isso exige mais que criar.
   gerenciarEtiquetas: "admin",
+  // Criar campanha e colocar leads nela é trabalho do dia a dia; apagar uma
+  // campanha some com o histórico dela, então exige mais.
+  trabalharComCampanhas: "member",
+  excluirCampanha: "admin",
   gerenciarEquipe: "admin",
   configurarEmpresa: "owner",
   excluirEmpresa: "owner",

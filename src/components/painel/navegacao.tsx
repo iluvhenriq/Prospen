@@ -9,6 +9,7 @@ const itens = [
   { href: "/painel", rotulo: ptBR.menu.painel, exato: true },
   { href: "/painel/leads", rotulo: ptBR.menu.leads, exato: false },
   { href: "/painel/funil", rotulo: ptBR.menu.funil, exato: false },
+  { href: "/painel/campanhas", rotulo: ptBR.menu.campanhas, exato: false },
   { href: "/painel/busca", rotulo: ptBR.menu.busca, exato: false },
 ];
 

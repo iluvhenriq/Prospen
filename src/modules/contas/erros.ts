@@ -1,22 +1,22 @@
 // Traduz os erros do Better Auth para mensagens que a pessoa entende.
 // Mensagens de login não revelam se o e-mail existe: "e-mail ou senha incorretos".
 
+import { ptBR } from "@/lib/i18n/pt-BR";
+
 const MENSAGENS: Record<string, string> = {
-  USER_ALREADY_EXISTS: "Já existe uma conta com este e-mail. Tente entrar.",
-  USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL:
-    "Já existe uma conta com este e-mail. Tente entrar.",
-  INVALID_EMAIL_OR_PASSWORD: "E-mail ou senha incorretos.",
-  INVALID_PASSWORD: "E-mail ou senha incorretos.",
-  INVALID_EMAIL: "Informe um e-mail válido.",
-  PASSWORD_TOO_SHORT: "A senha é curta demais.",
-  PASSWORD_TOO_LONG: "A senha é longa demais.",
-  EMAIL_NOT_VERIFIED: "Confirme seu e-mail antes de entrar.",
-  ORGANIZATION_ALREADY_EXISTS: "Já existe uma empresa com este identificador. Tente de novo.",
-  YOU_HAVE_REACHED_THE_MAXIMUM_NUMBER_OF_ORGANIZATIONS:
-    "Sua conta já tem uma empresa.",
+  USER_ALREADY_EXISTS: ptBR.mensagens.conta.contaJaExiste,
+  USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL: ptBR.mensagens.conta.contaJaExiste,
+  INVALID_EMAIL_OR_PASSWORD: ptBR.mensagens.conta.emailOuSenhaIncorretos,
+  INVALID_PASSWORD: ptBR.mensagens.conta.emailOuSenhaIncorretos,
+  INVALID_EMAIL: ptBR.mensagens.conta.emailInvalido,
+  PASSWORD_TOO_SHORT: ptBR.mensagens.conta.senhaCurtaDemais,
+  PASSWORD_TOO_LONG: ptBR.mensagens.conta.senhaLongaDemais,
+  EMAIL_NOT_VERIFIED: ptBR.mensagens.conta.emailNaoConfirmado,
+  ORGANIZATION_ALREADY_EXISTS: ptBR.mensagens.conta.identificadorDeEmpresaEmUso,
+  YOU_HAVE_REACHED_THE_MAXIMUM_NUMBER_OF_ORGANIZATIONS: ptBR.mensagens.conta.jaTemEmpresa,
 };
 
-const GENERICA = "Algo deu errado. Tente novamente em instantes.";
+const GENERICA = ptBR.mensagens.conta.generica;
 
 function lerCampo(erro: unknown, caminho: string[]): unknown {
   let atual: unknown = erro;
@@ -33,7 +33,7 @@ export function traduzirErroLogin(erro: unknown): string {
 
   const status = lerCampo(erro, ["statusCode"]) ?? lerCampo(erro, ["status"]);
   if (status === 429 || status === "TOO_MANY_REQUESTS") {
-    return "Muitas tentativas. Aguarde um instante e tente de novo.";
+    return ptBR.mensagens.conta.muitasTentativas;
   }
   return GENERICA;
 }

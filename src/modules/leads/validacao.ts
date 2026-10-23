@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { normalizarTelefone, telefoneValido } from "./normalizacao";
+import { ptBR } from "@/lib/i18n/pt-BR";
 
 // Validação de um lead. Roda no servidor, sempre, e é a MESMA para o cadastro
 // manual e para cada linha de uma planilha importada.
@@ -54,26 +55,26 @@ export function validarLead(entrada: EntradaLead): ResultadoValidacao {
   const erros: Partial<Record<CampoLead, string>> = {};
 
   const nome = limpar(entrada.nome);
-  if (nome.length < 2) erros.nome = "Informe o nome do lead.";
+  if (nome.length < 2) erros.nome = ptBR.mensagens.lead.nomeObrigatorio;
   else if (nome.length > LIMITES_LEAD.nome) {
-    erros.nome = `O nome pode ter no máximo ${LIMITES_LEAD.nome} caracteres.`;
+    erros.nome = ptBR.mensagens.lead.nomeLongo(LIMITES_LEAD.nome);
   }
 
   const empresa = limpar(entrada.empresa);
   if (empresa.length > LIMITES_LEAD.empresa) {
-    erros.empresa = `O nome da empresa pode ter no máximo ${LIMITES_LEAD.empresa} caracteres.`;
+    erros.empresa = ptBR.mensagens.lead.empresaLonga(LIMITES_LEAD.empresa);
   }
 
   const email = limpar(entrada.email);
   if (email !== "") {
     if (email.length > LIMITES_LEAD.email || !emailValido.safeParse(email).success) {
-      erros.email = "Informe um e-mail válido.";
+      erros.email = ptBR.mensagens.lead.emailInvalido;
     }
   }
 
   const paisInformado = limpar(entrada.pais).toUpperCase();
   const pais = paisInformado === "" ? "BR" : paisInformado;
-  if (!/^[A-Z]{2}$/.test(pais)) erros.pais = "Informe o país com duas letras, como BR.";
+  if (!/^[A-Z]{2}$/.test(pais)) erros.pais = ptBR.mensagens.lead.paisInvalido;
 
   const telefone = limpar(entrada.telefone);
   if (telefone !== "") {
@@ -84,7 +85,7 @@ export function validarLead(entrada: EntradaLead): ResultadoValidacao {
       !telefoneValido(normalizado, erros.pais ? "BR" : pais)
     ) {
       erros.telefone =
-        pais === "BR" ? "Informe o telefone com DDD." : "Informe um telefone válido.";
+        pais === "BR" ? ptBR.mensagens.lead.telefoneComDdd : ptBR.mensagens.lead.telefoneInvalido;
     }
   }
 

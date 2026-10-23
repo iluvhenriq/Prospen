@@ -27,12 +27,16 @@ describe("arquitetura", () => {
     "notas",
     "historicoEtapas",
     "importacoes",
+    "campanhas",
+    "campanhaLeads",
   ];
-  const ARQUIVOS_DE_TABELA = ["leads", "etiquetas", "notas", "historico-etapas", "importacoes"];
+  const ARQUIVOS_DE_TABELA = ["leads", "etiquetas", "notas", "historico-etapas", "importacoes", "campanhas"];
 
-  it("só os repositórios e a pasta do banco usam as tabelas de leads, etiquetas, notas, histórico e importações", () => {
+  it("só os repositórios e a pasta do banco usam as tabelas de leads, etiquetas, notas, histórico, importações e campanhas", () => {
+    // O repositório de campanhas lê os leads para contar os resultados de cada
+    // campanha; só ele, e não a pasta inteira de campanhas.
     const permitido = (f: string) =>
-      f.startsWith("src/modules/leads/") || f.startsWith("src/db/");
+      f.startsWith("src/modules/leads/") || f === "src/modules/campanhas/repositorio.ts" || f.startsWith("src/db/");
 
     const infratores = todos.filter((arquivo) => {
       const nome = caminho(arquivo);

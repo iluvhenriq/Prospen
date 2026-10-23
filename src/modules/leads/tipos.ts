@@ -8,8 +8,9 @@ export type {
   Etiqueta,
   Importacao,
   Lead,
+  MotivoPerda,
   Nota,
   OcorrenciaImportacao,
   OrigemLead,
 } from "@/db/schema";
-export { CORES_ETIQUETA, ETAPAS_FUNIL, ORIGENS_LEAD } from "@/db/schema";
+export { CORES_ETIQUETA, ETAPAS_FUNIL, MOTIVOS_PERDA, ORIGENS_LEAD } from "@/db/schema";

@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, date, index, integer, pgTable, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, check, date, index, integer, pgTable, smallint, text, timestamp } from "drizzle-orm/pg-core";
 
 // Base pública de CNPJ (dados abertos da Receita Federal), carregada por
 // `npm run cnpj:importar`. EXCEÇÃO CONSCIENTE à regra de isolamento: estas
@@ -25,9 +25,11 @@ export const baseCnpjEmpresas = pgTable("base_cnpj_empresas", {
   mesReferencia: text("mes_referencia").notNull(),
 });
 
-export const baseCnpjEstabelecimentos = pgTable(
-  "base_cnpj_estabelecimentos",
-  {
+// Colunas de um estabelecimento como vêm da Receita. Usadas pela tabela final
+// e pela tabela temporária da importação (src/modules/base-cnpj/repositorio.ts),
+// que é criada com "like" a partir da final e não entra nas migrações.
+export function colunasDoEstabelecimento() {
+  return {
     // CNPJ completo e padronizado, igual ao guardado no lead.
     cnpj: text("cnpj").primaryKey(),
     cnpjBasico: text("cnpj_basico").notNull(),
@@ -51,11 +53,29 @@ export const baseCnpjEstabelecimentos = pgTable(
     telefone2: text("telefone_2"),
     email: text("email"),
     mesReferencia: text("mes_referencia").notNull(),
+  };
+}
+
+export const baseCnpjEstabelecimentos = pgTable(
+  "base_cnpj_estabelecimentos",
+  {
+    ...colunasDoEstabelecimento(),
+    // Pontuação dos dados públicos (src/modules/pontuacao/regras.ts),
+    // calculada ao passar da tabela temporária para esta, no fim da importação.
+    // A busca mostra os maiores primeiro.
+    pontuacao: smallint("pontuacao").notNull().default(0),
   },
   (tabela) => [
-    // Buscas da etapa 5: por região e por atividade.
-    index("base_cnpj_estab_uf_municipio_idx").on(tabela.uf, tabela.municipioCodigo),
-    index("base_cnpj_estab_cnae_idx").on(tabela.cnaePrincipal, tabela.uf),
+    // Buscas: por estado, região e atividade, já na ordem da pontuação (maior
+    // primeiro, desempate pelo CNPJ). Mesmos nomes em INDICES_DE_BUSCA, no repositório.
+    index("base_cnpj_estab_uf_pontuacao_idx").on(tabela.uf, tabela.pontuacao.desc(), tabela.cnpj),
+    index("base_cnpj_estab_uf_municipio_idx").on(
+      tabela.uf,
+      tabela.municipioCodigo,
+      tabela.pontuacao.desc(),
+      tabela.cnpj,
+    ),
+    index("base_cnpj_estab_cnae_idx").on(tabela.cnaePrincipal, tabela.uf, tabela.pontuacao.desc(), tabela.cnpj),
     index("base_cnpj_estab_basico_idx").on(tabela.cnpjBasico),
     check("base_cnpj_estab_cnpj_formato", sql`${tabela.cnpj} ~ '^[0-9A-Z]{12}[0-9]{2}$'`),
     check("base_cnpj_estab_uf_formato", sql`${tabela.uf} ~ '^[A-Z]{2}$'`),

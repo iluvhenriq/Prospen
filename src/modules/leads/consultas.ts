@@ -70,6 +70,8 @@ export type DetalheDoLead = {
   notas: NotaComAutor[];
   historico: RegistroEtapaComAutor[];
   fusoHorario: string;
+  // Moeda da empresa, para o valor da venda.
+  moeda: string;
   // Quantos outros leads da empresa usam o mesmo e-mail e o mesmo telefone.
   compartilhado: { email: number; telefone: number };
 };
@@ -103,6 +105,7 @@ export async function obterDetalheDoLead(
     notas,
     historico,
     fusoHorario: configuracao.fusoHorario,
+    moeda: configuracao.moeda,
     compartilhado,
   };
 }

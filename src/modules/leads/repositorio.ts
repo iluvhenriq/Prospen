@@ -4,7 +4,9 @@ import {
   desc,
   eq,
   exists,
+  gte,
   inArray,
+  isNotNull,
   isNull,
   ne,
   or,
@@ -18,6 +20,7 @@ import {
   leads,
   type EtapaFunil,
   type Lead,
+  type MotivoPerda,
   type NovoLead,
   type OrigemLead,
 } from "@/db/schema";
@@ -46,6 +49,30 @@ import type { DadosLead } from "./validacao";
 export type DadosAtualizacaoLead = Partial<
   Pick<NovoLead, "nome" | "empresa" | "email" | "telefone" | "pais">
 >;
+
+export type IndicadoresDosLeads = {
+  porEtapa: Partial<Record<EtapaFunil, number>>;
+  porOrigem: Partial<Record<OrigemLead, number>>;
+  // Leads em "perdido", por motivo (nulo = sem motivo informado).
+  porMotivo: { motivo: MotivoPerda | null; total: number }[];
+  // Vendas com valor informado, por moeda (normalmente uma só, a da empresa).
+  vendas: { moeda: string; centavos: number; vendas: number }[];
+  novos: number;
+};
+
+// Lead vindo da busca na base pública, com a cópia dos dados da Receita.
+export type LeadDaBaseCnpj = {
+  nome: string;
+  empresa: string | null;
+  email: string | null;
+  telefone: string | null;
+  cnpj: string;
+  porte: string | null;
+  naturezaJuridica: string | null;
+  dataAbertura: string | null;
+  matriz: boolean | null;
+  cnaePrincipal: string | null;
+};
 
 export type FiltrosLeads = {
   // Texto digitado na busca. Cada palavra precisa aparecer no nome, empresa,
@@ -258,10 +285,7 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
     // existe nesta empresa é pulado. Base legal: legítimo interesse sobre dado
     // tornado público pela Receita, implícita na origem "busca_cnpj" (decisão
     // de LGPD de 23/10/2026, docs/arquitetura.md). Devolve quantos entraram.
-    async criarDaBaseCnpj(
-      lista: { nome: string; empresa: string | null; email: string | null; telefone: string | null; cnpj: string }[],
-      criadoPorId: string | null,
-    ): Promise<number> {
+    async criarDaBaseCnpj(lista: LeadDaBaseCnpj[], criadoPorId: string | null): Promise<number> {
       if (lista.length === 0) return 0;
       if (lista.some((item) => !cnpjValido(item.cnpj))) throw new Error("CNPJ inválido.");
       const inseridos = await db
@@ -273,6 +297,11 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
             email: item.email,
             telefone: item.telefone,
             cnpj: item.cnpj,
+            porte: item.porte,
+            naturezaJuridica: item.naturezaJuridica,
+            dataAbertura: item.dataAbertura,
+            matriz: item.matriz,
+            cnaePrincipal: item.cnaePrincipal,
             pais: "BR",
             origem: "busca_cnpj" as const,
             ...camposNormalizados(item.email, item.telefone, "BR"),
@@ -283,6 +312,77 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
         .onConflictDoNothing()
         .returning({ id: leads.id });
       return inseridos.length;
+    },
+
+    // Identificadores dos leads que passam no filtro da lista (para colocar
+    // numa campanha de uma vez). Até "limite", dos mais novos.
+    async idsPorFiltro(filtros: FiltrosLeads, limite: number): Promise<string[]> {
+      const linhas = await db
+        .select({ id: leads.id })
+        .from(leads)
+        .where(condicoes(filtros))
+        .orderBy(desc(leads.criadoEm), desc(leads.id))
+        .limit(Math.max(limite, 0));
+      return linhas.map((linha) => linha.id);
+    },
+
+    // Números do painel (etapa 7), só desta empresa. Contagens agrupadas no
+    // banco; nenhum lead individual sai daqui.
+    async indicadores(novosDesde: Date): Promise<IndicadoresDosLeads> {
+      const [porEtapa, porOrigem, porMotivo, vendas, [novos]] = await Promise.all([
+        db.select({ chave: leads.etapa, total: count() }).from(leads).where(daOrganizacao).groupBy(leads.etapa),
+        db.select({ chave: leads.origem, total: count() }).from(leads).where(daOrganizacao).groupBy(leads.origem),
+        db
+          .select({ chave: leads.motivoPerda, total: count() })
+          .from(leads)
+          .where(and(daOrganizacao, eq(leads.etapa, "perdido")))
+          .groupBy(leads.motivoPerda),
+        db
+          .select({
+            moeda: leads.moedaVenda,
+            total: sql<string>`sum(${leads.valorVendaCentavos})`,
+            vendas: count(),
+          })
+          .from(leads)
+          .where(and(daOrganizacao, eq(leads.etapa, "ganho"), isNotNull(leads.valorVendaCentavos)))
+          .groupBy(leads.moedaVenda),
+        db
+          .select({ total: count() })
+          .from(leads)
+          .where(and(daOrganizacao, gte(leads.criadoEm, novosDesde))),
+      ]);
+      return {
+        porEtapa: Object.fromEntries(porEtapa.map((linha) => [linha.chave, linha.total])),
+        porOrigem: Object.fromEntries(porOrigem.map((linha) => [linha.chave, linha.total])),
+        porMotivo: porMotivo.map((linha) => ({ motivo: linha.chave, total: linha.total })),
+        // A soma vem como texto do PostgreSQL (bigint); cabe em número com folga.
+        vendas: vendas
+          .filter((linha): linha is typeof linha & { moeda: string } => Boolean(linha.moeda))
+          .map((linha) => ({ moeda: linha.moeda, centavos: Number(linha.total), vendas: linha.vendas })),
+        novos: novos?.total ?? 0,
+      };
+    },
+
+    // Motivo da perda: só grava se o lead estiver em "perdido" AGORA (a
+    // condição vai no próprio comando, então não há janela entre conferir e
+    // gravar). Falso se o lead não existe nesta empresa ou mudou de etapa.
+    async registrarMotivoPerda(id: string, motivo: MotivoPerda | null): Promise<boolean> {
+      const linhas = await db
+        .update(leads)
+        .set({ motivoPerda: motivo })
+        .where(and(daOrganizacao, eq(leads.id, id), eq(leads.etapa, "perdido")))
+        .returning({ id: leads.id });
+      return linhas.length > 0;
+    },
+
+    // Valor da venda, em centavos, na moeda informada. Mesma regra: só em "ganho".
+    async registrarValorVenda(id: string, centavos: number | null, moeda: string): Promise<boolean> {
+      const linhas = await db
+        .update(leads)
+        .set({ valorVendaCentavos: centavos, moedaVenda: centavos === null ? null : moeda })
+        .where(and(daOrganizacao, eq(leads.id, id), eq(leads.etapa, "ganho")))
+        .returning({ id: leads.id });
+      return linhas.length > 0;
     },
 
     // Quantos OUTROS leads desta empresa têm o mesmo e-mail ou telefone. Na
@@ -301,6 +401,16 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
         lead.telefoneNormalizado ? contar(eq(leads.telefoneNormalizado, lead.telefoneNormalizado)) : 0,
       ]);
       return { email, telefone };
+    },
+
+    // Identificadores dos leads desta empresa com estes CNPJs.
+    async idsPorCnpj(cnpjs: string[]): Promise<string[]> {
+      if (cnpjs.length === 0) return [];
+      const linhas = await db
+        .select({ id: leads.id })
+        .from(leads)
+        .where(and(daOrganizacao, inArray(leads.cnpj, cnpjs)));
+      return linhas.map((linha) => linha.id);
     },
 
     // Quais destes CNPJs já são leads nesta empresa (para marcar na busca).
@@ -363,9 +473,15 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
         if (!atual) return null;
         if (atual.etapa === etapa) return { lead: atual, mudou: false };
 
+        // O resultado (motivo da perda, valor da venda) só vale na etapa dele.
         const [lead] = await tx
           .update(leads)
-          .set({ etapa, etapaAtualizadaEm: new Date() })
+          .set({
+            etapa,
+            etapaAtualizadaEm: new Date(),
+            ...(etapa === "perdido" ? {} : { motivoPerda: null }),
+            ...(etapa === "ganho" ? {} : { valorVendaCentavos: null, moedaVenda: null }),
+          })
           .where(and(daOrganizacao, eq(leads.id, id)))
           .returning();
         await tx.insert(historicoEtapas).values({

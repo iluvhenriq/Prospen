@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CORES_ETIQUETA, type CorEtiqueta } from "@/db/schema/etiquetas";
-import { ETAPAS_FUNIL, type EtapaFunil } from "@/db/schema/leads";
+import { ETAPAS_FUNIL, MOTIVOS_PERDA, type EtapaFunil, type MotivoPerda } from "@/db/schema/leads";
+import { ptBR } from "@/lib/i18n/pt-BR";
 
 // Validação de notas, etiquetas, etapas e identificadores recebidos das telas.
 // Roda no servidor, sempre. O que vem do navegador nunca é confiado.
@@ -19,11 +20,11 @@ function limparLinha(valor: string): string {
 
 export function validarNomeEtiqueta(valor: string): ResultadoTexto {
   const texto = limparLinha(valor);
-  if (texto === "") return { ok: false, erro: "Informe o nome da etiqueta." };
+  if (texto === "") return { ok: false, erro: ptBR.mensagens.etiqueta.nomeObrigatorio };
   if (texto.length > TAMANHO_MAXIMO_ETIQUETA) {
     return {
       ok: false,
-      erro: `O nome pode ter no máximo ${TAMANHO_MAXIMO_ETIQUETA} caracteres.`,
+      erro: ptBR.mensagens.etiqueta.nomeLongo(TAMANHO_MAXIMO_ETIQUETA),
     };
   }
   return { ok: true, texto };
@@ -37,11 +38,11 @@ export function validarTextoNota(valor: string): ResultadoTexto {
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, " ")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
-  if (texto === "") return { ok: false, erro: "Escreva a nota antes de adicionar." };
+  if (texto === "") return { ok: false, erro: ptBR.mensagens.nota.vazia };
   if (texto.length > TAMANHO_MAXIMO_NOTA) {
     return {
       ok: false,
-      erro: `A nota pode ter no máximo ${TAMANHO_MAXIMO_NOTA} caracteres.`,
+      erro: ptBR.mensagens.nota.longa(TAMANHO_MAXIMO_NOTA),
     };
   }
   return { ok: true, texto };
@@ -57,6 +58,13 @@ const esquemaEtapa = z.enum(ETAPAS_FUNIL);
 // a ação recusa, em vez de trocar por uma etapa padrão sem a pessoa pedir.
 export function etapaValida(valor: unknown): EtapaFunil | null {
   const resultado = esquemaEtapa.safeParse(valor);
+  return resultado.success ? resultado.data : null;
+}
+
+const esquemaMotivoPerda = z.enum(MOTIVOS_PERDA);
+
+export function motivoPerdaValido(valor: unknown): MotivoPerda | null {
+  const resultado = esquemaMotivoPerda.safeParse(valor);
   return resultado.success ? resultado.data : null;
 }
 

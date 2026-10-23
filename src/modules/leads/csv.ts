@@ -6,6 +6,7 @@ import {
   normalizarTexto,
 } from "./normalizacao";
 import { ROTULOS_CAMPO, validarLead, type DadosLead } from "./validacao";
+import { ptBR } from "@/lib/i18n/pt-BR";
 
 // Leitura e validação de planilhas CSV. Funções puras: não usam banco nem rede.
 // A parte que compara com os leads já existentes fica em importacao.ts.
@@ -71,7 +72,7 @@ export function lerCsv(texto: string): TabelaCsv {
   const erroDeAspas = resultado.errors.find((erro) => erro.type === "Quotes");
   if (erroDeAspas) {
     problemas.push(
-      "O arquivo tem aspas sem fechar. Confira se o CSV foi salvo corretamente.",
+      ptBR.mensagens.importacao.aspasSemFechar,
     );
   }
 
@@ -179,7 +180,7 @@ export function mapearColunas(cabecalhos: string[]): Mapeamento {
 }
 
 export const MENSAGEM_SEM_COLUNA_DE_NOME =
-  "Não encontrei a coluna com o nome dos leads. Na primeira linha da planilha, use um destes títulos: Nome, Empresa, Razão social ou Nome fantasia.";
+  ptBR.mensagens.importacao.semColunaDeNome;
 
 export type LinhaValida = { linha: number; dados: DadosLead };
 
@@ -250,8 +251,8 @@ export function classificarLinhas(
         tipo: "duplicada",
         motivo:
           linhaDoEmail !== undefined
-            ? `E-mail repetido da linha ${linhaDoEmail}.`
-            : `Telefone repetido da linha ${linhaDoTelefone}.`,
+            ? ptBR.mensagens.importacao.emailRepetido(linhaDoEmail)
+            : ptBR.mensagens.importacao.telefoneRepetido(linhaDoTelefone as number),
       });
       continue;
     }

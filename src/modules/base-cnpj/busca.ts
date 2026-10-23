@@ -1,9 +1,10 @@
 import "server-only";
 import { getDb } from "@/db/client";
+import { repositorioCampanhas } from "@/modules/campanhas/repositorio";
 import { repositorioLeads } from "@/modules/leads/repositorio";
 import type { Contexto } from "@/modules/organizacoes/contexto";
 import { RESULTADOS_POR_PAGINA, type ParametrosBusca } from "./parametros";
-import { repositorioBaseCnpj, type ResultadoDaBusca } from "./repositorio";
+import { repositorioBaseCnpj, type Cursor, type ResultadoDaBusca } from "./repositorio";
 
 // Consulta usada pela tela de busca na base pública de CNPJ. A base é a mesma
 // para todas as empresas; o que é da empresa (quais já são leads) passa pelo
@@ -16,9 +17,11 @@ export type TelaDeBusca = {
   atividades: { codigo: string; descricao: string }[] | null;
   resultados: ResultadoDaBusca[];
   jaSaoLeads: Set<string>;
-  // CNPJ para a próxima página, ou nulo se acabou.
-  proximo: string | null;
+  // Onde começa a próxima página, ou nulo se acabou.
+  proximo: Cursor | null;
   buscou: boolean;
+  // Campanhas ativas, para colocar as empresas adicionadas direto numa delas.
+  campanhasAtivas: { id: string; nome: string }[];
 };
 
 export async function obterTelaDeBusca(contexto: Contexto, parametros: ParametrosBusca): Promise<TelaDeBusca> {
@@ -26,7 +29,16 @@ export async function obterTelaDeBusca(contexto: Contexto, parametros: Parametro
   const base = repositorioBaseCnpj(db);
   const estados = await base.estadosCarregados();
   const uf = estados.some((estado) => estado.uf === parametros.uf) ? parametros.uf : undefined;
-  const vazio = { estados, municipios: [], atividades: null, resultados: [], jaSaoLeads: new Set<string>(), proximo: null, buscou: false };
+  const vazio = {
+    estados,
+    municipios: [],
+    atividades: null,
+    resultados: [],
+    jaSaoLeads: new Set<string>(),
+    proximo: null,
+    buscou: false,
+    campanhasAtivas: [],
+  };
   // CNPJ digitado e válido: busca só por ele, em qualquer estado carregado.
   const porCnpj = Boolean(parametros.cnpj);
   if (!uf && !porCnpj) return vazio;
@@ -50,9 +62,10 @@ export async function obterTelaDeBusca(contexto: Contexto, parametros: Parametro
     RESULTADOS_POR_PAGINA + 1,
   );
   const resultados = linhas.slice(0, RESULTADOS_POR_PAGINA);
-  const jaSaoLeads = await repositorioLeads(db, contexto.organizacao.id).cnpjsQueJaSaoLeads(
-    resultados.map((linha) => linha.cnpj),
-  );
+  const [jaSaoLeads, campanhas] = await Promise.all([
+    repositorioLeads(db, contexto.organizacao.id).cnpjsQueJaSaoLeads(resultados.map((linha) => linha.cnpj)),
+    repositorioCampanhas(db, contexto.organizacao.id).listar(""),
+  ]);
 
   return {
     estados,
@@ -60,7 +73,13 @@ export async function obterTelaDeBusca(contexto: Contexto, parametros: Parametro
     atividades,
     resultados,
     jaSaoLeads,
-    proximo: linhas.length > RESULTADOS_POR_PAGINA ? resultados[resultados.length - 1].cnpj : null,
+    proximo:
+      linhas.length > RESULTADOS_POR_PAGINA
+        ? { pontos: resultados[resultados.length - 1].pontuacao, cnpj: resultados[resultados.length - 1].cnpj }
+        : null,
     buscou: true,
+    campanhasAtivas: campanhas
+      .filter((campanha) => campanha.situacao === "ativa")
+      .map((campanha) => ({ id: campanha.id, nome: campanha.nome })),
   };
 }

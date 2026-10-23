@@ -15,6 +15,7 @@ import { normalizarEmail, normalizarTelefone } from "./normalizacao";
 import { repositorioImportacoes } from "./repositorio-importacoes";
 import { repositorioLeads, type RepositorioLeads } from "./repositorio";
 import type { DadosLead } from "./validacao";
+import { ptBR } from "@/lib/i18n/pt-BR";
 
 // Importação de planilha em duas fases: ANALISAR (não grava nada, mostra o que
 // vai acontecer) e IMPORTAR (grava). As duas usam exatamente a mesma análise.
@@ -80,11 +81,11 @@ export async function analisarCsv(
   nomeArquivo: string,
   pais: string,
 ): Promise<AnaliseImportacao | ErroImportacao> {
-  if (bytes.length === 0) return { ok: false, erro: "O arquivo está vazio." };
+  if (bytes.length === 0) return { ok: false, erro: ptBR.mensagens.importacao.arquivoVazio };
   if (bytes.length > LIMITE_BYTES) {
     return {
       ok: false,
-      erro: `O arquivo é grande demais. O limite é ${LIMITE_BYTES / 1024 / 1024} MB. Divida a planilha em partes.`,
+      erro: ptBR.mensagens.importacao.arquivoGrande(LIMITE_BYTES / 1024 / 1024),
     };
   }
   // Arquivos .xlsx são ZIP ("PK") e PDFs começam com "%PDF": não são CSV.
@@ -93,14 +94,14 @@ export async function analisarCsv(
   if (ehZip || ehPdf) {
     return {
       ok: false,
-      erro: "Este arquivo não é um CSV. Se for uma planilha do Excel, use Arquivo, Salvar como, CSV UTF-8, e envie o arquivo salvo.",
+      erro: ptBR.mensagens.importacao.naoEhCsv,
     };
   }
 
   const tabela = lerCsv(decodificarTexto(bytes));
   if (tabela.problemas.length > 0) return { ok: false, erro: tabela.problemas[0] };
   if (tabela.cabecalhos.length === 0) {
-    return { ok: false, erro: "O arquivo não tem nenhum dado." };
+    return { ok: false, erro: ptBR.mensagens.importacao.semDados };
   }
 
   const mapa = mapearColunasOuNulo(tabela.cabecalhos);
@@ -109,13 +110,13 @@ export async function analisarCsv(
   if (tabela.linhas.length === 0) {
     return {
       ok: false,
-      erro: "A planilha tem só a linha de títulos, sem nenhum lead abaixo dela.",
+      erro: ptBR.mensagens.importacao.soTitulos,
     };
   }
   if (tabela.linhas.length > LIMITE_LINHAS) {
     return {
       ok: false,
-      erro: `A planilha tem ${tabela.linhas.length.toLocaleString("pt-BR")} linhas. O limite é ${LIMITE_LINHAS.toLocaleString("pt-BR")} por importação. Divida em partes.`,
+      erro: ptBR.mensagens.importacao.linhasDemais(tabela.linhas.length, LIMITE_LINHAS),
     };
   }
 
@@ -139,10 +140,10 @@ export async function analisarCsv(
     const telefone = normalizarTelefone(dados.telefone, pais);
     if (email && existentes.emails.has(email)) {
       duplicadas++;
-      ocorrencias.push({ linha, tipo: "duplicada", motivo: "E-mail já cadastrado." });
+      ocorrencias.push({ linha, tipo: "duplicada", motivo: ptBR.mensagens.importacao.emailJaCadastrado });
     } else if (telefone && existentes.telefones.has(telefone)) {
       duplicadas++;
-      ocorrencias.push({ linha, tipo: "duplicada", motivo: "Telefone já cadastrado." });
+      ocorrencias.push({ linha, tipo: "duplicada", motivo: ptBR.mensagens.importacao.telefoneJaCadastrado });
     } else {
       aceitas.push(dados);
     }
@@ -153,7 +154,7 @@ export async function analisarCsv(
   const avisos: string[] = [];
   if (mapa.email === null && mapa.telefone === null) {
     avisos.push(
-      "A planilha não tem coluna de e-mail nem de telefone. Os leads serão criados sem contato.",
+      ptBR.mensagens.importacao.semColunaDeContato,
     );
   }
 

@@ -59,7 +59,8 @@ describe("busca na base pública de CNPJ", () => {
     await amb.db.insert(baseCnpjEmpresas).values([
       { cnpjBasico: PADARIA.slice(0, 8), razaoSocial: "PADARIA MODELO LTDA", naturezaJuridica: "2062", mesReferencia: "2026-10" },
       { cnpjBasico: MEI_PADARIA.slice(0, 8), razaoSocial: "JOSE DA SILVA", naturezaJuridica: "2135", mesReferencia: "2026-10" },
-      { cnpjBasico: OFICINA.slice(0, 8), razaoSocial: "OFICINA BOA LTDA", naturezaJuridica: "2062", mesReferencia: "2026-10" },
+      // Pequeno porte (+15): passa à frente das outras na ordem da busca.
+      { cnpjBasico: OFICINA.slice(0, 8), razaoSocial: "OFICINA BOA LTDA", naturezaJuridica: "2062", porte: "03", mesReferencia: "2026-10" },
       { cnpjBasico: EXCLUIDA.slice(0, 8), razaoSocial: "PADARIA SAIU LTDA", naturezaJuridica: "2062", mesReferencia: "2026-10" },
     ]);
     await base().gravarCnaes([
@@ -67,6 +68,10 @@ describe("busca na base pública de CNPJ", () => {
       { codigo: "4520001", descricao: "Serviços de manutenção e reparação mecânica de veículos automotores" },
     ]);
     await base().excluirCnpj(EXCLUIDA);
+    // Mesmo caminho do fim da importação: regrava o estado já com a pontuação.
+    await base().prepararCarga();
+    await base().copiarEstadoParaCarga("SP");
+    await base().concluirCarga("SP");
     await base().registrarCarga("SP", "2026-10");
   });
 
@@ -84,10 +89,19 @@ describe("busca na base pública de CNPJ", () => {
     ]);
   });
 
+  it("ordena pela pontuação: telefone 15 + e-mail próprio 25 + matriz 5, porte e MEI mudam", async () => {
+    const linhas = await base().buscar({ uf: "SP", semMei: false }, null, 50);
+    expect(linhas.map((linha) => [linha.cnpj, linha.pontuacao])).toEqual([
+      [OFICINA, 60],
+      [PADARIA, 45],
+      [MEI_PADARIA, 30],
+    ]);
+  });
+
   it("filtra por estado, deixa MEI de fora por padrão e nunca mostra quem pediu exclusão", async () => {
-    expect(cnpjs(await base().buscar({ uf: "SP", semMei: true }, null, 50))).toEqual([PADARIA, OFICINA]);
+    expect(cnpjs(await base().buscar({ uf: "SP", semMei: true }, null, 50))).toEqual([OFICINA, PADARIA]);
     const comMei = await base().buscar({ uf: "SP", semMei: false }, null, 50);
-    expect(cnpjs(comMei)).toEqual([PADARIA, MEI_PADARIA, OFICINA]);
+    expect(cnpjs(comMei)).toEqual([OFICINA, PADARIA, MEI_PADARIA]);
     expect(comMei.find((linha) => linha.cnpj === MEI_PADARIA)?.mei).toBe(true);
   });
 
@@ -111,28 +125,42 @@ describe("busca na base pública de CNPJ", () => {
     expect(await base().buscar({ uf: "", cnpj: EXCLUIDA, semMei: false }, null, 50)).toEqual([]);
   });
 
-  it("pagina pelo último CNPJ mostrado", async () => {
+  it("pagina pela pontuação e CNPJ do último mostrado", async () => {
     const primeira = await base().buscar({ uf: "SP", semMei: false }, null, 2);
-    expect(cnpjs(primeira)).toEqual([PADARIA, MEI_PADARIA]);
-    expect(cnpjs(await base().buscar({ uf: "SP", semMei: false }, MEI_PADARIA, 2))).toEqual([OFICINA]);
+    expect(cnpjs(primeira)).toEqual([OFICINA, PADARIA]);
+    expect(cnpjs(await base().buscar({ uf: "SP", semMei: false }, { pontos: 45, cnpj: PADARIA }, 2))).toEqual([
+      MEI_PADARIA,
+    ]);
+    // Mesma pontuação: o desempate pelo CNPJ não repete nem pula ninguém.
+    expect(cnpjs(await base().buscar({ uf: "SP", semMei: false }, { pontos: 45, cnpj: "00000000000000" }, 5))).toEqual([
+      PADARIA,
+      MEI_PADARIA,
+    ]);
   });
 
   it("vira lead só na empresa que adicionou, sem duplicar e sem os excluídos", async () => {
     const dados = await base().paraVirarLead([PADARIA, EXCLUIDA]);
     expect(cnpjs(dados)).toEqual([PADARIA]);
 
-    const itens = dados.map((linha) => ({
-      nome: linha.nomeFantasia ?? "",
-      empresa: linha.razaoSocial,
-      email: linha.email,
-      telefone: linha.telefone,
-      cnpj: linha.cnpj,
+    const itens = dados.map(({ nomeFantasia, razaoSocial, ...resto }) => ({
+      ...resto,
+      nome: nomeFantasia ?? "",
+      empresa: razaoSocial,
     }));
     expect(await repositorioLeads(amb.db, empresaA).criarDaBaseCnpj(itens, ana.id)).toBe(1);
     expect(await repositorioLeads(amb.db, empresaA).criarDaBaseCnpj(itens, ana.id)).toBe(0);
 
     const [lead] = await repositorioLeads(amb.db, empresaA).listar({ origem: "busca_cnpj" });
-    expect(lead).toMatchObject({ nome: "PADARIA MODELO", empresa: "PADARIA MODELO LTDA", cnpj: PADARIA, pais: "BR" });
+    expect(lead).toMatchObject({
+      nome: "PADARIA MODELO",
+      empresa: "PADARIA MODELO LTDA",
+      cnpj: PADARIA,
+      pais: "BR",
+      // Cópia dos dados da Receita, usada na pontuação do lead.
+      naturezaJuridica: "2062",
+      matriz: true,
+      cnaePrincipal: "1091102",
+    });
 
     // Isolamento: a outra empresa não vê o lead e pode adicionar o mesmo CNPJ.
     expect([...(await repositorioLeads(amb.db, empresaA).cnpjsQueJaSaoLeads([PADARIA, OFICINA]))]).toEqual([PADARIA]);
@@ -143,7 +171,20 @@ describe("busca na base pública de CNPJ", () => {
   it("recusa CNPJ inválido ao criar lead", async () => {
     await expect(
       repositorioLeads(amb.db, empresaA).criarDaBaseCnpj(
-        [{ nome: "X", empresa: null, email: null, telefone: null, cnpj: "10000001000199" }],
+        [
+          {
+            nome: "X",
+            empresa: null,
+            email: null,
+            telefone: null,
+            cnpj: "10000001000199",
+            porte: null,
+            naturezaJuridica: null,
+            dataAbertura: null,
+            matriz: null,
+            cnaePrincipal: null,
+          },
+        ],
         ana.id,
       ),
     ).rejects.toThrow("CNPJ inválido");
@@ -158,13 +199,13 @@ describe("busca na base pública de CNPJ", () => {
 describe("filtros da busca no endereço", () => {
   it("lê valores válidos e descarta o resto", () => {
     expect(
-      lerParametrosBusca({ uf: "sp", cidade: "7107", atividade: "  padaria ", mei: "1", depois: "10.000.001/0001-90" }),
+      lerParametrosBusca({ uf: "sp", cidade: "7107", atividade: "  padaria ", mei: "1", depois: `45-${PADARIA}` }),
     ).toEqual({
       uf: "SP",
       municipio: "7107",
       atividade: "padaria",
       incluirMei: true,
-      depoisDe: PADARIA,
+      depoisDe: { pontos: 45, cnpj: PADARIA },
       cnpjDigitado: "",
       cnpj: undefined,
     });
@@ -193,6 +234,9 @@ describe("filtros da busca no endereço", () => {
   it("monta o endereço mantendo os filtros", () => {
     const parametros = lerParametrosBusca({ uf: "SP", atividade: "padaria" });
     expect(enderecoDaBusca(parametros)).toBe("/painel/busca?uf=SP&atividade=padaria");
-    expect(enderecoDaBusca(parametros, PADARIA)).toBe(`/painel/busca?uf=SP&atividade=padaria&depois=${PADARIA}`);
+    expect(enderecoDaBusca(parametros, { pontos: 45, cnpj: PADARIA })).toBe(
+      `/painel/busca?uf=SP&atividade=padaria&depois=45-${PADARIA}`,
+    );
+    expect(lerParametrosBusca({ depois: `101-${PADARIA}` }).depoisDe).toBeUndefined();
   });
 });

@@ -72,15 +72,31 @@ export async function importarEstado({
 
   const municipios = await lerMunicipios(pasta);
   await gravarCnaesDaPasta(repositorio, pasta);
-  await repositorio.removerIndicesDeBusca();
+  const apagadosAntes = await repositorio.contarEstabelecimentos(uf);
+
+  // Os arquivos vão para a tabela temporária. Enquanto isso, a tabela final e
+  // a busca continuam como estavam; a troca acontece só no fim.
+  await repositorio.prepararCarga();
   let resumo: ResumoImportacaoBase;
   try {
     resumo = await carregar({ repositorio, estabelecimentos, empresas, municipios, mes, uf, avisar, inicio });
+    resumo.apagadosAntes = apagadosAntes;
+
+    avisar("Trocando os dados do estado e calculando a pontuação...");
+    // Sem os índices de busca durante a troca: gravar milhões de linhas com
+    // eles atualizados a cada linha deixa tudo preso no disco.
+    await repositorio.removerIndicesDeBusca();
+    try {
+      resumo.gravados = await repositorio.concluirCarga(uf);
+      avisar(`Dados trocados (${segundosDesde(inicio)} s).`);
+    } finally {
+      // Volta os índices mesmo se a troca falhar no meio.
+      avisar("Recriando os índices de busca...");
+      await repositorio.recriarIndicesDeBusca();
+      avisar(`Índices prontos (${segundosDesde(inicio)} s).`);
+    }
   } finally {
-    // Volta os índices mesmo se a carga falhar no meio.
-    avisar("Recriando os índices de busca...");
-    await repositorio.recriarIndicesDeBusca();
-    avisar(`Índices prontos (${segundosDesde(inicio)} s).`);
+    await repositorio.descartarCarga();
   }
   // Só depois dos índices de volta: a lista de cidades lê por estado.
   await repositorio.registrarCarga(uf, mes);
@@ -125,10 +141,9 @@ async function carregar({
     ativosDoEstado: 0,
     gravados: 0,
     empresasGravadas: 0,
-    apagadosAntes: await repositorio.apagarUf(uf),
+    apagadosAntes: 0,
     segundos: 0,
   };
-  avisar(`Estado ${uf}: ${resumo.apagadosAntes} estabelecimentos antigos apagados.`);
 
   // Empresas que interessam: as que têm estabelecimento ativo no estado.
   const basicos = new Set<string>();
@@ -141,10 +156,11 @@ async function carregar({
     const gravarLote = async () => {
       const paraGravar = lote;
       lote = [];
-      // Somar só depois do await: "resumo.gravados += await ..." lê o total
-      // antes de esperar e perde o que outro arquivo somou no meio (aconteceu
-      // na carga de SP: o resumo dizia 4,7 milhões e o banco tinha 8,8).
-      const gravados = await repositorio.inserirEstabelecimentos(paraGravar);
+      // Só para acompanhar o progresso: o total final vem da troca, no fim
+      // (CNPJ repetido nos arquivos conta aqui, mas entra uma vez só).
+      // Somar depois do await: "total += await ..." perde o que outro
+      // arquivo somou no meio (aconteceu na carga de SP).
+      const gravados = await repositorio.inserirNaCarga(paraGravar);
       resumo.gravados += gravados;
     };
     for await (const colunas of lerZipDaReceita(arquivo, doEstado)) {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { formatarData } from "@/lib/formato";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import type { ColunaDoQuadro } from "@/modules/leads/repositorio";
+import { formatarValor } from "@/modules/leads/valor";
 import { FormularioEtapa } from "./formulario-etapa";
 import { SeloEtapa } from "./selo-etapa";
 
@@ -54,6 +55,18 @@ export function QuadroFunil({
                         <p className="mt-1 text-xs text-texto-suave">
                           {t.desde(formatarData(lead.etapaAtualizadaEm, fusoHorario))}
                         </p>
+                        {lead.etapa === "perdido" ? (
+                          <p className="text-xs font-medium text-texto">
+                            {lead.motivoPerda ? t.resultado.motivos[lead.motivoPerda] : t.resultado.motivoNaoInformado}
+                          </p>
+                        ) : null}
+                        {lead.etapa === "ganho" ? (
+                          <p className="text-xs font-medium text-musgo-800">
+                            {lead.valorVendaCentavos !== null && lead.moedaVenda
+                              ? formatarValor(lead.valorVendaCentavos, lead.moedaVenda)
+                              : t.resultado.valorNaoInformado}
+                          </p>
+                        ) : null}
                       </div>
                       <FormularioEtapa
                         leadId={lead.id}

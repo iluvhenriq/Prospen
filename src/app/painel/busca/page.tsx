@@ -61,13 +61,14 @@ async function ConteudoBusca({ searchParams }: { searchParams: PageProps<"/paine
       ) : (
         <>
           <p className="text-sm text-texto-suave" aria-live="polite">
-            {t.mostrando(tela.resultados.length)}
+            {t.mostrando(tela.resultados.length)}. {ptBR.pontuacao.ordemDaBusca}
           </p>
           {/* A chave troca a cada página: a marcação não passa de uma página para outra. */}
           <ResultadosBusca
-            key={`${parametros.depoisDe ?? ""}-${tela.resultados[0].cnpj}`}
+            key={`${parametros.depoisDe?.cnpj ?? ""}-${tela.resultados[0].cnpj}`}
             resultados={tela.resultados}
             jaSaoLeads={[...tela.jaSaoLeads]}
+            campanhasAtivas={tela.campanhasAtivas}
           />
           <div className="flex flex-wrap gap-2">
             {parametros.depoisDe ? (

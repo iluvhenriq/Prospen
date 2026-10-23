@@ -3,48 +3,49 @@ import {
   TAMANHO_MAXIMO_SENHA,
   TAMANHO_MINIMO_SENHA,
 } from "@/lib/auth-config";
+import { ptBR } from "@/lib/i18n/pt-BR";
 
 // Regras de validação dos formulários de conta. Rodam no servidor, sempre.
 // As mensagens são o que a pessoa lê na tela.
 
 const email = z
-  .string({ error: "Informe seu e-mail." })
+  .string({ error: ptBR.mensagens.conta.informeEmail })
   .trim()
   .toLowerCase()
-  .pipe(z.email("Informe um e-mail válido."))
-  .pipe(z.string().max(254, "Este e-mail é longo demais."));
+  .pipe(z.email(ptBR.mensagens.conta.emailInvalido))
+  .pipe(z.string().max(254, ptBR.mensagens.conta.emailLongo));
 
 export const esquemaCadastro = z.object({
   nome: z
-    .string({ error: "Informe seu nome." })
+    .string({ error: ptBR.mensagens.conta.informeNome })
     .trim()
-    .min(2, "Informe seu nome.")
-    .max(80, "O nome pode ter no máximo 80 caracteres."),
+    .min(2, ptBR.mensagens.conta.informeNome)
+    .max(80, ptBR.mensagens.conta.nomeLongo(80)),
   email,
   senha: z
-    .string({ error: "Informe uma senha." })
+    .string({ error: ptBR.mensagens.conta.informeSenhaNova })
     .min(
       TAMANHO_MINIMO_SENHA,
-      `A senha precisa ter pelo menos ${TAMANHO_MINIMO_SENHA} caracteres.`,
+      ptBR.mensagens.conta.senhaCurta(TAMANHO_MINIMO_SENHA),
     )
     .max(
       TAMANHO_MAXIMO_SENHA,
-      `A senha pode ter no máximo ${TAMANHO_MAXIMO_SENHA} caracteres.`,
+      ptBR.mensagens.conta.senhaLonga(TAMANHO_MAXIMO_SENHA),
     ),
 });
 
 export const esquemaEntrada = z.object({
   email,
   // Na entrada não se avalia o tamanho: a conferência é feita contra a senha salva.
-  senha: z.string({ error: "Informe sua senha." }).min(1, "Informe sua senha."),
+  senha: z.string({ error: ptBR.mensagens.conta.informeSenha }).min(1, ptBR.mensagens.conta.informeSenha),
 });
 
 export const esquemaOrganizacao = z.object({
   nome: z
-    .string({ error: "Informe o nome da empresa." })
+    .string({ error: ptBR.mensagens.conta.informeEmpresa })
     .trim()
-    .min(2, "Informe o nome da empresa.")
-    .max(80, "O nome pode ter no máximo 80 caracteres."),
+    .min(2, ptBR.mensagens.conta.informeEmpresa)
+    .max(80, ptBR.mensagens.conta.nomeLongo(80)),
 });
 
 // Resultado que os formulários recebem de volta. Nunca inclui senhas.

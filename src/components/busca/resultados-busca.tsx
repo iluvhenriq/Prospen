@@ -1,14 +1,17 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { SeloPontuacao, textoDosMotivos } from "@/components/pontuacao/selo-pontuacao";
 import { Alerta } from "@/components/ui/alerta";
 import { Botao, BotaoLink } from "@/components/ui/botao";
+import { Selecao } from "@/components/ui/campo-texto";
 import { Etiqueta } from "@/components/ui/etiqueta";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { adicionarDaBusca, type EstadoAdicionar } from "@/modules/base-cnpj/acoes";
 import type { ResultadoDaBusca } from "@/modules/base-cnpj/repositorio";
 import { formatarCnpj } from "@/modules/leads/cnpj";
 import { formatarTelefone } from "@/modules/leads/normalizacao";
+import { pontuar } from "@/modules/pontuacao/regras";
 
 const inicial: EstadoAdicionar = {};
 
@@ -17,9 +20,11 @@ const inicial: EstadoAdicionar = {};
 export function ResultadosBusca({
   resultados,
   jaSaoLeads,
+  campanhasAtivas,
 }: {
   resultados: ResultadoDaBusca[];
   jaSaoLeads: string[];
+  campanhasAtivas: { id: string; nome: string }[];
 }) {
   const t = ptBR.busca;
   const [estado, executar, pendente] = useActionState(adicionarDaBusca, inicial);
@@ -70,9 +75,24 @@ export function ResultadosBusca({
           />
           {t.colunas.marcarTodas}
         </label>
-        <Botao type="submit" carregando={pendente} disabled={marcados.size === 0}>
-          {pendente ? t.adicionar.enviando : `${t.adicionar.botao} (${marcados.size})`}
-        </Botao>
+        <div className="flex flex-wrap items-center gap-2">
+          {campanhasAtivas.length > 0 ? (
+            <label className="flex items-center gap-2 text-sm text-texto">
+              {ptBR.campanhas.naBusca}
+              <Selecao name="campanhaId" defaultValue="" className="w-auto max-w-56">
+                <option value="">{ptBR.campanhas.naBuscaNenhuma}</option>
+                {campanhasAtivas.map((campanha) => (
+                  <option key={campanha.id} value={campanha.id}>
+                    {campanha.nome}
+                  </option>
+                ))}
+              </Selecao>
+            </label>
+          ) : null}
+          <Botao type="submit" carregando={pendente} disabled={marcados.size === 0}>
+            {pendente ? t.adicionar.enviando : `${t.adicionar.botao} (${marcados.size})`}
+          </Botao>
+        </div>
       </div>
 
       <ul className="divide-y divide-borda overflow-hidden rounded-xl border border-borda bg-superficie">
@@ -82,6 +102,14 @@ export function ResultadosBusca({
           const telefone = formatarTelefone(linha.telefone);
           const contato = [telefone, linha.email].filter(Boolean).join("  ·  ");
           const local = [linha.bairro, linha.municipio && `${linha.municipio}/${linha.uf}`].filter(Boolean).join(", ");
+          const pontuacao = pontuar({
+            telefone: linha.telefone,
+            email: linha.email,
+            dataAbertura: linha.dataInicioAtividade,
+            porte: linha.porte,
+            matriz: linha.matriz,
+            naturezaJuridica: linha.naturezaJuridica,
+          });
           return (
             <li key={linha.cnpj} className="flex gap-3 px-4 py-3">
               <input
@@ -109,8 +137,10 @@ export function ResultadosBusca({
                   {linha.atividade ? <p className="truncate">{linha.atividade}</p> : null}
                   {local ? <p className="truncate">{local}</p> : null}
                   <p className="truncate">{contato || t.semContato}</p>
+                  <p className="text-xs">{textoDosMotivos(pontuacao.motivos)}</p>
                 </div>
-                <div className="flex flex-wrap items-start gap-1.5 sm:w-28 sm:justify-end">
+                <div className="flex flex-wrap items-start gap-1.5 sm:w-36 sm:flex-col sm:items-end">
+                  <SeloPontuacao {...pontuacao} />
                   {jaEhLead ? <Etiqueta variante="musgo">{t.jaEhLead}</Etiqueta> : null}
                   {linha.mei ? <Etiqueta>{t.mei}</Etiqueta> : null}
                 </div>

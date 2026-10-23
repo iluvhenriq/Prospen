@@ -25,10 +25,12 @@ import {
 import { repositorioEtiquetas } from "./repositorio-etiquetas";
 import { repositorioNotas } from "./repositorio-notas";
 import { validarLead, type CampoLead } from "./validacao";
+import { lerValorEmCentavos } from "./valor";
 import {
   corValida,
   ehUuid,
   etapaValida,
+  motivoPerdaValido,
   validarNomeEtiqueta,
   validarTextoNota,
 } from "./validacao-textos";
@@ -194,6 +196,48 @@ export async function mudarEtapaDoLead(dados: FormData): Promise<void> {
   revalidatePath("/painel/leads");
 }
 
+// Resultado do funil (etapa 7). O lead precisa estar na etapa certa no momento
+// da gravação: o repositório confere dentro do próprio comando.
+export async function registrarMotivoPerda(_anterior: EstadoAcao, dados: FormData): Promise<EstadoAcao> {
+  const contexto = await exigirPermissao("trabalharComLeads");
+  const t = ptBR.funil.resultado;
+  const leadId = texto(dados, "leadId");
+  const informado = texto(dados, "motivo");
+  // Vazio apaga o motivo; qualquer outro valor precisa estar na lista.
+  const motivo = informado === "" ? null : motivoPerdaValido(informado);
+  if (!ehUuid(leadId) || (informado !== "" && !motivo)) return { erros: { motivo: t.motivoInvalido } };
+
+  const gravou = await repositorioLeads(getDb(), contexto.organizacao.id).registrarMotivoPerda(leadId, motivo);
+  if (!gravou) return { mensagem: t.etapaMudou };
+  revalidarFunil();
+  return { sucesso: true, mensagem: t.salvo };
+}
+
+export async function registrarValorVenda(_anterior: EstadoAcao, dados: FormData): Promise<EstadoAcao> {
+  const contexto = await exigirPermissao("trabalharComLeads");
+  const t = ptBR.funil.resultado;
+  const leadId = texto(dados, "leadId");
+  const informado = texto(dados, "valor").trim().slice(0, 40);
+  const centavos = informado === "" ? null : lerValorEmCentavos(informado);
+  if (!ehUuid(leadId) || (informado !== "" && centavos === null)) {
+    return { erros: { valor: t.valorInvalido }, valores: { valor: informado } };
+  }
+
+  const db = getDb();
+  // A moeda é a da empresa, nunca a do formulário.
+  const { moeda } = await obterConfiguracao(db, contexto.organizacao.id);
+  const gravou = await repositorioLeads(db, contexto.organizacao.id).registrarValorVenda(leadId, centavos, moeda);
+  if (!gravou) return { mensagem: t.etapaMudou };
+  revalidarFunil();
+  return { sucesso: true, mensagem: t.salvo };
+}
+
+function revalidarFunil() {
+  revalidatePath("/painel/funil");
+  revalidatePath("/painel/leads/[id]", "page");
+  revalidatePath("/painel");
+}
+
 // ----------------------------------------------------------------------------
 // Notas
 // ----------------------------------------------------------------------------
@@ -268,7 +312,7 @@ export async function atribuirEtiqueta(
       if (!nome.ok) return { erros: { nova: nome.erro }, valores: { nova } };
       etiquetaId = (await repositorio.obterOuCriar(nome.texto)).etiqueta.id;
     } else if (!ehUuid(etiquetaId)) {
-      return { erros: { etiquetaId: "Escolha uma etiqueta ou digite o nome de uma nova." } };
+      return { erros: { etiquetaId: ptBR.mensagens.etiqueta.escolhaOuCrie } };
     }
 
     const ligada = await repositorio.atribuir(leadId, etiquetaId);

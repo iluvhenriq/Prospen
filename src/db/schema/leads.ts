@@ -1,6 +1,9 @@
 import { sql } from "drizzle-orm";
 import {
+  bigint,
+  boolean,
   check,
+  date,
   index,
   pgTable,
   text,
@@ -27,6 +30,19 @@ export const ETAPAS_FUNIL = [
 ] as const;
 export type EtapaFunil = (typeof ETAPAS_FUNIL)[number];
 
+// Por que o negócio foi perdido (etapa 7). Lista fechada para dar números no
+// painel; detalhes vão numa nota.
+export const MOTIVOS_PERDA = [
+  "preco",
+  "concorrente",
+  "sem_resposta",
+  "sem_interesse",
+  "sem_orcamento",
+  "momento",
+  "outro",
+] as const;
+export type MotivoPerda = (typeof MOTIVOS_PERDA)[number];
+
 // Base da lista de leads. A pontuação chega na etapa 6.
 // Todo acesso a esta tabela passa por src/modules/leads/repositorio.ts, que
 // sempre filtra por organização. Não consulte esta tabela em outro lugar.
@@ -50,6 +66,14 @@ export const leads = pgTable(
     // pública de empresas. Quando existe, é ele que identifica o lead (veja os
     // índices abaixo). Pode ser alfanumérico (regra da Receita desde 07/2026).
     cnpj: text("cnpj"),
+    // Cópia de dados da Receita no momento em que o lead veio da base pública
+    // (vazios nos outros leads). Servem para a pontuação e para a tela, sem
+    // depender da base pública depois.
+    porte: text("porte"),
+    naturezaJuridica: text("natureza_juridica"),
+    dataAbertura: date("data_abertura"),
+    matriz: boolean("matriz"),
+    cnaePrincipal: text("cnae_principal"),
     origem: text("origem").$type<OrigemLead>().notNull().default("manual"),
     // Código do país com duas letras (ISO 3166-1). Prepara a expansão internacional.
     pais: text("pais").notNull().default("BR"),
@@ -59,6 +83,12 @@ export const leads = pgTable(
     etapaAtualizadaEm: timestamp("etapa_atualizada_em", { withTimezone: true })
       .notNull()
       .defaultNow(),
+    // Resultado do funil (etapa 7). Só valem na etapa correspondente: mudar de
+    // etapa limpa (repositório, mudarEtapa). O valor fica em centavos, com a
+    // moeda da empresa no momento do registro.
+    motivoPerda: text("motivo_perda").$type<MotivoPerda>(),
+    valorVendaCentavos: bigint("valor_venda_centavos", { mode: "number" }),
+    moedaVenda: text("moeda_venda"),
     criadoPorId: text("criado_por_id").references(() => user.id, {
       onDelete: "set null",
     }),
@@ -107,6 +137,14 @@ export const leads = pgTable(
       sql`${tabela.etapa} in ('novo', 'contatado', 'em_conversa', 'proposta', 'ganho', 'perdido')`,
     ),
     check("leads_pais_valido", sql`${tabela.pais} ~ '^[A-Z]{2}$'`),
+    check(
+      "leads_motivo_perda_valido",
+      sql`${tabela.motivoPerda} is null or (${tabela.etapa} = 'perdido' and ${tabela.motivoPerda} in ('preco', 'concorrente', 'sem_resposta', 'sem_interesse', 'sem_orcamento', 'momento', 'outro'))`,
+    ),
+    check(
+      "leads_valor_venda_valido",
+      sql`${tabela.valorVendaCentavos} is null or (${tabela.etapa} = 'ganho' and ${tabela.valorVendaCentavos} >= 0 and ${tabela.moedaVenda} ~ '^[A-Z]{3}$')`,
+    ),
     check("leads_nome_nao_vazio", sql`char_length(btrim(${tabela.nome})) > 0`),
   ],
 );
@@ -123,4 +161,7 @@ export type NovoLead = Omit<
   | "telefoneNormalizado"
   | "etapa"
   | "etapaAtualizadaEm"
+  | "motivoPerda"
+  | "valorVendaCentavos"
+  | "moedaVenda"
 >;

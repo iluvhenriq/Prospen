@@ -1,5 +1,6 @@
 import { cnpjValido, normalizarCnpj } from "@/modules/leads/cnpj";
 import type { ParametrosDeUrl } from "@/modules/leads/parametros";
+import type { Cursor } from "./repositorio";
 
 // Lê os filtros da busca na base pública a partir do endereço da página
 // (?uf=SP&cidade=7107&atividade=padaria&mei=1&depois=...). O endereço é
@@ -15,8 +16,8 @@ export type ParametrosBusca = {
   atividade: string;
   // "Sem MEI" vem ligado. Só sai com ?mei=1.
   incluirMei: boolean;
-  // Último CNPJ da página anterior (paginação sem "offset").
-  depoisDe?: string;
+  // Último da página anterior (paginação sem "offset"). No endereço: "45-CNPJ".
+  depoisDe?: Cursor;
   // CNPJ digitado como foi digitado (para mostrar de volta) e, se válido,
   // padronizado. Com CNPJ, os outros filtros são ignorados.
   cnpjDigitado: string;
@@ -30,7 +31,7 @@ function primeiro(valor: string | string[] | undefined): string | undefined {
 export function lerParametrosBusca(entrada: ParametrosDeUrl): ParametrosBusca {
   const uf = (primeiro(entrada.uf) ?? "").trim().toUpperCase();
   const municipio = (primeiro(entrada.cidade) ?? "").trim();
-  const depoisDe = normalizarCnpj(primeiro(entrada.depois));
+  const depoisDe = lerCursor(primeiro(entrada.depois));
   const cnpjDigitado = (primeiro(entrada.cnpj) ?? "").trim().slice(0, MAXIMO_DO_CNPJ);
   const cnpj = normalizarCnpj(cnpjDigitado);
   return {
@@ -38,21 +39,28 @@ export function lerParametrosBusca(entrada: ParametrosDeUrl): ParametrosBusca {
     municipio: /^\d{1,7}$/.test(municipio) ? municipio : undefined,
     atividade: (primeiro(entrada.atividade) ?? "").trim().slice(0, MAXIMO_DA_ATIVIDADE),
     incluirMei: primeiro(entrada.mei) === "1",
-    depoisDe: depoisDe && /^[0-9A-Z]{12}[0-9]{2}$/.test(depoisDe) ? depoisDe : undefined,
+    depoisDe,
     cnpjDigitado,
     cnpj: cnpj && cnpjValido(cnpj) ? cnpj : undefined,
   };
 }
 
+function lerCursor(valor: string | undefined): Cursor | undefined {
+  const partes = /^(\d{1,3})-([0-9A-Z]{12}[0-9]{2})$/.exec((valor ?? "").trim().toUpperCase());
+  if (!partes) return undefined;
+  const pontos = Number(partes[1]);
+  return pontos <= 100 ? { pontos, cnpj: partes[2] } : undefined;
+}
+
 // Endereço da busca com os mesmos filtros; "depoisDe" leva à página seguinte.
-export function enderecoDaBusca(parametros: ParametrosBusca, depoisDe?: string): string {
+export function enderecoDaBusca(parametros: ParametrosBusca, depoisDe?: Cursor): string {
   const consulta = new URLSearchParams();
   if (parametros.uf) consulta.set("uf", parametros.uf);
   if (parametros.municipio) consulta.set("cidade", parametros.municipio);
   if (parametros.atividade) consulta.set("atividade", parametros.atividade);
   if (parametros.incluirMei) consulta.set("mei", "1");
   if (parametros.cnpjDigitado) consulta.set("cnpj", parametros.cnpjDigitado);
-  if (depoisDe) consulta.set("depois", depoisDe);
+  if (depoisDe) consulta.set("depois", `${depoisDe.pontos}-${depoisDe.cnpj}`);
   const texto = consulta.toString();
   return texto ? `/painel/busca?${texto}` : "/painel/busca";
 }

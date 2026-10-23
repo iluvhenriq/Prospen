@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { baseCnpjEmpresas, baseCnpjEstabelecimentos } from "@/db/schema";
 import { importarEstado } from "@/modules/base-cnpj/importacao";
@@ -35,9 +35,19 @@ function criarZip(pasta: string, nomeZip: string, conteudo: string): void {
 describe("importação da base pública de CNPJ", () => {
   let amb: AmbienteDeTeste;
   let pasta: string;
+  let indicesDaMigracao: string[];
+
+  const indicesAtuais = async () => {
+    const indices = await amb.db.execute(
+      sql`select indexdef from pg_indexes where tablename = 'base_cnpj_estabelecimentos' order by indexname`,
+    );
+    return indices.rows.map((linha) => String(linha.indexdef).replace(/ USING btree/, ""));
+  };
 
   beforeAll(async () => {
     amb = await criarAmbienteDeTeste();
+    // Antes de qualquer carga: exatamente o que as migrações criaram.
+    indicesDaMigracao = await indicesAtuais();
     pasta = mkdtempSync(join(tmpdir(), "prospen-cnpj-"));
     criarZip(
       pasta,
@@ -117,15 +127,25 @@ describe("importação da base pública de CNPJ", () => {
   });
 
   it("recria os índices de busca depois da carga, iguais aos da migração", async () => {
-    const indices = await amb.db.execute(
-      sql`select indexname, indexdef from pg_indexes where tablename = 'base_cnpj_estabelecimentos' order by indexname`,
-    );
-    expect(indices.rows.map((l) => String(l.indexdef).replace(/ USING btree/, ""))).toEqual([
-      'CREATE INDEX base_cnpj_estab_basico_idx ON public.base_cnpj_estabelecimentos (cnpj_basico)',
-      'CREATE INDEX base_cnpj_estab_cnae_idx ON public.base_cnpj_estabelecimentos (cnae_principal, uf)',
-      'CREATE INDEX base_cnpj_estab_uf_municipio_idx ON public.base_cnpj_estabelecimentos (uf, municipio_codigo)',
+    // Diferença como "DESC" contra "DESC NULLS LAST" faz o PostgreSQL deixar de
+    // usar o índice para ordenar a busca. Por isso a comparação é com a migração.
+    expect(await indicesAtuais()).toEqual(indicesDaMigracao);
+    expect(indicesDaMigracao).toEqual([
+      "CREATE INDEX base_cnpj_estab_basico_idx ON public.base_cnpj_estabelecimentos (cnpj_basico)",
+      "CREATE INDEX base_cnpj_estab_cnae_idx ON public.base_cnpj_estabelecimentos (cnae_principal, uf, pontuacao DESC NULLS LAST, cnpj)",
+      "CREATE INDEX base_cnpj_estab_uf_municipio_idx ON public.base_cnpj_estabelecimentos (uf, municipio_codigo, pontuacao DESC NULLS LAST, cnpj)",
+      "CREATE INDEX base_cnpj_estab_uf_pontuacao_idx ON public.base_cnpj_estabelecimentos (uf, pontuacao DESC NULLS LAST, cnpj)",
       "CREATE UNIQUE INDEX base_cnpj_estabelecimentos_pkey ON public.base_cnpj_estabelecimentos (cnpj)",
     ]);
+  });
+
+  it("calcula a pontuação no fim da carga", async () => {
+    const [padaria] = await amb.db
+      .select({ pontuacao: baseCnpjEstabelecimentos.pontuacao })
+      .from(baseCnpjEstabelecimentos)
+      .where(eq(baseCnpjEstabelecimentos.cnpj, "11222333000181"));
+    // Telefone 15 + e-mail próprio 25 + matriz 5 + microempresa 5.
+    expect(padaria.pontuacao).toBe(50);
   });
 
   it("avisa quando faltam os arquivos baixados", async () => {

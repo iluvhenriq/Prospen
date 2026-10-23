@@ -6,7 +6,9 @@ import { getDb } from "@/db/client";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { cnpjValido, normalizarCnpj } from "@/modules/leads/cnpj";
 import { formatarTelefone } from "@/modules/leads/normalizacao";
+import { repositorioCampanhas } from "@/modules/campanhas/repositorio";
 import { repositorioLeads } from "@/modules/leads/repositorio";
+import { ehUuid } from "@/modules/leads/validacao-textos";
 import { exigirPermissao } from "@/modules/organizacoes/contexto";
 import { RESULTADOS_POR_PAGINA } from "./parametros";
 import { repositorioBaseCnpj } from "./repositorio";
@@ -37,12 +39,38 @@ export async function adicionarDaBusca(_anterior: EstadoAdicionar, dados: FormDa
       email: linha.email,
       telefone: formatarTelefone(linha.telefone) || null,
       cnpj: linha.cnpj,
+      porte: linha.porte,
+      naturezaJuridica: linha.naturezaJuridica,
+      dataAbertura: linha.dataAbertura,
+      matriz: linha.matriz,
+      cnaePrincipal: linha.cnaePrincipal,
     })),
     contexto.usuario.id,
   );
 
+  // Campanha opcional: entram as empresas marcadas, novas ou que já eram leads.
+  let mensagemCampanha = "";
+  const campanhaId = dados.get("campanhaId");
+  if (typeof campanhaId === "string" && ehUuid(campanhaId)) {
+    const ids = await repositorioLeads(db, contexto.organizacao.id).idsPorCnpj(validado.data);
+    const naCampanha = await repositorioCampanhas(db, contexto.organizacao.id).adicionarLeads(
+      campanhaId,
+      ids,
+      contexto.usuario.id,
+    );
+    mensagemCampanha =
+      naCampanha === null
+        ? ptBR.campanhas.naoEncontrada
+        : ptBR.campanhas.adicionados(naCampanha, ids.length - naCampanha, false);
+    revalidatePath("/painel/campanhas");
+    revalidatePath("/painel/campanhas/[id]", "page");
+  }
+
   revalidatePath("/painel/busca");
   revalidatePath("/painel/leads");
   revalidatePath("/painel");
-  return { sucesso: adicionados > 0, mensagem: t.resultado(adicionados, validado.data.length - adicionados) };
+  return {
+    sucesso: adicionados > 0 || mensagemCampanha !== "",
+    mensagem: [t.resultado(adicionados, validado.data.length - adicionados), mensagemCampanha].filter(Boolean).join(" "),
+  };
 }
