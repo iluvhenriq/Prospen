@@ -4,5 +4,6 @@ export * from "./auth";
 export * from "./leads";
 export * from "./etiquetas";
 export * from "./notas";
+export * from "./historico-etapas";
 export * from "./importacoes";
 export * from "./organizacao-config";

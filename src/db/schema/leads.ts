@@ -15,7 +15,19 @@ import { organization, user } from "./auth";
 export const ORIGENS_LEAD = ["manual", "importacao", "busca_cnpj", "google"] as const;
 export type OrigemLead = (typeof ORIGENS_LEAD)[number];
 
-// Base da lista de leads. Colunas de funil e pontuação chegam nas etapas 4 a 6.
+// Etapas do funil de vendas, na ordem em que aparecem no quadro. "ganho" e
+// "perdido" encerram o funil, mas o lead pode voltar a qualquer etapa.
+export const ETAPAS_FUNIL = [
+  "novo",
+  "contatado",
+  "em_conversa",
+  "proposta",
+  "ganho",
+  "perdido",
+] as const;
+export type EtapaFunil = (typeof ETAPAS_FUNIL)[number];
+
+// Base da lista de leads. A pontuação chega na etapa 6.
 // Todo acesso a esta tabela passa por src/modules/leads/repositorio.ts, que
 // sempre filtra por organização. Não consulte esta tabela em outro lugar.
 export const leads = pgTable(
@@ -37,6 +49,12 @@ export const leads = pgTable(
     origem: text("origem").$type<OrigemLead>().notNull().default("manual"),
     // Código do país com duas letras (ISO 3166-1). Prepara a expansão internacional.
     pais: text("pais").notNull().default("BR"),
+    // Etapa atual no funil. Só muda pelo repositório (mudarEtapa), que grava
+    // a mudança no histórico na mesma transação.
+    etapa: text("etapa").$type<EtapaFunil>().notNull().default("novo"),
+    etapaAtualizadaEm: timestamp("etapa_atualizada_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
     criadoPorId: text("criado_por_id").references(() => user.id, {
       onDelete: "set null",
     }),
@@ -53,6 +71,12 @@ export const leads = pgTable(
     // E a empresa juntos, o que impede ligar dados de empresas diferentes.
     unique("leads_id_organizacao_unico").on(tabela.id, tabela.organizacaoId),
     index("leads_organizacao_criado_idx").on(tabela.organizacaoId, tabela.criadoEm),
+    // Colunas do quadro: leads de uma etapa, dos movidos mais recentemente.
+    index("leads_organizacao_etapa_idx").on(
+      tabela.organizacaoId,
+      tabela.etapa,
+      tabela.etapaAtualizadaEm,
+    ),
     // Um e-mail ou telefone aparece uma vez por empresa. O banco garante isso
     // mesmo se duas pessoas cadastrarem o mesmo contato ao mesmo tempo.
     uniqueIndex("leads_organizacao_email_unico")
@@ -64,6 +88,10 @@ export const leads = pgTable(
     check(
       "leads_origem_valida",
       sql`${tabela.origem} in ('manual', 'importacao', 'busca_cnpj', 'google')`,
+    ),
+    check(
+      "leads_etapa_valida",
+      sql`${tabela.etapa} in ('novo', 'contatado', 'em_conversa', 'proposta', 'ganho', 'perdido')`,
     ),
     check("leads_pais_valido", sql`${tabela.pais} ~ '^[A-Z]{2}$'`),
     check("leads_nome_nao_vazio", sql`char_length(btrim(${tabela.nome})) > 0`),
@@ -80,4 +108,6 @@ export type NovoLead = Omit<
   | "criadoPorId"
   | "emailNormalizado"
   | "telefoneNormalizado"
+  | "etapa"
+  | "etapaAtualizadaEm"
 >;

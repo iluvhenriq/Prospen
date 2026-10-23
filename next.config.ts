@@ -4,6 +4,12 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  logging: {
+    // Em desenvolvimento, o Next.js escreve no terminal os argumentos de cada ação
+    // do servidor, e eles trazem nome, e-mail e telefone de leads. Desligado para
+    // não deixar dados pessoais no terminal (regra 7 do CLAUDE.md).
+    serverFunctions: false,
+  },
   experimental: {
     serverActions: {
       // A importação de planilha envia o arquivo por uma ação do servidor. O limite

@@ -22,6 +22,9 @@
 
 # misc
 .DS_Store
+
+# capturas e registros do Playwright MCP (teste no navegador)
+/.playwright-mcp/
 *.pem
 
 # debug

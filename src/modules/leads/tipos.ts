@@ -4,6 +4,7 @@
 // nunca valores, para o código do banco não ir parar no navegador.
 export type {
   CorEtiqueta,
+  EtapaFunil,
   Etiqueta,
   Importacao,
   Lead,
@@ -11,4 +12,4 @@ export type {
   OcorrenciaImportacao,
   OrigemLead,
 } from "@/db/schema";
-export { CORES_ETIQUETA, ORIGENS_LEAD } from "@/db/schema";
+export { CORES_ETIQUETA, ETAPAS_FUNIL, ORIGENS_LEAD } from "@/db/schema";

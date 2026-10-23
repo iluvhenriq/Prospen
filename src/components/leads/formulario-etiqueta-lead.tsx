@@ -14,9 +14,12 @@ const inicial: EstadoAcao = {};
 export function FormularioEtiquetaLead({
   leadId,
   disponiveis,
+  empresaSemEtiquetas,
 }: {
   leadId: string;
   disponiveis: { id: string; nome: string }[];
+  // Só nesse caso a dica "criar a primeira etiqueta" é verdadeira.
+  empresaSemEtiquetas: boolean;
 }) {
   const [estado, executar, pendente] = useActionState(atribuirEtiqueta, inicial);
   const t = ptBR.leads.etiquetasDoLead;
@@ -49,7 +52,7 @@ export function FormularioEtiquetaLead({
         maxLength={80}
         defaultValue={estado.valores?.nova ?? ""}
         erro={estado.erros?.nova}
-        ajuda={disponiveis.length === 0 ? t.semOpcoes : undefined}
+        ajuda={empresaSemEtiquetas ? t.semOpcoes : undefined}
       />
       <div>
         <Botao type="submit" variante="secundario" tamanho="pequeno" carregando={pendente}>

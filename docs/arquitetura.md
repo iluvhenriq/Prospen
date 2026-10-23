@@ -1,6 +1,6 @@
 # Arquitetura da PROSPEN
 
-Documento vivo. Registra as decisões do projeto e o motivo de cada uma. Última atualização: etapa 3 (22/10/2026).
+Documento vivo. Registra as decisões do projeto e o motivo de cada uma. Última atualização: etapa 4 (22/10/2026).
 
 ## 1. Princípios
 
@@ -112,6 +112,15 @@ Regras da leitura:
 
 **Busca.** Ignora acentos e maiúsculas e procura em nome, empresa, e-mail e telefone. Cada palavra digitada precisa aparecer. Os caracteres especiais da busca são tratados como texto comum.
 
+## 6.3 Funil de vendas e histórico
+
+- **Etapas fixas:** Novo, Contatado, Em conversa, Proposta, Ganho, Perdido (`ETAPAS_FUNIL` em `src/db/schema/leads.ts`). O banco recusa qualquer outro valor. Todo lead nasce em Novo, seja cadastrado à mão ou importado. Não há ordem obrigatória: o lead pode ir de qualquer etapa para qualquer outra, inclusive sair de Perdido e voltar a ser trabalhado.
+- **Um único caminho para mudar a etapa:** `mudarEtapa`, no repositório de leads. Ele trava a linha do lead, muda a etapa e grava o registro no histórico na mesma transação: ou as duas coisas acontecem, ou nenhuma. Criar e editar o lead não mexem na etapa, mesmo que o pedido traga uma (testado). Pedir a etapa em que o lead já está não grava nada.
+- **Histórico (`historico_etapas`):** etapa anterior, etapa nova, quem mudou e quando. Só registra mudanças; a entrada no funil é a data de cadastro do lead. Usa chave estrangeira composta (lead e empresa juntos), como as notas, e é apagado junto com o lead. Se a pessoa que mudou sair do sistema, o registro fica sem autor. A leitura fica em `repositorio-historico.ts`, amarrado a uma empresa.
+- **Quadro (`/painel/funil`):** uma coluna por etapa, com o total e os 30 leads movidos mais recentemente. Quando há mais, a coluna leva à lista filtrada pela etapa. Mover é feito por uma lista de etapas e o botão "Mover", e não por arrastar: funciona sem JavaScript, pelo teclado e no celular. Em telas estreitas as colunas rolam para o lado dentro do quadro.
+- **Lista de leads:** ganhou o filtro por etapa (`?etapa=`) e o selo da etapa em cada lead.
+- **Permissão:** mudar a etapa exige `trabalharComLeads` (qualquer membro).
+
 ## 7. Banco de dados
 
 - **Desenvolvimento:** PostgreSQL instalado no computador, sem Docker. O banco em nuvem gratuito tem limite de espaço pequeno demais para a base de CNPJ.
@@ -120,7 +129,7 @@ Regras da leitura:
 - Fluxo de mudança: alterar o esquema, rodar `npm run db:gerar`, revisar o SQL gerado, rodar `npm run db:migrar`.
 - A migração `0000_extensoes` instala duas extensões para a busca de empresas (etapa 5): `unaccent` (ignora acentos) e `pg_trgm` (busca por parte do nome, tolerando erro de digitação).
 - **Teste das migrações:** o teste automático aplica as migrações reais em um PostgreSQL de teste em memória (PGlite). Uma migração quebrada falha ali, antes de chegar ao seu banco.
-- **Tabelas criadas até agora (4 migrações):** as do login (`user`, `session`, `account`, `verification`, `organization`, `member`, `invitation`, nomes do Better Auth), `organizacao_config` (país, moeda, fuso horário e idioma de cada empresa, criada automaticamente com o padrão do Brasil), `leads`, `etiquetas`, `lead_etiquetas` (liga lead e etiqueta), `notas` e `importacoes` (histórico). As demais tabelas do modelo entram junto da etapa que as usa.
+- **Tabelas criadas até agora (5 migrações):** as do login (`user`, `session`, `account`, `verification`, `organization`, `member`, `invitation`, nomes do Better Auth), `organizacao_config` (país, moeda, fuso horário e idioma de cada empresa, criada automaticamente com o padrão do Brasil), `leads`, `etiquetas`, `lead_etiquetas` (liga lead e etiqueta), `notas`, `historico_etapas` (mudanças de etapa no funil) e `importacoes` (histórico de importações). A migração do funil coloca os leads que já existiam em Novo, com a data de cadastro como data da etapa (testado). As demais tabelas do modelo entram junto da etapa que as usa.
 - O banco impõe regras por conta própria (origem do lead válida, país com 2 letras, moeda com 3), além das validações do código.
 - Rota `/api/saude`: confere se o banco responde e devolve só `ok` ou `erro`, sem detalhes de configuração.
 - Recomendação: guardar os dados pesados (base de CNPJ) em disco com bastante espaço, o que será definido na etapa 5.
@@ -158,6 +167,13 @@ Regras da leitura:
 | 22/10/2026 | E-mail e telefone únicos por empresa | Evita lead duplicado. Precisa ser revisto na etapa 5 (veja pontos de atenção) |
 | 22/10/2026 | Histórico de importação sem o conteúdo da planilha | Não acumular dados pessoais sem necessidade |
 | 22/10/2026 | Chaves estrangeiras compostas em notas e etiquetas | O próprio banco impede ligar dados de empresas diferentes |
+| 22/10/2026 | Etapas do funil fixas, iguais para todas as empresas | Simples para o MVP. Etapas personalizadas por empresa podem vir depois, se os clientes pedirem |
+| 22/10/2026 | Mudança de etapa e histórico na mesma transação, por uma função só | O histórico nunca fica diferente da etapa atual |
+| 22/10/2026 | Mover lead por lista e botão, sem arrastar | Funciona no celular, pelo teclado e sem JavaScript, sem biblioteca extra |
+| 22/10/2026 | Lead com CNPJ é identificado pelo CNPJ (14 dígitos); e-mail e telefone únicos só para leads sem CNPJ; contato repetido entre leads com CNPJ gera aviso, não bloqueio | Na base de CNPJ, vários negócios dividem o contato do contador. Substitui a regra de e-mail e telefone únicos para todos |
+| 22/10/2026 | Testes de navegador (Playwright) criados antes da etapa 5, não na 8 | O teste manual achou erros de tela que os testes automáticos não pegavam, e a etapa 5 mexe nesses fluxos |
+| 22/10/2026 | Motivo de perda e valor da venda entram no início da etapa 7 | O sistema ainda não tem uso real, então adiantar não guarda dado nenhum. Entram junto com o painel que os usa |
+| 22/10/2026 | Registro das ações do servidor desligado no terminal (`logging.serverFunctions: false`) | Em desenvolvimento, o Next.js escrevia nome, e-mail e telefone de leads no terminal |
 
 ## 9. Pontos de atenção
 
@@ -166,10 +182,17 @@ Regras da leitura:
 - **O limite de tentativas vive na memória do servidor** (`src/lib/limite-tentativas.ts`). Reinicia quando o servidor reinicia e cada servidor conta separado. Serve para um servidor só. Antes de publicar com mais de um servidor, mover a contagem para o banco.
 - **O limite por endereço depende do cabeçalho `x-forwarded-for`**, que quem chama pode falsificar se o servidor não estiver atrás de um proxy confiável. O limite por e-mail não depende disso e continua valendo. Ao escolher a hospedagem, confirmar quem preenche esse cabeçalho.
 - **O login também responde por HTTP** (`/api/auth/...`). Esse caminho tem a proteção própria do Better Auth, que só fica ativa em produção, e não passa pelos limites acima.
-- **A regra de "um e-mail ou telefone por empresa" vai atrapalhar a etapa 5.** Na base pública de CNPJ, o telefone e o e-mail muitas vezes são do contador, então várias empresas diferentes compartilham o mesmo contato. Com a regra atual, só a primeira delas poderia virar lead. Antes da etapa 5, definir uma regra própria para leads vindos da busca (por exemplo, identificar o lead pelo CNPJ e permitir contato repetido).
+- **A regra de "um e-mail ou telefone por empresa" vai atrapalhar a etapa 5.** Na base pública de CNPJ, o telefone e o e-mail muitas vezes são do contador, então várias empresas diferentes compartilham o mesmo contato. Decidido em 22/10/2026 (seção 8): o CNPJ identifica o lead e o contato repetido só gera aviso. Falta implementar (etapa 5b). Em aberto: um lead que entrou à mão sem CNPJ e depois aparece na busca com CNPJ vira dois leads; decidir na 5b se a tela oferece juntar.
+- **Motivo de perda e valor da venda:** decidido que entram no início da etapa 7.
 - **Ao criar a exportação de leads (futura), neutralizar fórmulas.** Células que começam com `=`, `+`, `-` ou `@` podem ser executadas pelo Excel. Hoje elas são guardadas e exibidas como texto puro (testado), mas uma exportação precisa tratá-las.
 - **Falta registrar a base legal de cada lead** (LGPD). Hoje só existe a origem (manual, importação etc.). Antes de abrir para clientes, definir com um advogado o que registrar e criar a exclusão a pedido do titular.
 - **Importação sem limite de frequência.** Cada importação aceita até 5.000 linhas, mas nada impede enviar várias seguidas. Antes de publicar, limitar por empresa.
 - **Só CSV.** Quem tem a planilha em Excel precisa salvar como CSV UTF-8. Aceitar `.xlsx` pode entrar depois, se a fricção aparecer nos primeiros clientes.
+- **Funil sem motivo de perda nem valor da venda.** Hoje "Perdido" não diz por quê e "Ganho" não diz quanto. Enquanto isso, o motivo pode ir numa nota.
+- **Quadro mostra até 30 leads por coluna.** Com muitos leads numa etapa, o restante fica na lista filtrada. Não há busca dentro do quadro. No celular, uma coluna cheia fica muito comprida (30 cartões, cerca de 6.500 px de altura). Avaliar um limite menor no celular se incomodar no uso real.
+- **Teste no navegador de 22/10/2026 (etapas 3 e 4):** feito com Playwright em duas contas de teste. Achados e corrigidos: a lista "Mudar para" voltava à etapa antiga depois de mudar (o React limpa o formulário; resolvido recriando o formulário quando a etapa muda); o quadro do funil fazia a página inteira rolar de lado no celular (rótulos `sr-only` têm posição absoluta e escapam de uma caixa de rolagem sem `relative`; vale para qualquer caixa com `overflow` que contenha esses rótulos); escolher de novo a mesma planilha depois de importar não mostrava o botão de conferir; plural errado ("1 repetidas") e texto montado fora do arquivo de idioma; dica "criar a primeira etiqueta" aparecendo quando a empresa já tinha etiquetas.
+- **Página de lead inexistente responde com código 200**, não 404. O conteúdo é a página "não encontrada", sem nenhum dado, mas o código fica 200 porque a página já começou a ser enviada quando a consulta termina (efeito do `cacheComponents`). Não é falha de segurança. Revisar na etapa 8.
+- **Leads importados de uma vez aparecem fora da ordem da planilha** na lista, porque têm o mesmo horário de criação e o desempate é pelo identificador. A paginação continua estável (testado: 35 leads em duas páginas, sem repetição).
+- **Mudança simultânea de etapa não foi testada com duas conexões.** O banco de teste (PGlite) usa uma conexão só. A trava da linha (`for update`) é o comportamento padrão do PostgreSQL, mas o caso de duas pessoas movendo o mesmo lead no mesmo instante só foi verificado pela lógica.
 - **Volume da base de CNPJ:** é a etapa de maior risco técnico. A prova de conceito vem logo depois da etapa 1.
 - **Qualidade do contato:** o telefone e o e-mail da base pública nem sempre chegam ao dono. O enriquecimento do Google compensa em parte.

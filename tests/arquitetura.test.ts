@@ -17,10 +17,17 @@ const caminho = (f: string) => relative(".", f).split(sep).join("/");
 // alguém consultar uma delas por outro caminho.
 describe("arquitetura", () => {
   // Tabelas que guardam dados de uma empresa e têm repositório próprio.
-  const TABELAS_DE_LEADS = ["leads", "etiquetas", "leadEtiquetas", "notas", "importacoes"];
-  const ARQUIVOS_DE_TABELA = ["leads", "etiquetas", "notas", "importacoes"];
+  const TABELAS_DE_LEADS = [
+    "leads",
+    "etiquetas",
+    "leadEtiquetas",
+    "notas",
+    "historicoEtapas",
+    "importacoes",
+  ];
+  const ARQUIVOS_DE_TABELA = ["leads", "etiquetas", "notas", "historico-etapas", "importacoes"];
 
-  it("só os repositórios e a pasta do banco usam as tabelas de leads, etiquetas, notas e importações", () => {
+  it("só os repositórios e a pasta do banco usam as tabelas de leads, etiquetas, notas, histórico e importações", () => {
     const permitido = (f: string) =>
       f.startsWith("src/modules/leads/") || f.startsWith("src/db/");
 

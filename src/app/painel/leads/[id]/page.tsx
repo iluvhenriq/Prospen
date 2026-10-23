@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { FormularioEtapa } from "@/components/funil/formulario-etapa";
+import { HistoricoEtapas } from "@/components/funil/historico-etapas";
+import { SeloEtapa } from "@/components/funil/selo-etapa";
 import { EtiquetasLead } from "@/components/leads/etiquetas-lead";
 import { FormularioLead } from "@/components/leads/formulario-lead";
 import { NotasLead } from "@/components/leads/notas-lead";
@@ -14,7 +17,7 @@ import {
   CartaoDescricao,
   CartaoTitulo,
 } from "@/components/ui/cartao";
-import { formatarDataHora } from "@/lib/formato";
+import { formatarData, formatarDataHora } from "@/lib/formato";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { atualizarLead, excluirLead } from "@/modules/leads/acoes";
 import { obterDetalheDoLead } from "@/modules/leads/consultas";
@@ -90,6 +93,33 @@ async function ConteudoDoLead({
         </div>
 
         <div className="flex flex-col gap-6">
+          <Cartao>
+            <CartaoCabecalho>
+              <CartaoTitulo>{ptBR.funil.cartaoTitulo}</CartaoTitulo>
+            </CartaoCabecalho>
+            <CartaoConteudo className="flex flex-col gap-5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-texto-suave">{ptBR.funil.etapaAtual}</span>
+                <SeloEtapa etapa={lead.etapa} />
+                <span className="text-xs text-texto-suave">
+                  {ptBR.funil.desde(formatarData(lead.etapaAtualizadaEm, detalhe.fusoHorario))}
+                </span>
+              </div>
+              <FormularioEtapa
+                leadId={lead.id}
+                etapaAtual={lead.etapa}
+                rotulo={ptBR.funil.mudarPara}
+                rotuloVisivel
+                rotuloBotao={ptBR.funil.salvarEtapa}
+              />
+              <HistoricoEtapas
+                historico={detalhe.historico}
+                criadoEm={lead.criadoEm}
+                fusoHorario={detalhe.fusoHorario}
+              />
+            </CartaoConteudo>
+          </Cartao>
+
           <Cartao>
             <CartaoCabecalho>
               <CartaoTitulo>{t.etiquetasDoLead.titulo}</CartaoTitulo>

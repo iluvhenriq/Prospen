@@ -10,8 +10,9 @@ import {
   type ParametrosLista,
 } from "./parametros";
 import { repositorioEtiquetas, type EtiquetaComTotal } from "./repositorio-etiquetas";
+import { repositorioHistorico, type RegistroEtapaComAutor } from "./repositorio-historico";
 import { repositorioImportacoes } from "./repositorio-importacoes";
-import { repositorioLeads } from "./repositorio";
+import { repositorioLeads, type ColunaDoQuadro } from "./repositorio";
 import { repositorioNotas, type NotaComAutor } from "./repositorio-notas";
 import { ehUuid } from "./validacao-textos";
 
@@ -67,6 +68,7 @@ export type DetalheDoLead = {
   etiquetas: Etiqueta[];
   etiquetasDisponiveis: Etiqueta[];
   notas: NotaComAutor[];
+  historico: RegistroEtapaComAutor[];
   fusoHorario: string;
 };
 
@@ -81,10 +83,11 @@ export async function obterDetalheDoLead(
   if (!lead) return null;
 
   const repositorioDeEtiquetas = repositorioEtiquetas(db, contexto.organizacao.id);
-  const [porLead, todas, notas, configuracao] = await Promise.all([
+  const [porLead, todas, notas, historico, configuracao] = await Promise.all([
     repositorioDeEtiquetas.dosLeads([id]),
     repositorioDeEtiquetas.listar(),
     repositorioNotas(db, contexto.organizacao.id).listar(id),
+    repositorioHistorico(db, contexto.organizacao.id).doLead(id),
     obterConfiguracao(db, contexto.organizacao.id),
   ]);
 
@@ -95,6 +98,29 @@ export async function obterDetalheDoLead(
     etiquetas,
     etiquetasDisponiveis: todas.filter((etiqueta) => !usadas.has(etiqueta.id)),
     notas,
+    historico,
+    fusoHorario: configuracao.fusoHorario,
+  };
+}
+
+// Quantos leads cada coluna do quadro mostra. O resto fica na lista, filtrada pela etapa.
+export const LEADS_POR_COLUNA = 30;
+
+export type QuadroDoFunil = {
+  colunas: ColunaDoQuadro[];
+  total: number;
+  fusoHorario: string;
+};
+
+export async function obterQuadroDoFunil(contexto: Contexto): Promise<QuadroDoFunil> {
+  const db = getDb();
+  const [colunas, configuracao] = await Promise.all([
+    repositorioLeads(db, contexto.organizacao.id).quadro(LEADS_POR_COLUNA),
+    obterConfiguracao(db, contexto.organizacao.id),
+  ]);
+  return {
+    colunas,
+    total: colunas.reduce((soma, coluna) => soma + coluna.total, 0),
     fusoHorario: configuracao.fusoHorario,
   };
 }

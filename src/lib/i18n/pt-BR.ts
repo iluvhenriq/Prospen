@@ -1,6 +1,12 @@
 // Todos os textos visíveis ao usuário ficam em arquivos de idioma.
 // Hoje só existe português do Brasil. Para adicionar outro idioma no futuro,
 // crie um arquivo irmão com as mesmas chaves, sem mexer nas telas.
+
+// "1 repetida", "2 repetidas": número formatado com a palavra no singular ou plural.
+function quantidade(total: number, singular: string, plural: string): string {
+  return `${total.toLocaleString("pt-BR")} ${total === 1 ? singular : plural}`;
+}
+
 export const ptBR = {
   app: {
     nome: "PROSPEN",
@@ -64,6 +70,7 @@ export const ptBR = {
     principal: "Menu principal",
     painel: "Painel",
     leads: "Leads",
+    funil: "Funil",
   },
   leads: {
     titulo: "Leads",
@@ -76,6 +83,8 @@ export const ptBR = {
       placeholder: "Nome, empresa, e-mail ou telefone",
       origem: "Origem",
       todasOrigens: "Todas as origens",
+      etapa: "Etapa",
+      todasEtapas: "Todas as etapas",
       etiqueta: "Etiqueta",
       todasEtiquetas: "Todas as etiquetas",
       filtrar: "Filtrar",
@@ -211,6 +220,8 @@ export const ptBR = {
       concluidaTitulo: "Importação concluída",
       concluida: (aceitas: number) =>
         aceitas === 1 ? "1 lead foi adicionado à sua lista." : `${aceitas.toLocaleString("pt-BR")} leads foram adicionados à sua lista.`,
+      deFora: (duplicadas: number, rejeitadas: number) =>
+        `${quantidade(duplicadas, "repetida", "repetidas")} e ${rejeitadas.toLocaleString("pt-BR")} com problema ficaram de fora.`,
       verLeads: "Ver os leads",
       importarOutra: "Importar outra planilha",
       comoPrepararTitulo: "Como preparar a planilha",
@@ -224,10 +235,45 @@ export const ptBR = {
       historicoTitulo: "Importações anteriores",
       historicoVazio: "Você ainda não importou nenhuma planilha.",
       historicoResumo: (aceitas: number, duplicadas: number, rejeitadas: number) =>
-        `${aceitas.toLocaleString("pt-BR")} importados, ${duplicadas.toLocaleString("pt-BR")} repetidos, ${rejeitadas.toLocaleString("pt-BR")} com problema`,
+        `${quantidade(aceitas, "importado", "importados")}, ${quantidade(duplicadas, "repetido", "repetidos")}, ${rejeitadas.toLocaleString("pt-BR")} com problema`,
       verProblemas: "Ver linhas com problema",
       falhou: "Não foi possível importar a planilha. Tente novamente em instantes.",
     },
+  },
+  funil: {
+    titulo: "Funil de vendas",
+    descricao:
+      "Acompanhe em que ponto da venda está cada lead. Mova o lead quando a conversa avançar.",
+    etapas: {
+      novo: "Novo",
+      contatado: "Contatado",
+      em_conversa: "Em conversa",
+      proposta: "Proposta",
+      ganho: "Ganho",
+      perdido: "Perdido",
+    },
+    total: (total: number) =>
+      total === 1 ? "1 lead no funil" : `${total.toLocaleString("pt-BR")} leads no funil`,
+    vazioTitulo: "O funil está vazio",
+    vazioDescricao:
+      "Todo lead cadastrado ou importado entra na etapa Novo. Comece cadastrando ou importando os seus contatos.",
+    colunaVazia: "Nenhum lead nesta etapa.",
+    totalColuna: (total: number) => (total === 1 ? "1 lead" : `${total.toLocaleString("pt-BR")} leads`),
+    verTodos: (total: number) => `Ver todos os ${total.toLocaleString("pt-BR")} na lista`,
+    desde: (data: string) => `Nesta etapa desde ${data}`,
+    moverRotulo: (nome: string) => `Mover ${nome} para`,
+    mover: "Mover",
+    cartaoTitulo: "Funil",
+    etapaAtual: "Etapa atual",
+    mudarPara: "Mudar para",
+    salvarEtapa: "Mudar etapa",
+    historicoTitulo: "Histórico de etapas",
+    historicoVazio: "Este lead ainda não mudou de etapa.",
+    entrada: (data: string) => `Entrou no funil em ${data}`,
+    mudanca: (de: string, para: string) => `De ${de} para ${para}`,
+    por: (autor: string, data: string) => `${autor}, ${data}`,
+    autorDesconhecido: "Pessoa removida",
+    rolagem: "Arraste para o lado para ver as outras etapas.",
   },
   papeis: {
     owner: "Dono",

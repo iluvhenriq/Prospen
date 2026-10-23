@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SeloEtapa } from "@/components/funil/selo-etapa";
 import { Botao, BotaoLink } from "@/components/ui/botao";
 import { Campo } from "@/components/ui/campo";
 import { Selecao } from "@/components/ui/campo-texto";
@@ -11,6 +12,7 @@ import {
 } from "@/modules/leads/parametros";
 import { formatarTelefone } from "@/modules/leads/normalizacao";
 import {
+  ETAPAS_FUNIL,
   ORIGENS_LEAD,
   type Etiqueta as EtiquetaDoLead,
   type Lead,
@@ -32,7 +34,7 @@ export function FiltrosLeads({
     <form
       method="get"
       action="/painel/leads"
-      className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_13rem_13rem_auto] lg:items-end"
+      className="grid gap-3 sm:grid-cols-3 lg:grid-cols-[minmax(0,1fr)_11rem_11rem_11rem_auto] lg:items-end"
     >
       <Campo
         rotulo={b.rotulo}
@@ -41,7 +43,7 @@ export function FiltrosLeads({
         placeholder={b.placeholder}
         defaultValue={parametros.busca}
         maxLength={100}
-        className="sm:col-span-2 lg:col-span-1"
+        className="sm:col-span-3 lg:col-span-1"
       />
       <div className="flex flex-col gap-1.5">
         <label htmlFor="filtro-origem" className="text-sm font-medium text-texto">
@@ -52,6 +54,19 @@ export function FiltrosLeads({
           {ORIGENS_LEAD.map((origem) => (
             <option key={origem} value={origem}>
               {ptBR.leads.origens[origem]}
+            </option>
+          ))}
+        </Selecao>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="filtro-etapa" className="text-sm font-medium text-texto">
+          {b.etapa}
+        </label>
+        <Selecao id="filtro-etapa" name="etapa" defaultValue={parametros.etapa ?? ""}>
+          <option value="">{b.todasEtapas}</option>
+          {ETAPAS_FUNIL.map((etapa) => (
+            <option key={etapa} value={etapa}>
+              {ptBR.funil.etapas[etapa]}
             </option>
           ))}
         </Selecao>
@@ -69,7 +84,7 @@ export function FiltrosLeads({
           ))}
         </Selecao>
       </div>
-      <div className="flex items-center gap-2 sm:col-span-2 lg:col-span-1">
+      <div className="flex items-center gap-2 sm:col-span-3 lg:col-span-1">
         <Botao type="submit" variante="secundario">
           {b.filtrar}
         </Botao>
@@ -112,6 +127,7 @@ export function ListaLeads({
                 <p className="min-w-0 truncate text-sm text-texto-suave sm:flex-1">{contato}</p>
               ) : null}
               <div className="flex flex-wrap items-center gap-1.5 sm:max-w-64 sm:justify-end">
+                <SeloEtapa etapa={lead.etapa} />
                 <Etiqueta>{ptBR.leads.origens[lead.origem]}</Etiqueta>
                 {etiquetas.map((etiqueta) => (
                   <Etiqueta key={etiqueta.id} variante={etiqueta.cor}>

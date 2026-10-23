@@ -2,7 +2,7 @@
 
 Plataforma de aquisição de leads e gestão de marketing para empresas.
 
-**Situação atual: etapa 3** (leads, importação de planilha, notas e etiquetas). Já é possível criar conta e empresa, cadastrar leads à mão, importar uma planilha CSV, buscar e filtrar a lista, anotar notas e etiquetar. Funil, busca de empresas e campanhas entram nas próximas etapas.
+**Situação atual: etapa 4** (funil de vendas e histórico). Já é possível criar conta e empresa, cadastrar leads à mão, importar uma planilha CSV, buscar e filtrar a lista, anotar notas, etiquetar e acompanhar cada lead no funil (Novo, Contatado, Em conversa, Proposta, Ganho, Perdido), com histórico de mudanças. Busca de empresas e campanhas entram nas próximas etapas.
 
 ## Escopo do MVP
 
@@ -60,6 +60,7 @@ Abra http://localhost:3000. O terminal precisa ficar aberto enquanto você usa o
 | http://localhost:3000/cadastrar | Crie uma conta. Em seguida o sistema pede o nome da sua empresa |
 | http://localhost:3000/painel | Painel da sua empresa, com "Olá, seu nome". Sem login, volta para a entrada |
 | http://localhost:3000/painel/leads | Lista de leads, com busca, filtros por origem e etiqueta, e os botões "Novo lead", "Importar planilha" e "Etiquetas" |
+| http://localhost:3000/painel/funil | Quadro do funil com as seis etapas. Cada cartão tem "Mover" para trocar a etapa. Na página do lead, o cartão "Funil" mostra a etapa atual e o histórico |
 | http://localhost:3000/painel/leads/importar | Importação de planilha. Para testar, use o arquivo `docs/exemplos/leads-exemplo.csv` |
 
 ### Testando a importação com a planilha de exemplo
@@ -125,9 +126,9 @@ tests/            testes automáticos
 | 0 | Projeto limpo, README, arquitetura | concluída |
 | 1 | Banco, migrações, identidade visual, componentes base | concluída |
 | 2 | Login, organizações, papéis, isolamento de dados, tabelas base | concluída |
-| 3 | Leads, importação CSV, notas, etiquetas | concluída, aguardando validação |
-| 4 | Funil e histórico | pendente |
-| 5 | Base de CNPJ e busca real | pendente |
+| 3 | Leads, importação CSV, notas, etiquetas | concluída, testada no navegador em 22/10/2026 |
+| 4 | Funil e histórico | concluída, testada no navegador em 22/10/2026 |
+| 5 | Base de CNPJ e busca real (antes: testes de navegador e regra de duplicados por CNPJ) | próxima |
 | 6 | Enriquecimento e pontuação | pendente |
-| 7 | Campanhas manuais e painel | pendente |
+| 7 | Campanhas manuais e painel (começa por motivo de perda e valor da venda no funil) | pendente |
 | 8 | Revisão final, testes, segurança, celular | pendente |

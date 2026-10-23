@@ -42,7 +42,11 @@ export function EtiquetasLead({
           ))}
         </ul>
       )}
-      <FormularioEtiquetaLead leadId={leadId} disponiveis={disponiveis} />
+      <FormularioEtiquetaLead
+        leadId={leadId}
+        disponiveis={disponiveis}
+        empresaSemEtiquetas={etiquetas.length === 0 && disponiveis.length === 0}
+      />
     </div>
   );
 }

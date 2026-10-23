@@ -51,6 +51,9 @@ export function FormularioImportar() {
     const arquivo = evento.target.files?.[0];
     setErroLocal(null);
     setArquivoAtual(arquivo ? assinaturaDo(arquivo) : null);
+    // Escolher de novo, mesmo que seja o mesmo arquivo, começa uma conferência
+    // nova. Sem isso, depois de importar não aparecia o botão de conferir.
+    setConferido(null);
   }
 
   // Envia manualmente, em vez de usar action={...} no formulário: assim o React
@@ -152,10 +155,7 @@ export function FormularioImportar() {
         <Alerta variante="sucesso" titulo={t.concluidaTitulo}>
           <p>{t.concluida(resultado.aceitas)}</p>
           {resultado.duplicadas + resultado.rejeitadas > 0 ? (
-            <p className="mt-1">
-              {resultado.duplicadas.toLocaleString("pt-BR")} {t.tipoDuplicada.toLowerCase()}s e{" "}
-              {resultado.rejeitadas.toLocaleString("pt-BR")} com problema ficaram de fora.
-            </p>
+            <p className="mt-1">{t.deFora(resultado.duplicadas, resultado.rejeitadas)}</p>
           ) : null}
           <div className="mt-3 flex flex-wrap gap-3">
             <BotaoLink href="/painel/leads" tamanho="pequeno">

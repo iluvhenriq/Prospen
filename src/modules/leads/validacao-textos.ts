@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { CORES_ETIQUETA, type CorEtiqueta } from "@/db/schema/etiquetas";
+import { ETAPAS_FUNIL, type EtapaFunil } from "@/db/schema/leads";
 
-// Validação de notas, etiquetas e identificadores recebidos das telas.
+// Validação de notas, etiquetas, etapas e identificadores recebidos das telas.
 // Roda no servidor, sempre. O que vem do navegador nunca é confiado.
 
 export const TAMANHO_MAXIMO_NOTA = 2000;
@@ -48,6 +49,15 @@ export function validarTextoNota(valor: string): ResultadoTexto {
 
 export function ehUuid(valor: unknown): valor is string {
   return z.uuid().safeParse(valor).success;
+}
+
+const esquemaEtapa = z.enum(ETAPAS_FUNIL);
+
+// Etapa do funil vinda de um formulário. Valor desconhecido devolve nulo:
+// a ação recusa, em vez de trocar por uma etapa padrão sem a pessoa pedir.
+export function etapaValida(valor: unknown): EtapaFunil | null {
+  const resultado = esquemaEtapa.safeParse(valor);
+  return resultado.success ? resultado.data : null;
 }
 
 export function corValida(valor: unknown): CorEtiqueta {

@@ -8,6 +8,7 @@ import { ptBR } from "@/lib/i18n/pt-BR";
 const itens = [
   { href: "/painel", rotulo: ptBR.menu.painel, exato: true },
   { href: "/painel/leads", rotulo: ptBR.menu.leads, exato: false },
+  { href: "/painel/funil", rotulo: ptBR.menu.funil, exato: false },
 ];
 
 // Menu da área logada. Marca a seção atual para quem vê e para leitores de tela.

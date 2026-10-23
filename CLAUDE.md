@@ -24,11 +24,11 @@ PROSPEN é uma plataforma de aquisição de leads e gestão de marketing para em
 | 0 | Projeto limpo, README, arquitetura | concluída |
 | 1 | Banco, migrações, identidade visual, componentes base | concluída |
 | 2 | Login, empresas, papéis, isolamento de dados | concluída |
-| 3 | Leads, importação CSV, notas, etiquetas | concluída, aguardando validação dele |
-| 4 | Funil de vendas (Novo, Contatado, Em conversa, Proposta, Ganho, Perdido), quadro e histórico de mudanças | próxima |
-| 5 | Base pública de CNPJ e busca real de leads | pendente |
+| 3 | Leads, importação CSV, notas, etiquetas | concluída, testada no navegador em 22/10/2026 |
+| 4 | Funil de vendas (Novo, Contatado, Em conversa, Proposta, Ganho, Perdido), quadro e histórico de mudanças | concluída, testada no navegador em 22/10/2026 |
+| 5 | Base pública de CNPJ e busca real de leads | próxima. Antes, nesta ordem: 5a testes de navegador com Playwright (login, isolamento, importação, funil); 5b regra de duplicados por CNPJ |
 | 6 | Enriquecimento com Google Places e pontuação por regras simples | pendente |
-| 7 | Campanhas manuais (sem integração com anúncios) e painel de indicadores | pendente |
+| 7 | Campanhas manuais (sem integração com anúncios) e painel de indicadores | pendente. Começa por motivo de perda (Perdido) e valor da venda (Ganho) no funil |
 | 8 | Revisão final: erros, estados vazios, testes dos fluxos críticos, segurança, celular | pendente |
 
 Fora do MVP, de propósito: Google Ads, Meta Ads, formulários de captação, automação, inteligência artificial, cobrança e planos. Não implemente antes da hora.
@@ -83,7 +83,7 @@ Antes de dizer que uma etapa está pronta, rode lint, tipos, testes e build. Tes
 - Sem recuperação de senha e sem verificação de e-mail (dependem de provedor de e-mail). **Obrigatório antes de abrir para clientes.**
 - Falta registrar a base legal de cada lead (LGPD) e criar exclusão a pedido do titular. Combinar com advogado.
 - O limite de tentativas de login vive na memória do servidor. Com mais de um servidor, mover para o banco. O limite por endereço depende do cabeçalho `x-forwarded-for`.
-- **A regra de e-mail e telefone únicos por empresa vai atrapalhar a etapa 5**, porque na base de CNPJ vários negócios compartilham o contato do contador. Definir regra própria (identificar o lead pelo CNPJ) antes de começar a etapa 5.
+- **Regra de duplicados decidida (22/10/2026), ainda não implementada:** lead com CNPJ é único pelo CNPJ de 14 dígitos dentro da empresa. E-mail e telefone continuam únicos só para leads sem CNPJ (manual e planilha). Contato repetido entre leads com CNPJ gera aviso ("contato compartilhado com N leads"), não bloqueio.
 - Ao criar exportação de leads, neutralizar células que começam com `=`, `+`, `-` ou `@`.
 - Importação sem limite de frequência por empresa.
 - Importação só aceita CSV, até 2 MB e 5.000 linhas.

@@ -11,8 +11,11 @@ import {
   type SQL,
 } from "drizzle-orm";
 import {
+  ETAPAS_FUNIL,
+  historicoEtapas,
   leadEtiquetas,
   leads,
+  type EtapaFunil,
   type Lead,
   type NovoLead,
   type OrigemLead,
@@ -47,6 +50,7 @@ export type FiltrosLeads = {
   // e-mail ou telefone, sem diferenciar maiúsculas nem acentos.
   busca?: string;
   origem?: OrigemLead;
+  etapa?: EtapaFunil;
   // Identificador de uma etiqueta. Precisa ser um UUID válido (a tela confere).
   etiquetaId?: string;
 };
@@ -65,6 +69,16 @@ export class ErroLeadDuplicado extends Error {
     this.name = "ErroLeadDuplicado";
   }
 }
+
+// Resultado de mudarEtapa. "mudou" é falso quando o lead já estava na etapa
+// pedida: nada é gravado e o histórico não ganha registro repetido.
+export type MudancaDeEtapa = { lead: Lead; mudou: boolean };
+
+export type ColunaDoQuadro = {
+  etapa: EtapaFunil;
+  total: number;
+  leads: Lead[];
+};
 
 export type DuplicadoEncontrado = {
   campo: CampoDuplicado;
@@ -105,6 +119,7 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
     const extras: SQL[] = [daOrganizacao];
 
     if (filtros.origem) extras.push(eq(leads.origem, filtros.origem));
+    if (filtros.etapa) extras.push(eq(leads.etapa, filtros.etapa));
 
     if (filtros.etiquetaId) {
       extras.push(
@@ -258,6 +273,69 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
       } catch (erro) {
         throw traduzirErro(erro);
       }
+    },
+
+    // ÚNICO jeito de mudar a etapa de um lead. Muda a etapa e grava o histórico
+    // na mesma transação: ou as duas coisas acontecem, ou nenhuma. A linha do
+    // lead fica travada até o fim, então duas pessoas movendo o mesmo lead ao
+    // mesmo tempo geram dois registros coerentes (A para B, depois B para C).
+    // Nulo: o lead não existe nesta empresa.
+    async mudarEtapa(
+      id: string,
+      etapa: EtapaFunil,
+      alteradoPorId: string | null,
+    ): Promise<MudancaDeEtapa | null> {
+      return db.transaction(async (tx) => {
+        const [atual] = await tx
+          .select()
+          .from(leads)
+          .where(and(daOrganizacao, eq(leads.id, id)))
+          .for("update");
+        if (!atual) return null;
+        if (atual.etapa === etapa) return { lead: atual, mudou: false };
+
+        const [lead] = await tx
+          .update(leads)
+          .set({ etapa, etapaAtualizadaEm: new Date() })
+          .where(and(daOrganizacao, eq(leads.id, id)))
+          .returning();
+        await tx.insert(historicoEtapas).values({
+          organizacaoId,
+          leadId: id,
+          etapaAnterior: atual.etapa,
+          etapaNova: etapa,
+          alteradoPorId,
+        });
+        return { lead, mudou: true };
+      });
+    },
+
+    // Colunas do quadro do funil, na ordem das etapas. Cada coluna traz o total
+    // de leads e os mais recentemente movidos, até o limite.
+    async quadro(limitePorEtapa = 30): Promise<ColunaDoQuadro[]> {
+      const limite = Math.min(Math.max(limitePorEtapa, 1), 100);
+      const totais = await db
+        .select({ etapa: leads.etapa, total: count() })
+        .from(leads)
+        .where(daOrganizacao)
+        .groupBy(leads.etapa);
+      const totalPorEtapa = new Map(totais.map((linha) => [linha.etapa, linha.total]));
+
+      return Promise.all(
+        ETAPAS_FUNIL.map(async (etapa) => {
+          const total = totalPorEtapa.get(etapa) ?? 0;
+          const itens =
+            total === 0
+              ? []
+              : await db
+                  .select()
+                  .from(leads)
+                  .where(and(daOrganizacao, eq(leads.etapa, etapa)))
+                  .orderBy(desc(leads.etapaAtualizadaEm), desc(leads.id))
+                  .limit(limite);
+          return { etapa, total, leads: itens };
+        }),
+      );
     },
 
     async excluir(id: string): Promise<boolean> {

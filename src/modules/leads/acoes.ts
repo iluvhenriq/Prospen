@@ -28,6 +28,7 @@ import { validarLead, type CampoLead } from "./validacao";
 import {
   corValida,
   ehUuid,
+  etapaValida,
   validarNomeEtiqueta,
   validarTextoNota,
 } from "./validacao-textos";
@@ -168,6 +169,30 @@ export async function excluirLead(dados: FormData): Promise<void> {
   revalidatePath("/painel/leads");
   revalidatePath("/painel");
   redirect("/painel/leads");
+}
+
+// ----------------------------------------------------------------------------
+// Funil
+// ----------------------------------------------------------------------------
+
+// Usada pelo quadro do funil e pela página do lead. Lead de outra empresa ou
+// apagado no meio do caminho: não faz nada, como em "não existe".
+export async function mudarEtapaDoLead(dados: FormData): Promise<void> {
+  const contexto = await exigirPermissao("trabalharComLeads");
+  const leadId = texto(dados, "leadId");
+  const etapa = etapaValida(texto(dados, "etapa"));
+  if (!ehUuid(leadId) || !etapa) return;
+
+  const resultado = await repositorioLeads(getDb(), contexto.organizacao.id).mudarEtapa(
+    leadId,
+    etapa,
+    contexto.usuario.id,
+  );
+  if (!resultado?.mudou) return;
+
+  revalidatePath("/painel/funil");
+  revalidatePath("/painel/leads/[id]", "page");
+  revalidatePath("/painel/leads");
 }
 
 // ----------------------------------------------------------------------------
