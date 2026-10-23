@@ -1,0 +1,83 @@
+import { sql } from "drizzle-orm";
+import {
+  check,
+  index,
+  pgTable,
+  text,
+  timestamp,
+  unique,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
+import { organization, user } from "./auth";
+
+// De onde o lead veio. Cada etapa nova que gera leads acrescenta o seu valor aqui.
+export const ORIGENS_LEAD = ["manual", "importacao", "busca_cnpj", "google"] as const;
+export type OrigemLead = (typeof ORIGENS_LEAD)[number];
+
+// Base da lista de leads. Colunas de funil e pontuação chegam nas etapas 4 a 6.
+// Todo acesso a esta tabela passa por src/modules/leads/repositorio.ts, que
+// sempre filtra por organização. Não consulte esta tabela em outro lugar.
+export const leads = pgTable(
+  "leads",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    organizacaoId: text("organizacao_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    nome: text("nome").notNull(),
+    empresa: text("empresa"),
+    email: text("email"),
+    telefone: text("telefone"),
+    // Versões padronizadas do e-mail (minúsculo) e do telefone (só dígitos, sem
+    // código do país no Brasil). Servem para achar duplicados. São calculadas
+    // pelo repositório sempre que o e-mail ou o telefone mudam.
+    emailNormalizado: text("email_normalizado"),
+    telefoneNormalizado: text("telefone_normalizado"),
+    origem: text("origem").$type<OrigemLead>().notNull().default("manual"),
+    // Código do país com duas letras (ISO 3166-1). Prepara a expansão internacional.
+    pais: text("pais").notNull().default("BR"),
+    criadoPorId: text("criado_por_id").references(() => user.id, {
+      onDelete: "set null",
+    }),
+    criadoEm: timestamp("criado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    atualizadoEm: timestamp("atualizado_em", { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  (tabela) => [
+    // Necessário para as tabelas filhas (etiquetas, notas) amarrarem o lead
+    // E a empresa juntos, o que impede ligar dados de empresas diferentes.
+    unique("leads_id_organizacao_unico").on(tabela.id, tabela.organizacaoId),
+    index("leads_organizacao_criado_idx").on(tabela.organizacaoId, tabela.criadoEm),
+    // Um e-mail ou telefone aparece uma vez por empresa. O banco garante isso
+    // mesmo se duas pessoas cadastrarem o mesmo contato ao mesmo tempo.
+    uniqueIndex("leads_organizacao_email_unico")
+      .on(tabela.organizacaoId, tabela.emailNormalizado)
+      .where(sql`${tabela.emailNormalizado} is not null`),
+    uniqueIndex("leads_organizacao_telefone_unico")
+      .on(tabela.organizacaoId, tabela.telefoneNormalizado)
+      .where(sql`${tabela.telefoneNormalizado} is not null`),
+    check(
+      "leads_origem_valida",
+      sql`${tabela.origem} in ('manual', 'importacao', 'busca_cnpj', 'google')`,
+    ),
+    check("leads_pais_valido", sql`${tabela.pais} ~ '^[A-Z]{2}$'`),
+    check("leads_nome_nao_vazio", sql`char_length(btrim(${tabela.nome})) > 0`),
+  ],
+);
+
+export type Lead = typeof leads.$inferSelect;
+export type NovoLead = Omit<
+  typeof leads.$inferInsert,
+  | "id"
+  | "organizacaoId"
+  | "criadoEm"
+  | "atualizadoEm"
+  | "criadoPorId"
+  | "emailNormalizado"
+  | "telefoneNormalizado"
+>;

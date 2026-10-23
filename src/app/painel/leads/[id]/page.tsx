@@ -1,0 +1,148 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Suspense } from "react";
+import { EtiquetasLead } from "@/components/leads/etiquetas-lead";
+import { FormularioLead } from "@/components/leads/formulario-lead";
+import { NotasLead } from "@/components/leads/notas-lead";
+import { Botao } from "@/components/ui/botao";
+import { Esqueleto } from "@/components/ui/carregando";
+import {
+  Cartao,
+  CartaoCabecalho,
+  CartaoConteudo,
+  CartaoDescricao,
+  CartaoTitulo,
+} from "@/components/ui/cartao";
+import { formatarDataHora } from "@/lib/formato";
+import { ptBR } from "@/lib/i18n/pt-BR";
+import { atualizarLead, excluirLead } from "@/modules/leads/acoes";
+import { obterDetalheDoLead } from "@/modules/leads/consultas";
+import { exigirContexto } from "@/modules/organizacoes/contexto";
+import { papelPode } from "@/modules/organizacoes/membros";
+
+export const metadata: Metadata = { title: ptBR.leads.detalhe.dados };
+
+async function ConteudoDoLead({
+  params,
+}: {
+  params: PageProps<"/painel/leads/[id]">["params"];
+}) {
+  const { id } = await params;
+  const contexto = await exigirContexto();
+  const detalhe = await obterDetalheDoLead(contexto, id);
+  // Identificador inválido, lead apagado ou de outra empresa: a resposta é a mesma.
+  if (!detalhe) notFound();
+
+  const { lead } = detalhe;
+  const t = ptBR.leads;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <header className="flex flex-col gap-1">
+        <Link
+          href="/painel/leads"
+          className="text-sm font-medium text-roxo-700 underline-offset-4 hover:underline"
+        >
+          {t.voltarParaLista}
+        </Link>
+        <h1 className="break-words text-2xl font-semibold tracking-tight text-musgo-800">
+          {lead.nome}
+        </h1>
+        <p className="text-sm text-texto-suave">
+          {t.origens[lead.origem]}
+          {", "}
+          {t.detalhe.criadoEm(formatarDataHora(lead.criadoEm, detalhe.fusoHorario))}
+        </p>
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
+        <div className="flex flex-col gap-6">
+          <Cartao>
+            <CartaoCabecalho>
+              <CartaoTitulo>{t.detalhe.dados}</CartaoTitulo>
+            </CartaoCabecalho>
+            <CartaoConteudo>
+              <FormularioLead
+                acao={atualizarLead}
+                lead={lead}
+                paisPadrao={lead.pais}
+                rotuloBotao={t.formulario.salvar}
+              />
+            </CartaoConteudo>
+          </Cartao>
+
+          {/* <details> funciona sem JavaScript e pede uma segunda decisão antes de excluir. */}
+          <details className="rounded-xl border border-erro-borda bg-erro-fundo p-4">
+            <summary className="cursor-pointer text-sm font-medium text-erro">
+              {t.detalhe.excluirTitulo}
+            </summary>
+            <div className="mt-3 flex flex-col gap-3">
+              <p className="text-sm text-erro">{t.detalhe.excluirAviso}</p>
+              <form action={excluirLead}>
+                <input type="hidden" name="id" value={lead.id} />
+                <Botao type="submit" variante="perigo" tamanho="pequeno">
+                  {t.detalhe.excluirBotao}
+                </Botao>
+              </form>
+            </div>
+          </details>
+        </div>
+
+        <div className="flex flex-col gap-6">
+          <Cartao>
+            <CartaoCabecalho>
+              <CartaoTitulo>{t.etiquetasDoLead.titulo}</CartaoTitulo>
+            </CartaoCabecalho>
+            <CartaoConteudo>
+              <EtiquetasLead
+                leadId={lead.id}
+                etiquetas={detalhe.etiquetas}
+                disponiveis={detalhe.etiquetasDisponiveis}
+              />
+            </CartaoConteudo>
+          </Cartao>
+
+          <Cartao>
+            <CartaoCabecalho>
+              <CartaoTitulo>{t.notas.titulo}</CartaoTitulo>
+              <CartaoDescricao>{detalhe.notas.length > 0 ? `${detalhe.notas.length}` : ""}</CartaoDescricao>
+            </CartaoCabecalho>
+            <CartaoConteudo>
+              <NotasLead
+                leadId={lead.id}
+                notas={detalhe.notas}
+                fusoHorario={detalhe.fusoHorario}
+                usuarioId={contexto.usuario.id}
+                podeApagarQualquer={papelPode(contexto.papel, "gerenciarEquipe")}
+              />
+            </CartaoConteudo>
+          </Cartao>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CarregandoLead() {
+  return (
+    <div className="flex flex-col gap-6" aria-busy="true">
+      <div className="flex flex-col gap-2">
+        <Esqueleto className="h-4 w-32" />
+        <Esqueleto className="h-8 w-64" />
+      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Esqueleto className="h-96 w-full" />
+        <Esqueleto className="h-96 w-full" />
+      </div>
+    </div>
+  );
+}
+
+export default function PaginaDoLead(props: PageProps<"/painel/leads/[id]">) {
+  return (
+    <Suspense fallback={<CarregandoLead />}>
+      <ConteudoDoLead params={props.params} />
+    </Suspense>
+  );
+}

@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792300395686,
+      "tag": "0000_extensoes",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792361408791,
+      "tag": "0001_login_organizacoes_leads",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792453008057,
+      "tag": "0002_configuracao_empresa",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792489171246,
+      "tag": "0003_leads_etiquetas_notas_importacoes",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+# PROSPEN
+
+Plataforma de aquisição de leads e gestão de marketing para empresas.
+
+**Situação atual: etapa 3** (leads, importação de planilha, notas e etiquetas). Já é possível criar conta e empresa, cadastrar leads à mão, importar uma planilha CSV, buscar e filtrar a lista, anotar notas e etiquetar. Funil, busca de empresas e campanhas entram nas próximas etapas.
+
+## Escopo do MVP
+
+1. Cadastro, login e organizações, com dados isolados por empresa.
+2. Busca real de leads na base pública de CNPJ da Receita Federal.
+3. Enriquecimento opcional de leads com o Google Places.
+4. Importação de listas próprias por planilha CSV.
+5. Lista de leads com filtros, notas e etiquetas.
+6. Funil de vendas simples com histórico de etapas.
+7. Pontuação de leads por regras simples e transparentes.
+8. Campanhas manuais (planejamento e registro, sem integração com anúncios).
+9. Painel com indicadores de aquisição.
+
+Fora do MVP: Google Ads, Meta Ads, formulários de captação, automação, inteligência artificial, cobrança e planos.
+
+## Requisitos
+
+- Node.js 22 ou superior
+- npm
+- Git
+- PostgreSQL 16 ou superior, instalado no computador
+
+## Como instalar e rodar
+
+No PowerShell, dentro da pasta do projeto (a que tem o `package.json`):
+
+```
+npm install
+copy .env.example .env.local
+```
+
+Abra o `.env.local` e troque `SUA_SENHA` pela senha do usuário `postgres`, criada na instalação do PostgreSQL. Se a senha tiver símbolos como `@ # / :`, troque cada um pelo código correspondente (por exemplo, `@` vira `%40`). Esse arquivo nunca vai para o Git.
+
+Gere o segredo do login (ele protege as sessões) e cole a linha que aparecer no `.env.local`, no lugar da linha `AUTH_SECRET=`:
+
+```
+npm run auth:segredo
+```
+
+Depois, crie o banco e as tabelas:
+
+```
+npm run db:criar
+npm run db:migrar
+npm run dev
+```
+
+Abra http://localhost:3000. O terminal precisa ficar aberto enquanto você usa o projeto.
+
+## Como conferir que está tudo certo
+
+| Endereço | O que deve aparecer |
+|---|---|
+| http://localhost:3000 | Página "PROSPEN" com os botões "Criar conta" e "Entrar" |
+| http://localhost:3000/cadastrar | Crie uma conta. Em seguida o sistema pede o nome da sua empresa |
+| http://localhost:3000/painel | Painel da sua empresa, com "Olá, seu nome". Sem login, volta para a entrada |
+| http://localhost:3000/painel/leads | Lista de leads, com busca, filtros por origem e etiqueta, e os botões "Novo lead", "Importar planilha" e "Etiquetas" |
+| http://localhost:3000/painel/leads/importar | Importação de planilha. Para testar, use o arquivo `docs/exemplos/leads-exemplo.csv` |
+
+### Testando a importação com a planilha de exemplo
+
+O arquivo `docs/exemplos/leads-exemplo.csv` tem **dados fictícios** (nomes "Exemplo", e-mails `@exemplo.com.br`), só para testar. Ao enviá-lo em "Importar planilha" e clicar em "Conferir planilha", o resultado esperado é:
+
+- **5 serão importados**
+- **1 repetida:** linha 7, e-mail igual ao da linha 2
+- **2 com problema:** linha 8 (e-mail inválido) e linha 9 (sem nome)
+
+Nada é gravado até você clicar em "Importar". Se enviar o mesmo arquivo de novo depois de importar, o resultado será "nenhuma linha pode ser importada", porque os contatos já existem.
+| http://localhost:3000/design | Página de teste visual com cores, botões, campos, avisos e estados (só em desenvolvimento) |
+| http://localhost:3000/api/saude | `{"banco":"ok"}` quando o banco responde, ou `{"banco":"erro"}` se algo estiver errado |
+
+## Comandos úteis
+
+| Comando | Para que serve |
+|---|---|
+| `npm run dev` | Roda o projeto em modo de desenvolvimento |
+| `npm run lint` | Verifica o estilo e erros comuns do código |
+| `npm test` | Roda os testes automáticos (inclui testar as migrações em um banco de teste em memória) |
+| `npm run build` | Gera a versão de produção e checa os tipos |
+| `npm run start` | Roda a versão gerada pelo `build` |
+| `npm run db:criar` | Cria o banco indicado no `.env.local`, se ainda não existir |
+| `npm run db:migrar` | Aplica as migrações pendentes. Pode rodar várias vezes sem problema |
+| `npm run db:gerar` | Gera uma nova migração depois de alterar as tabelas em `src/db/schema` |
+| `npm run auth:segredo` | Gera um segredo novo para o login. Só mostra na tela, não grava nada |
+
+## Problemas comuns
+
+- **"Não consegui conectar ao PostgreSQL":** o PostgreSQL está desligado ou a porta do `.env.local` não é a 5432.
+- **"Usuário ou senha incorretos":** confira a senha no `.env.local` (veja a observação sobre símbolos acima).
+- **"Configuração inválida ... AUTH_SECRET":** falta gerar o segredo do login. Rode `npm run auth:segredo` e cole a linha no `.env.local`. Depois, pare e ligue o `npm run dev` de novo.
+- **Esqueci a senha de uma conta de teste:** ainda não existe recuperação de senha (ela depende de envio de e-mail). Em desenvolvimento, crie outra conta com outro e-mail.
+- **Erro dizendo que a extensão `unaccent` ou `pg_trgm` não foi encontrada:** o PostgreSQL foi instalado sem os módulos adicionais. O instalador oficial do Windows já os inclui. Reinstale por ele, mantendo a opção padrão.
+- **`npm audit` mostra avisos:** veja "Pontos de atenção" em [docs/arquitetura.md](docs/arquitetura.md). Não rode `npm audit fix --force`.
+
+## Estrutura de pastas
+
+```
+src/
+  app/            telas e rotas (só interface)
+  modules/        lógica de negócio, um módulo por assunto
+  integrations/   um adaptador por serviço externo
+  db/             conexão, tabelas (schema) e migrações
+  components/ui/  componentes visuais reutilizáveis
+  lib/            configuração, erros, validação, textos (i18n)
+scripts/          comandos de linha (criar banco, migrar)
+docs/
+  arquitetura.md  decisões do projeto
+  exemplos/       planilha de exemplo (dados fictícios) para testar a importação
+tests/            testes automáticos
+```
+
+## Documentação
+
+- [Arquitetura e decisões](docs/arquitetura.md)
+
+## Etapas
+
+| Etapa | Entrega | Situação |
+|---|---|---|
+| 0 | Projeto limpo, README, arquitetura | concluída |
+| 1 | Banco, migrações, identidade visual, componentes base | concluída |
+| 2 | Login, organizações, papéis, isolamento de dados, tabelas base | concluída |
+| 3 | Leads, importação CSV, notas, etiquetas | concluída, aguardando validação |
+| 4 | Funil e histórico | pendente |
+| 5 | Base de CNPJ e busca real | pendente |
+| 6 | Enriquecimento e pontuação | pendente |
+| 7 | Campanhas manuais e painel | pendente |
+| 8 | Revisão final, testes, segurança, celular | pendente |

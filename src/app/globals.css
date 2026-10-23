@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/*
+  Identidade visual da PROSPEN.
+  Verde-musgo: estrutura, marca e sucesso.
+  Roxo: ações principais e destaque.
+  Todas as combinações de texto e fundo usadas nos componentes passam de
+  4,5:1 de contraste (bordas de campo e foco, de 3:1).
+  Por enquanto só existe o tema claro.
+*/
+@theme {
+  --color-musgo-50: #f5f7ef;
+  --color-musgo-100: #e8edda;
+  --color-musgo-200: #d2dbb7;
+  --color-musgo-300: #b3c28b;
+  --color-musgo-400: #93a766;
+  --color-musgo-500: #758b4a;
+  --color-musgo-600: #5a6e38;
+  --color-musgo-700: #475730;
+  --color-musgo-800: #3a4729;
+  --color-musgo-900: #313b25;
+  --color-musgo-950: #1a2012;
+
+  --color-roxo-50: #f5f2ff;
+  --color-roxo-100: #ebe5ff;
+  --color-roxo-200: #d9ceff;
+  --color-roxo-300: #bfaeff;
+  --color-roxo-400: #a38af5;
+  --color-roxo-500: #8765e8;
+  --color-roxo-600: #6d46d1;
+  --color-roxo-700: #5a37b0;
+  --color-roxo-800: #4a2f8f;
+  --color-roxo-900: #3d2874;
+  --color-roxo-950: #241547;
+
+  --color-fundo: #fafaf6;
+  --color-superficie: #ffffff;
+  --color-borda: #dfe2d6;
+  --color-borda-campo: #858c78;
+  --color-texto: #1c2016;
+  --color-texto-suave: #565d4b;
+  --color-placeholder: #6b7260;
+
+  --color-erro: #b42318;
+  --color-erro-escuro: #912018;
+  --color-erro-fundo: #fef3f2;
+  --color-erro-borda: #fecdca;
+  --color-aviso: #93370d;
+  --color-aviso-fundo: #fffaeb;
+  --color-aviso-borda: #fedf89;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    background-color: var(--color-fundo);
+    color: var(--color-texto);
+    font-family: var(--font-sans);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-roxo-500);
+    outline-offset: 2px;
+  }
+}
