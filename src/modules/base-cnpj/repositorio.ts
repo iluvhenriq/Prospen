@@ -146,15 +146,20 @@ export function repositorioBaseCnpj(db: Banco) {
     async buscar(filtros: FiltrosDaBusca, depoisDe: string | null, limite: number): Promise<ResultadoDaBusca[]> {
       if (filtros.atividades && filtros.atividades.length === 0) return [];
       const condicoes: SQL[] = [
-        eq(baseCnpjEstabelecimentos.uf, filtros.uf),
         sql`not exists (select 1 from ${baseCnpjExclusoes} where ${baseCnpjExclusoes.cnpj} = ${baseCnpjEstabelecimentos.cnpj})`,
       ];
-      if (filtros.municipio) condicoes.push(eq(baseCnpjEstabelecimentos.municipioCodigo, filtros.municipio));
-      if (filtros.atividades) condicoes.push(inArray(baseCnpjEstabelecimentos.cnaePrincipal, filtros.atividades));
-      if (filtros.semMei) {
-        condicoes.push(sql`${baseCnpjEmpresas.naturezaJuridica} is distinct from ${NATUREZA_MEI}`);
+      if (filtros.cnpj) {
+        // CNPJ exato: é a chave da tabela, os outros filtros não se aplicam.
+        condicoes.push(eq(baseCnpjEstabelecimentos.cnpj, filtros.cnpj));
+      } else {
+        condicoes.push(eq(baseCnpjEstabelecimentos.uf, filtros.uf));
+        if (filtros.municipio) condicoes.push(eq(baseCnpjEstabelecimentos.municipioCodigo, filtros.municipio));
+        if (filtros.atividades) condicoes.push(inArray(baseCnpjEstabelecimentos.cnaePrincipal, filtros.atividades));
+        if (filtros.semMei) {
+          condicoes.push(sql`${baseCnpjEmpresas.naturezaJuridica} is distinct from ${NATUREZA_MEI}`);
+        }
+        if (depoisDe) condicoes.push(gt(baseCnpjEstabelecimentos.cnpj, depoisDe));
       }
-      if (depoisDe) condicoes.push(gt(baseCnpjEstabelecimentos.cnpj, depoisDe));
 
       const linhas = await db
         .select({
@@ -215,6 +220,8 @@ export const MAXIMO_DE_ATIVIDADES = 50;
 
 export type FiltrosDaBusca = {
   uf: string;
+  // CNPJ exato e válido. Quando presente, os outros filtros são ignorados.
+  cnpj?: string;
   municipio?: string;
   // Códigos de atividade. Lista vazia = nenhuma atividade achada, sem resultado.
   atividades?: string[];

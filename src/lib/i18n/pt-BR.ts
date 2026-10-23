@@ -88,13 +88,20 @@ export const ptBR = {
       cidadeDepoisDoEstado: "Escolha o estado e clique em Buscar para ver as cidades.",
       atividade: "Atividade",
       atividadePlaceholder: "Ex.: padaria, oficina mecânica, contabilidade",
+      cnpj: "Ou busque um CNPJ",
+      cnpjPlaceholder: "00.000.000/0000-00",
+      cnpjAjuda: "Com CNPJ, os outros filtros são ignorados.",
       incluirMei: "Incluir MEI",
       incluirMeiAjuda: "Microempreendedores individuais são mais da metade da base. Ficam de fora a menos que você marque.",
       buscar: "Buscar",
       limpar: "Limpar",
     },
+    cnpjInvalido: (texto: string) => `"${texto}" não é um CNPJ válido. Confira os números.`,
+    cnpjNaoEncontradoTitulo: "CNPJ não encontrado",
+    cnpjNaoEncontradoDescricao:
+      "Ele não está entre as empresas ativas dos estados carregados. Pode estar baixado, ser de outro estado ou ter pedido para sair da base.",
     escolhaEstadoTitulo: "Escolha um estado para começar",
-    escolhaEstadoDescricao: "Depois, se quiser, filtre por cidade e atividade.",
+    escolhaEstadoDescricao: "Depois, se quiser, filtre por cidade e atividade. Ou busque direto por um CNPJ.",
     atividadeNaoEncontrada: (texto: string) => `Nenhuma atividade encontrada para "${texto}". Tente outra palavra.`,
     atividadesUsadas: (total: number) =>
       total === 1 ? "Buscando em 1 atividade:" : `Buscando em ${total} atividades:`,
@@ -189,6 +196,10 @@ export const ptBR = {
       descricao: "Cadastre um contato à mão. Para vários de uma vez, use a importação de planilha.",
     },
     detalhe: {
+      cnpj: (cnpj: string) => `CNPJ ${cnpj}`,
+      contatoCompartilhado: (campo: "email" | "telefone", total: number) =>
+        `${campo === "email" ? "Este e-mail" : "Este telefone"} também está em ${quantidade(total, "outro lead", "outros leads")}. Pode ser do contador, não do dono.`,
+      verCompartilhados: "Ver quais",
       dados: "Dados do lead",
       origem: "Origem",
       criadoEm: (data: string) => `Cadastrado em ${data}`,

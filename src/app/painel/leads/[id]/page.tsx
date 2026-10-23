@@ -8,6 +8,7 @@ import { SeloEtapa } from "@/components/funil/selo-etapa";
 import { EtiquetasLead } from "@/components/leads/etiquetas-lead";
 import { FormularioLead } from "@/components/leads/formulario-lead";
 import { NotasLead } from "@/components/leads/notas-lead";
+import { Alerta } from "@/components/ui/alerta";
 import { Botao } from "@/components/ui/botao";
 import { Esqueleto } from "@/components/ui/carregando";
 import {
@@ -20,6 +21,7 @@ import {
 import { formatarData, formatarDataHora } from "@/lib/formato";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { atualizarLead, excluirLead } from "@/modules/leads/acoes";
+import { formatarCnpj } from "@/modules/leads/cnpj";
 import { obterDetalheDoLead } from "@/modules/leads/consultas";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
 import { papelPode } from "@/modules/organizacoes/membros";
@@ -56,6 +58,7 @@ async function ConteudoDoLead({
           {t.origens[lead.origem]}
           {", "}
           {t.detalhe.criadoEm(formatarDataHora(lead.criadoEm, detalhe.fusoHorario))}
+          {lead.cnpj ? `, ${t.detalhe.cnpj(formatarCnpj(lead.cnpj))}` : null}
         </p>
       </header>
 
@@ -65,7 +68,20 @@ async function ConteudoDoLead({
             <CartaoCabecalho>
               <CartaoTitulo>{t.detalhe.dados}</CartaoTitulo>
             </CartaoCabecalho>
-            <CartaoConteudo>
+            <CartaoConteudo className="flex flex-col gap-4">
+              {(["email", "telefone"] as const)
+                .filter((campo) => detalhe.compartilhado[campo] > 0)
+                .map((campo) => (
+                  <Alerta key={campo} variante="aviso">
+                    {t.detalhe.contatoCompartilhado(campo, detalhe.compartilhado[campo])}{" "}
+                    <Link
+                      href={`/painel/leads?q=${encodeURIComponent((campo === "email" ? lead.emailNormalizado : lead.telefoneNormalizado) ?? "")}`}
+                      className="font-medium underline underline-offset-4"
+                    >
+                      {t.detalhe.verCompartilhados}
+                    </Link>
+                  </Alerta>
+                ))}
               <FormularioLead
                 acao={atualizarLead}
                 lead={lead}

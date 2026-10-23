@@ -27,18 +27,21 @@ export async function obterTelaDeBusca(contexto: Contexto, parametros: Parametro
   const estados = await base.estadosCarregados();
   const uf = estados.some((estado) => estado.uf === parametros.uf) ? parametros.uf : undefined;
   const vazio = { estados, municipios: [], atividades: null, resultados: [], jaSaoLeads: new Set<string>(), proximo: null, buscou: false };
-  if (!uf) return vazio;
+  // CNPJ digitado e válido: busca só por ele, em qualquer estado carregado.
+  const porCnpj = Boolean(parametros.cnpj);
+  if (!uf && !porCnpj) return vazio;
 
   const [municipios, atividades] = await Promise.all([
-    base.municipiosDoEstado(uf),
-    parametros.atividade ? base.atividadesPorPalavras(parametros.atividade) : Promise.resolve(null),
+    uf ? base.municipiosDoEstado(uf) : Promise.resolve([]),
+    parametros.atividade && !porCnpj ? base.atividadesPorPalavras(parametros.atividade) : Promise.resolve(null),
   ]);
   const municipio = municipios.some((m) => m.codigo === parametros.municipio) ? parametros.municipio : undefined;
 
   // Pede um a mais para saber se existe próxima página, sem contar o total.
   const linhas = await base.buscar(
     {
-      uf,
+      uf: uf ?? "",
+      cnpj: parametros.cnpj,
       municipio,
       atividades: atividades?.map((atividade) => atividade.codigo),
       semMei: !parametros.incluirMei,

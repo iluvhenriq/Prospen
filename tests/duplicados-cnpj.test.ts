@@ -133,4 +133,21 @@ describe("duplicados com CNPJ", () => {
       leadsA().criar({ nome: "CNPJ errado", cnpj: "11222333000182" }, ana.id),
     ).rejects.toThrow("CNPJ inválido.");
   });
+
+  it("conta quantos outros leads da mesma empresa dividem o contato, sem olhar outras empresas", async () => {
+    // A empresa B também tem um lead com o contato do contador.
+    await leadsB().criar({ nome: "Outro negócio B", cnpj: CNPJ_MERCADO, origem: "busca_cnpj", ...CONTADOR }, bruno.id);
+
+    const padaria = (await leadsA().listar({ busca: "Padaria Modelo" }))[0];
+    const todosComContador = (await leadsA().listar()).filter(
+      (lead) => lead.emailNormalizado === padaria.emailNormalizado,
+    );
+    expect(await leadsA().contatoCompartilhado(padaria)).toEqual({
+      email: todosComContador.length - 1,
+      telefone: todosComContador.length - 1,
+    });
+
+    const [deB] = await leadsB().listar({ busca: "Outro negócio B" });
+    expect(await leadsB().contatoCompartilhado(deB)).toEqual({ email: 0, telefone: 0 });
+  });
 });

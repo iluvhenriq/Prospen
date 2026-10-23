@@ -38,10 +38,14 @@ async function ConteudoBusca({ searchParams }: { searchParams: PageProps<"/paine
         </div>
       ) : null}
 
-      {!tela.buscou ? (
+      {parametros.cnpjDigitado && !parametros.cnpj ? (
+        <Alerta variante="aviso">{t.cnpjInvalido(parametros.cnpjDigitado)}</Alerta>
+      ) : !tela.buscou ? (
         <EstadoVazio titulo={t.escolhaEstadoTitulo} descricao={t.escolhaEstadoDescricao} />
       ) : tela.atividades && tela.atividades.length === 0 ? (
         <Alerta variante="aviso">{t.atividadeNaoEncontrada(parametros.atividade)}</Alerta>
+      ) : tela.resultados.length === 0 && parametros.cnpj ? (
+        <EstadoVazio titulo={t.cnpjNaoEncontradoTitulo} descricao={t.cnpjNaoEncontradoDescricao} />
       ) : tela.resultados.length === 0 ? (
         <EstadoVazio
           titulo={t.semResultadoTitulo}

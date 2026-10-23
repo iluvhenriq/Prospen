@@ -70,6 +70,8 @@ export type DetalheDoLead = {
   notas: NotaComAutor[];
   historico: RegistroEtapaComAutor[];
   fusoHorario: string;
+  // Quantos outros leads da empresa usam o mesmo e-mail e o mesmo telefone.
+  compartilhado: { email: number; telefone: number };
 };
 
 // Nulo se o identificador for inválido ou o lead não existir NESTA empresa.
@@ -83,12 +85,13 @@ export async function obterDetalheDoLead(
   if (!lead) return null;
 
   const repositorioDeEtiquetas = repositorioEtiquetas(db, contexto.organizacao.id);
-  const [porLead, todas, notas, historico, configuracao] = await Promise.all([
+  const [porLead, todas, notas, historico, configuracao, compartilhado] = await Promise.all([
     repositorioDeEtiquetas.dosLeads([id]),
     repositorioDeEtiquetas.listar(),
     repositorioNotas(db, contexto.organizacao.id).listar(id),
     repositorioHistorico(db, contexto.organizacao.id).doLead(id),
     obterConfiguracao(db, contexto.organizacao.id),
+    repositorioLeads(db, contexto.organizacao.id).contatoCompartilhado(lead),
   ]);
 
   const etiquetas = porLead.get(id) ?? [];
@@ -100,6 +103,7 @@ export async function obterDetalheDoLead(
     notas,
     historico,
     fusoHorario: configuracao.fusoHorario,
+    compartilhado,
   };
 }
 

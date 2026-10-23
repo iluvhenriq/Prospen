@@ -104,6 +104,13 @@ describe("busca na base pública de CNPJ", () => {
     expect(await base().buscar({ uf: "SP", atividades: [], semMei: false }, null, 50)).toEqual([]);
   });
 
+  it("busca por CNPJ exato ignora os outros filtros, inclusive o de MEI, mas não a exclusão", async () => {
+    expect(cnpjs(await base().buscar({ uf: "", cnpj: MEI_PADARIA, semMei: true, municipio: "6291" }, null, 50))).toEqual([
+      MEI_PADARIA,
+    ]);
+    expect(await base().buscar({ uf: "", cnpj: EXCLUIDA, semMei: false }, null, 50)).toEqual([]);
+  });
+
   it("pagina pelo último CNPJ mostrado", async () => {
     const primeira = await base().buscar({ uf: "SP", semMei: false }, null, 2);
     expect(cnpjs(primeira)).toEqual([PADARIA, MEI_PADARIA]);
@@ -152,13 +159,34 @@ describe("filtros da busca no endereço", () => {
   it("lê valores válidos e descarta o resto", () => {
     expect(
       lerParametrosBusca({ uf: "sp", cidade: "7107", atividade: "  padaria ", mei: "1", depois: "10.000.001/0001-90" }),
-    ).toEqual({ uf: "SP", municipio: "7107", atividade: "padaria", incluirMei: true, depoisDe: PADARIA });
+    ).toEqual({
+      uf: "SP",
+      municipio: "7107",
+      atividade: "padaria",
+      incluirMei: true,
+      depoisDe: PADARIA,
+      cnpjDigitado: "",
+      cnpj: undefined,
+    });
     expect(lerParametrosBusca({ uf: "São Paulo", cidade: "abc'", depois: "x" })).toEqual({
       uf: undefined,
       municipio: undefined,
       atividade: "",
       incluirMei: false,
       depoisDe: undefined,
+      cnpjDigitado: "",
+      cnpj: undefined,
+    });
+  });
+
+  it("aceita CNPJ com pontuação e guarda o digitado quando é inválido", () => {
+    expect(lerParametrosBusca({ cnpj: " 10.000.001/0001-90 " })).toMatchObject({
+      cnpjDigitado: "10.000.001/0001-90",
+      cnpj: PADARIA,
+    });
+    expect(lerParametrosBusca({ cnpj: "10.000.001/0001-99" })).toMatchObject({
+      cnpjDigitado: "10.000.001/0001-99",
+      cnpj: undefined,
     });
   });
 

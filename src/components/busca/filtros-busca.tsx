@@ -21,13 +21,13 @@ export function FiltrosBusca({
     <form
       method="get"
       action="/painel/busca"
-      className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[9rem_minmax(0,1fr)_minmax(0,1.3fr)_auto] lg:items-end"
+      className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[11rem_minmax(0,1fr)_minmax(0,1.3fr)_auto] lg:items-end"
     >
       <div className="flex flex-col gap-1.5">
         <label htmlFor="busca-uf" className="text-sm font-medium text-texto">
           {t.estado}
         </label>
-        <Selecao id="busca-uf" name="uf" defaultValue={parametros.uf ?? ""} required>
+        <Selecao id="busca-uf" name="uf" defaultValue={parametros.uf ?? ""}>
           <option value="" disabled>
             {t.escolhaEstado}
           </option>
@@ -76,7 +76,17 @@ export function FiltrosBusca({
           {t.limpar}
         </BotaoLink>
       </div>
-      <div className="flex flex-col gap-0.5 sm:col-span-2 lg:col-span-4">
+      <Campo
+        rotulo={t.cnpj}
+        name="cnpj"
+        inputMode="text"
+        placeholder={t.cnpjPlaceholder}
+        ajuda={t.cnpjAjuda}
+        defaultValue={parametros.cnpjDigitado}
+        maxLength={20}
+        className="sm:col-span-2 lg:col-span-2"
+      />
+      <div className="flex flex-col gap-0.5 sm:col-span-2 lg:col-span-2 lg:self-start lg:pt-7">
         <label className="flex items-center gap-2 text-sm font-medium text-texto">
           <input
             type="checkbox"

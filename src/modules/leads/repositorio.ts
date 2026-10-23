@@ -285,6 +285,24 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
       return inseridos.length;
     },
 
+    // Quantos OUTROS leads desta empresa têm o mesmo e-mail ou telefone. Na
+    // base pública, o contato muitas vezes é do contador e se repete entre
+    // negócios diferentes; a tela avisa para ninguém achar que é do dono.
+    async contatoCompartilhado(lead: Pick<Lead, "id" | "emailNormalizado" | "telefoneNormalizado">) {
+      const contar = async (condicao: SQL) => {
+        const [linha] = await db
+          .select({ total: count() })
+          .from(leads)
+          .where(and(daOrganizacao, ne(leads.id, lead.id), condicao));
+        return linha?.total ?? 0;
+      };
+      const [email, telefone] = await Promise.all([
+        lead.emailNormalizado ? contar(eq(leads.emailNormalizado, lead.emailNormalizado)) : 0,
+        lead.telefoneNormalizado ? contar(eq(leads.telefoneNormalizado, lead.telefoneNormalizado)) : 0,
+      ]);
+      return { email, telefone };
+    },
+
     // Quais destes CNPJs já são leads nesta empresa (para marcar na busca).
     async cnpjsQueJaSaoLeads(cnpjs: string[]): Promise<Set<string>> {
       if (cnpjs.length === 0) return new Set();
