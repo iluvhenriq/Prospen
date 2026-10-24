@@ -18,7 +18,9 @@
     "cnpj:registrar": "tsx scripts/cnpj-registrar.ts",
     "cnpj:excluir": "tsx scripts/cnpj-excluir.ts",
     "conta:exportar": "tsx scripts/conta-exportar.ts",
-    "conta:excluir": "tsx scripts/conta-excluir.ts"
+    "conta:excluir": "tsx scripts/conta-excluir.ts",
+    "pre-cadastro:listar": "tsx scripts/pre-cadastro-listar.ts",
+    "pre-cadastro:excluir": "tsx scripts/pre-cadastro-excluir.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.11",

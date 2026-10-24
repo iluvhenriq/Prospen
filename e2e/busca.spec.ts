@@ -70,7 +70,7 @@ test("busca por atividade sem MEI, adiciona como lead sem duplicar e respeita o 
   const anonimo = await page.context().browser()!.newContext({ baseURL });
   const publica = await anonimo.newPage();
   await publica.goto("/");
-  await publica.getByRole("link", { name: "Política de privacidade" }).click();
+  await publica.getByRole("contentinfo").getByRole("link", { name: "Política de privacidade" }).click();
   await expect(publica.getByRole("heading", { level: 1, name: "Política de privacidade" })).toBeVisible();
   await expect(publica.getByRole("link", { name: "iluvhenriqdev@gmail.com" }).first()).toBeVisible();
   await publica.getByRole("link", { name: "Remover meus dados" }).click();

@@ -85,6 +85,13 @@
       "when": 1792809068062,
       "tag": "0011_registros_acesso",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792811168841,
+      "tag": "0012_pre_cadastros",
+      "breakpoints": true
     }
   ]
 }

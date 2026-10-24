@@ -16,6 +16,7 @@ Para o responsável pelo PROSPEN. Rascunho de 23/10/2026. Todos os pedidos chega
 | Tirar a empresa da busca | Responsável pela empresa | Indique a página `/remover-meus-dados` ou rode `npm run cnpj:excluir -- CNPJ` |
 | Explicação ou revisão da pontuação (art. 20) | Empresa da base | Explique os critérios de `src/modules/pontuacao/regras.ts` (estão na política). A pontuação só ordena a busca; se pedir para não aparecer, use a remoção |
 | Dados que um cliente do PROSPEN guardou como lead | Pessoa contatada por um cliente | O cliente é o controlador. Diga com qual empresa cliente falar e avise essa empresa do pedido (dever de operador, termos seção 4). Não apague dado do cliente sem instrução dele |
+| Sair da lista de pré-cadastro | Interessado | `npm run pre-cadastro:excluir -- email` |
 | Oposição ao tratamento da base pública | Empresa ou MEI | Mesmo que a remoção |
 
 **Atenção ao excluir conta de dono de empresa compartilhada:** se a pessoa era a única dona e há outros integrantes, a empresa fica sem dono. Avise os integrantes restantes e, se preciso, promova alguém pelo banco.

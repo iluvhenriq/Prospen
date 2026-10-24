@@ -57,6 +57,8 @@ TypeScript, Next.js (App Router, versão 16), PostgreSQL, Drizzle ORM, Better Au
 | `npm run cnpj:excluir -- CNPJ` | Pedido do titular (LGPD): tira o CNPJ da busca para sempre |
 | `npm run conta:exportar -- email` | Pedido do titular: dados da conta em JSON (confira a identidade antes) |
 | `npm run conta:excluir -- email --confirmar` | Pedido do titular: apaga a conta e as empresas só dela. Sem volta |
+| `npm run pre-cadastro:listar > arquivo.csv` | Lista do pré-cadastro da pré-venda (dados pessoais: não compartilhe) |
+| `npm run pre-cadastro:excluir -- email` | Tira uma pessoa da lista de pré-cadastro |
 
 Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `npm run test:e2e`. Teste também no navegador o que for tela nova (Playwright MCP) e, quando o fluxo for crítico, acrescente um teste em `e2e/`. Diga com clareza o que NÃO foi testado.
 
@@ -93,6 +95,7 @@ Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `np
 ## Pendências e riscos conhecidos
 
 - Sem recuperação de senha e sem verificação de e-mail (dependem de provedor de e-mail). **Obrigatório antes de abrir para clientes.**
+- **Pré-venda (24/10/2026):** a página inicial é a apresentação com pré-cadastro. Textos só com o que o produto faz (nada de números, depoimentos ou preço). Para publicar só a pré-venda: `MODO_PRE_VENDA=1` antes do build. Domínio provável: prospen.app (o `.app` exige HTTPS).
 - **Conformidade (23/10/2026):** o PROSPEN se trata como alto risco (Resolução CD/ANPD nº 2/2022): encarregado indicado, prazos normais. Documentos em `docs/lgpd/`; mudou o tratamento de dados, atualize o documento na mesma mudança. Registros de acesso: 6 meses (Marco Civil). Pedidos de titulares: `npm run conta:exportar` e `npm run conta:excluir`. Busca limitada a 300 páginas por dia por empresa.
 - **LGPD (decidido em 23/10/2026, padrão de mercado):** leads da base pública usam "legítimo interesse" e guardam origem e base legal. MEIs entram, mas o CPF no fim da razão social é retirado na importação. CNPJ removido a pedido entra numa lista de exclusão e não volta. Página "remover meus dados" pronta (`/remover-meus-dados`, automática, com limites contra abuso). Política de privacidade em `/privacidade` (rascunho). Sem CPF e sem nome completo do responsável, mesmo com vendas: risco aceito pelo Henrique em 24/10/2026, já informado dos riscos (nota fiscal, imposto, decreto do comércio eletrônico). Não insista; reavaliar só a partir de abril de 2027. Faltam provedor de hospedagem e revisão de advogado. Detalhes em `docs/arquitetura.md`.
 - O limite de tentativas de login vive na memória do servidor. Com mais de um servidor, mover para o banco. O limite por endereço depende do cabeçalho `x-forwarded-for`.

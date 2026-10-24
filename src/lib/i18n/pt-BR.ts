@@ -16,6 +16,130 @@ export const ptBR = {
     status: "Em construção",
     detalhe: "As funcionalidades chegam por etapas. Já é possível criar uma conta e a sua empresa.",
   },
+  // Página de apresentação e pré-cadastro (pré-venda, 24/10/2026). Só o que o
+  // produto faz de verdade: sem números inventados, depoimentos ou preço.
+  preVenda: {
+    tituloDaAba: "PROSPEN: encontre empresas para vender e acompanhe cada negociação",
+    menu: { comoFunciona: "Como funciona", recursos: "Recursos", perguntas: "Perguntas", entrar: "Entrar" },
+    selo: "Pré-venda aberta",
+    titulo: "Encontre empresas para vender. Acompanhe cada negociação até fechar.",
+    subtitulo:
+      "O PROSPEN junta a busca de empresas ativas da base oficial da Receita Federal com um funil de vendas simples, feito para quem vende para outras empresas.",
+    chamada: "Fazer pré-cadastro",
+    chamadaApoio: "Sem custo e sem compromisso. Avisamos quando abrir.",
+    comoFunciona: {
+      titulo: "Como funciona",
+      passos: [
+        {
+          titulo: "Busque",
+          texto: "Filtre empresas ativas por estado, cidade e atividade. As mais promissoras aparecem primeiro.",
+        },
+        {
+          titulo: "Salve como lead",
+          texto: "Marque as que interessam e elas entram na sua lista, sem duplicar. Ou importe a planilha que você já tem.",
+        },
+        {
+          titulo: "Acompanhe até fechar",
+          texto: "Mova cada lead pelo funil, anote as conversas e veja quanto vendeu e por que perdeu.",
+        },
+      ],
+    },
+    recursos: {
+      titulo: "O que já está pronto",
+      itens: [
+        {
+          titulo: "Busca na base pública de CNPJ",
+          texto: "Empresas ativas por estado, cidade e atividade, com telefone e e-mail do cadastro da Receita. Microempreendedores ficam de fora, a menos que você queira.",
+        },
+        {
+          titulo: "Prioridade automática",
+          texto: "Uma pontuação de 0 a 100 mostra quem vale contatar primeiro: contato próprio, empresa recente, porte e mais. Com o motivo de cada ponto.",
+        },
+        {
+          titulo: "Funil de vendas",
+          texto: "Novo, Contatado, Em conversa, Proposta, Ganho e Perdido. Com histórico, motivo da perda e valor da venda.",
+        },
+        {
+          titulo: "Campanhas",
+          texto: "Agrupe leads numa lista de trabalho ou numa ação com custo. Contatados, ganhos e retorno saem do funil, sem digitar números.",
+        },
+        {
+          titulo: "Importação de planilha",
+          texto: "Traga seus contatos em CSV. Você confere o resultado linha por linha antes de gravar, e o que já existe não é duplicado.",
+        },
+        {
+          titulo: "Painel de indicadores",
+          texto: "Leads por etapa, taxa de conversão, valor vendido, motivos de perda e de onde vieram os seus leads.",
+        },
+      ],
+    },
+    paraQuem: {
+      titulo: "Para quem é",
+      texto:
+        "Pequenas empresas e equipes comerciais que vendem para outras empresas: agências, escritórios de contabilidade, fornecedores, prestadores de serviço e representantes.",
+    },
+    responsavel: {
+      titulo: "Dados de forma responsável",
+      itens: [
+        "Fonte oficial: dados abertos da Receita Federal, só empresas ativas.",
+        "Sem listas compradas e sem copiar dados de redes sociais ou mapas.",
+        "Qualquer empresa pode sair da busca na hora, pela página pública de remoção.",
+        "Os dados de cada cliente ficam separados e nunca aparecem para outro.",
+      ],
+    },
+    perguntas: {
+      titulo: "Perguntas frequentes",
+      itens: [
+        {
+          pergunta: "Quanto custa?",
+          resposta: "As condições da pré-venda serão enviadas por e-mail para quem fizer o pré-cadastro. O pré-cadastro não tem custo nem compromisso.",
+        },
+        {
+          pergunta: "Quando abre?",
+          resposta: "Ainda sem data definida. Quem fizer o pré-cadastro recebe o aviso primeiro.",
+        },
+        {
+          pergunta: "Quais estados a busca cobre?",
+          resposta: "Começamos por São Paulo. Os outros estados entram aos poucos. A Receita publica uma nova versão da base todo mês, e o PROSPEN é atualizado a partir dessas publicações.",
+        },
+        {
+          pergunta: "O telefone e o e-mail são do dono da empresa?",
+          resposta: "Nem sempre. Eles vêm do cadastro na Receita, e muitas vezes são do escritório de contabilidade. O PROSPEN avisa quando o mesmo contato aparece em vários leads seus e dá menos prioridade a e-mails com cara de contador.",
+        },
+        {
+          pergunta: "Posso usar a minha lista de contatos?",
+          resposta: "Sim. Você importa uma planilha CSV e os seus contatos entram no mesmo funil das empresas da busca.",
+        },
+        {
+          pergunta: "Isso está de acordo com a LGPD?",
+          resposta: "A busca usa dados que a Receita torna públicos, com base no legítimo interesse para prospecção entre empresas, e qualquer empresa pode sair dela. Quem salva um lead passa a responder pelo uso que faz dele, como explicam os termos de uso.",
+        },
+      ],
+    },
+    formulario: {
+      titulo: "Faça o seu pré-cadastro",
+      texto: "Deixe o seu contato e avisamos quando o PROSPEN abrir, com as condições da pré-venda.",
+      nome: "Seu nome",
+      email: "E-mail",
+      empresa: "Empresa (opcional)",
+      botao: "Quero ser avisado",
+      nomeObrigatorio: "Informe o seu nome.",
+      nomeLongo: "Use no máximo 80 caracteres.",
+      emailInvalido: "Confira o e-mail.",
+      empresaLonga: "Use no máximo 120 caracteres.",
+      muitosEnvios: "Recebemos muitos envios em pouco tempo. Tente de novo mais tarde.",
+      falhou: "Não foi possível registrar agora. Tente de novo em instantes.",
+      pronto: "Pronto, você está na lista. Vamos avisar por e-mail quando o PROSPEN abrir.",
+      // "Usamos seus dados só para ... Para sair da lista, escreva para EMAIL. Veja a POLÍTICA."
+      avisoInicio:
+        "Usamos o seu nome e e-mail só para avisar sobre a abertura e as condições da pré-venda. Para sair da lista, escreva para",
+      avisoFim: "Veja a",
+    },
+    rodape: {
+      contato: "Contato:",
+      direitos: "© PROSPEN",
+    },
+  },
   navegacao: {
     entrar: "Entrar",
     criarConta: "Criar conta",
@@ -614,6 +738,13 @@ export const ptBR = {
           "Para proteger as contas contra tentativas de adivinhar senhas, contamos por pouco tempo as tentativas de entrada por e-mail e por endereço de internet (IP). Essa contagem fica só na memória do servidor e some em até uma hora. Base legal: legítimo interesse na segurança do serviço (art. 7º, IX).",
           "Guardamos por 6 meses, em sigilo, a data, a hora e o endereço IP de cada entrada na conta, como exige o Marco Civil da Internet (Lei 12.965/2014, art. 15). Esses registros só são entregues a terceiros com ordem judicial e são apagados depois do prazo, mesmo que a conta tenha sido excluída antes. Base legal: cumprimento de obrigação legal (art. 7º, II).",
           "Usamos apenas o cookie necessário para manter você conectado. Não usamos cookies de publicidade nem ferramentas de rastreamento.",
+        ],
+      },
+      {
+        titulo: "Pré-cadastro da pré-venda",
+        paragrafos: [
+          "Quem faz o pré-cadastro na página inicial nos informa o nome, o e-mail e, se quiser, o nome da empresa. Usamos esses dados só para avisar sobre a abertura do PROSPEN e enviar as condições da pré-venda. Base legal: procedimentos preliminares a um contrato, a pedido da própria pessoa (art. 7º, V).",
+          "Guardamos o pré-cadastro até 12 meses depois da abertura ou até a pessoa pedir para sair da lista, pelo e-mail de privacidade, o que vier primeiro.",
         ],
       },
       {

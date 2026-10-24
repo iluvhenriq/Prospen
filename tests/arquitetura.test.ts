@@ -80,6 +80,7 @@ describe("arquitetura", () => {
       base_cnpj_municipios: "cidades da base pública, só leitura",
       base_cnpj_cargas: "registro dos estados carregados da base pública",
       base_cnpj_exclusoes: "LGPD: CNPJs que pediram para sair da base pública, vale para todas as empresas",
+      pre_cadastros: "pré-venda: interessados que ainda não são clientes nem têm empresa no sistema",
       registros_acesso: "Marco Civil, art. 15: acesso de cada pessoa à aplicação, guardado mesmo se a conta for apagada",
     };
     const tabelas = Object.values(schema)
@@ -119,10 +120,11 @@ describe("arquitetura", () => {
       sair: "encerra a própria sessão",
       criarOrganizacao: "a pessoa ainda não tem empresa; começa por exigirUsuario",
       pedirRemocaoDosDados: "LGPD: o titular não tem conta; só mexe na lista de exclusão da base pública",
+      enviarPreCadastro: "pré-venda: o interessado ainda não tem conta; só grava na lista de pré-cadastro",
     };
     const acoes = todos.filter((arquivo) => /^\s*["']use server["']/m.test(readFileSync(arquivo, "utf8")));
-    // Garante que o teste está mesmo enxergando as ações (hoje são 5 arquivos).
-    expect(acoes.length).toBeGreaterThanOrEqual(5);
+    // Garante que o teste está mesmo enxergando as ações (hoje são 6 arquivos).
+    expect(acoes.length).toBeGreaterThanOrEqual(6);
 
     const infratores: string[] = [];
     let conferidas = 0;
@@ -135,8 +137,8 @@ describe("arquitetura", () => {
         if (!/^\s*const \w+ = await exigirPermissao\(/.test(corpo)) infratores.push(`${caminho(arquivo)}: ${nome}`);
       }
     }
-    // Hoje são 26 ações; menos que isso indica que a leitura dos arquivos quebrou.
-    expect(conferidas).toBeGreaterThanOrEqual(26);
+    // Hoje são 27 ações; menos que isso indica que a leitura dos arquivos quebrou.
+    expect(conferidas).toBeGreaterThanOrEqual(27);
     expect(infratores).toEqual([]);
   });
 
