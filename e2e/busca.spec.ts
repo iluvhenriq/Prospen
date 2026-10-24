@@ -37,7 +37,7 @@ test.beforeAll(async () => {
   }
 });
 
-test("busca por atividade sem MEI e adiciona como lead sem duplicar", async ({ page }) => {
+test("busca por atividade sem MEI, adiciona como lead sem duplicar e respeita o pedido de remoção", async ({ page, baseURL }) => {
   await criarConta(page, { nome: "Pessoa Busca", email: emailUnico("busca"), empresa: "Empresa Busca" });
 
   await page.goto("/painel/busca");
@@ -64,4 +64,27 @@ test("busca por atividade sem MEI e adiciona como lead sem duplicar", async ({ p
   await page.goto("/painel/leads?origem=busca_cnpj");
   await expect(page.getByText("1 lead", { exact: true })).toBeVisible();
   await expect(page.getByText("PADARIA TESTE E2E", { exact: true })).toBeVisible();
+
+  // Pedido público "remover meus dados", sem login (outra janela, sem cookie).
+  // Fica neste teste porque a rodada já usa os 10 cadastros por hora do servidor.
+  const anonimo = await page.context().browser()!.newContext({ baseURL });
+  const publica = await anonimo.newPage();
+  await publica.goto("/");
+  await publica.getByRole("link", { name: "Política de privacidade" }).click();
+  await expect(publica.getByRole("heading", { level: 1, name: "Política de privacidade" })).toBeVisible();
+  await expect(publica.getByRole("link", { name: "iluvhenriqdev@gmail.com" }).first()).toBeVisible();
+  await publica.getByRole("link", { name: "Remover meus dados" }).click();
+  await publica.waitForURL("**/remover-meus-dados");
+  await publica.getByLabel("CNPJ da empresa").fill("10.000.003/0001-89");
+  await publica.getByRole("button", { name: "Remover da busca" }).click();
+  await expect(publica.getByText("Marque a confirmação para continuar.")).toBeVisible();
+  await publica.getByLabel(/Confirmo que sou responsável/).check();
+  await publica.getByRole("button", { name: "Remover da busca" }).click();
+  await expect(publica.getByText(/O CNPJ 10\.000\.003\/0001-89 não aparece mais/)).toBeVisible();
+  await anonimo.close();
+
+  // Para quem busca, a oficina sumiu na hora, até pelo CNPJ exato.
+  await page.goto(`/painel/busca?cnpj=${OFICINA}`);
+  await expect(page.getByText("CNPJ não encontrado")).toBeVisible();
+  await expect(page.getByText("OFICINA TESTE E2E")).toHaveCount(0);
 });

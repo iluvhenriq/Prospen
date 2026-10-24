@@ -9,3 +9,4 @@ export * from "./importacoes";
 export * from "./organizacao-config";
 export * from "./base-cnpj";
 export * from "./campanhas";
+export * from "./registros-acesso";

@@ -78,6 +78,13 @@
       "when": 1792796202185,
       "tag": "0010_campanhas",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792809068062,
+      "tag": "0011_registros_acesso",
+      "breakpoints": true
     }
   ]
 }

@@ -20,14 +20,22 @@ export function NumerosDaCampanha({
   const t = ptBR.campanhas.numeros;
   // O custo só entra nas contas se estiver na mesma moeda das vendas somadas.
   const custo = custoCentavos !== null && moedaCusto === moeda ? custoCentavos : null;
+  // Sem leads, a porcentagem não existe: mostra só a explicação, sem um traço solto.
+  const temLeads = numeros.leads > 0;
   const itens: { rotulo: string; valor: string; apoio?: string }[] = [
     { rotulo: t.leads, valor: numeros.leads.toLocaleString("pt-BR") },
     {
       rotulo: t.contatados,
       valor: numeros.contatados.toLocaleString("pt-BR"),
-      apoio: `${t.percentual(numeros.contatados, numeros.leads)} · ${t.contatadosAjuda}`,
+      apoio: temLeads
+        ? `${t.percentual(numeros.contatados, numeros.leads)} · ${t.contatadosAjuda}`
+        : t.contatadosAjuda,
     },
-    { rotulo: t.ganhos, valor: numeros.ganhos.toLocaleString("pt-BR"), apoio: t.percentual(numeros.ganhos, numeros.leads) },
+    {
+      rotulo: t.ganhos,
+      valor: numeros.ganhos.toLocaleString("pt-BR"),
+      apoio: temLeads ? t.percentual(numeros.ganhos, numeros.leads) : undefined,
+    },
     { rotulo: t.vendido, valor: formatarValor(numeros.vendidoCentavos, moeda) },
   ];
   if (!compacto) {

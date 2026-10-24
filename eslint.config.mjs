@@ -15,6 +15,8 @@ const eslintConfig = defineConfig([
     // Relatório e resultados gerados pelos testes de navegador.
     "e2e-relatorio/**",
     "e2e-resultados/**",
+    // Capturas, registros e roteiros do teste manual com o Playwright MCP.
+    ".playwright-mcp/**",
   ]),
 ]);
 

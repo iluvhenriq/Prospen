@@ -41,6 +41,14 @@ export default function LayoutPainel({ children }: LayoutProps<"/painel">) {
       >
         {children}
       </main>
+      <footer className="mx-auto flex w-full max-w-6xl gap-4 px-4 pb-6 text-xs text-texto-suave sm:px-6">
+        <Link href="/privacidade" className="underline underline-offset-4 hover:text-texto">
+          {ptBR.privacidade.link}
+        </Link>
+        <Link href="/termos" className="underline underline-offset-4 hover:text-texto">
+          {ptBR.termos.link}
+        </Link>
+      </footer>
     </div>
   );
 }

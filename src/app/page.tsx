@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BotaoLink } from "@/components/ui/botao";
 import { Etiqueta } from "@/components/ui/etiqueta";
 import { ptBR } from "@/lib/i18n/pt-BR";
@@ -18,6 +19,18 @@ export default function Home() {
         <BotaoLink href="/entrar" variante="contorno" tamanho="grande">
           {ptBR.navegacao.entrar}
         </BotaoLink>
+      </div>
+      {/* LGPD: política e pedido de remoção precisam ser fáceis de achar, sem login. */}
+      <div className="mt-6 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm">
+        <Link href="/privacidade" className="text-texto-suave underline underline-offset-4 hover:text-texto">
+          {ptBR.privacidade.link}
+        </Link>
+        <Link href="/termos" className="text-texto-suave underline underline-offset-4 hover:text-texto">
+          {ptBR.termos.link}
+        </Link>
+        <Link href="/remover-meus-dados" className="text-texto-suave underline underline-offset-4 hover:text-texto">
+          {ptBR.remocao.link}
+        </Link>
       </div>
     </main>
   );

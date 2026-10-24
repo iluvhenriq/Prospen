@@ -49,13 +49,21 @@ async function ListaDeEtiquetas() {
               </Link>
             </div>
             {podeExcluir ? (
-              <form action={excluirEtiqueta} className="flex items-center gap-3">
-                <input type="hidden" name="etiquetaId" value={etiqueta.id} />
-                <span className="hidden text-xs text-texto-suave sm:inline">{t.excluirAviso}</span>
-                <Botao type="submit" variante="fantasma" tamanho="pequeno">
+              // Tira a etiqueta de todos os leads: pede uma segunda decisão,
+              // como a exclusão de lead (<details> funciona sem JavaScript).
+              <details className="text-right">
+                <summary className="cursor-pointer text-sm font-medium text-erro">
                   {t.excluir}
-                </Botao>
-              </form>
+                  <span className="sr-only"> {etiqueta.nome}</span>
+                </summary>
+                <form action={excluirEtiqueta} className="mt-2 flex flex-wrap items-center justify-end gap-3">
+                  <input type="hidden" name="etiquetaId" value={etiqueta.id} />
+                  <span className="text-xs text-erro">{t.excluirAviso}</span>
+                  <Botao type="submit" variante="perigo" tamanho="pequeno">
+                    {t.excluirConfirmar}
+                  </Botao>
+                </form>
+              </details>
             ) : null}
           </li>
         ))}

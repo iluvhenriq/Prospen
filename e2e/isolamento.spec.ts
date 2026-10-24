@@ -34,9 +34,9 @@ test("uma empresa não vê nem altera os leads de outra", async ({ browser }) =>
   await b.goto("/painel/funil");
   await expect(b.getByText("O funil está vazio")).toBeVisible();
 
-  // Abrir o endereço do lead da A dá "não encontrada", sem nenhum dado.
+  // Abrir o endereço do lead da A dá "não encontrado", sem nenhum dado.
   await b.goto(`/painel/leads/${leadA}`);
-  await expect(b.getByText("Página não encontrada")).toBeVisible();
+  await expect(b.getByText("Não encontramos este item")).toBeVisible();
   await expect(b.getByText("Lead Sigiloso")).toHaveCount(0);
 
   // Adulterando os formulários de um lead próprio para mirar o lead da A.

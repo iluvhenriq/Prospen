@@ -38,7 +38,9 @@ async function ConteudoBusca({ searchParams }: { searchParams: PageProps<"/paine
         </div>
       ) : null}
 
-      {parametros.cnpjDigitado && !parametros.cnpj ? (
+      {tela.limiteAtingido !== null ? (
+        <Alerta variante="aviso">{t.limiteDiario(tela.limiteAtingido)}</Alerta>
+      ) : parametros.cnpjDigitado && !parametros.cnpj ? (
         <Alerta variante="aviso">{t.cnpjInvalido(parametros.cnpjDigitado)}</Alerta>
       ) : !tela.buscou ? (
         <EstadoVazio titulo={t.escolhaEstadoTitulo} descricao={t.escolhaEstadoDescricao} />

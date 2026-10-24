@@ -17,6 +17,7 @@ import {
   type AnaliseImportacao,
 } from "./importacao";
 import { LIMITE_BYTES } from "./csv";
+import { consumirLimiteDeImportacao } from "./limite-importacao";
 import {
   ErroLeadDuplicado,
   repositorioLeads,
@@ -411,6 +412,12 @@ export async function importarPlanilha(
   }
   if (arquivo.size > LIMITE_BYTES) return { erro: ptBR.leads.importacao.arquivoGrande };
 
+  const intencao = texto(dados, "intencao") === "importar" ? "importar" : "conferir";
+  const limite = consumirLimiteDeImportacao(contexto.organizacao.id, intencao);
+  if (limite.bloqueado) {
+    return { erro: ptBR.leads.importacao.muitasSeguidas(Math.ceil(limite.segundosParaLiberar / 60)) };
+  }
+
   try {
     const db = getDb();
     const configuracao = await obterConfiguracao(db, contexto.organizacao.id);
@@ -423,7 +430,7 @@ export async function importarPlanilha(
     );
     if (!analise.ok) return { erro: analise.erro };
 
-    if (texto(dados, "intencao") !== "importar") {
+    if (intencao === "conferir") {
       return { analise: resumirAnalise(analise) };
     }
 

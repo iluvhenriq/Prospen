@@ -80,6 +80,7 @@ describe("arquitetura", () => {
       base_cnpj_municipios: "cidades da base pública, só leitura",
       base_cnpj_cargas: "registro dos estados carregados da base pública",
       base_cnpj_exclusoes: "LGPD: CNPJs que pediram para sair da base pública, vale para todas as empresas",
+      registros_acesso: "Marco Civil, art. 15: acesso de cada pessoa à aplicação, guardado mesmo se a conta for apagada",
     };
     const tabelas = Object.values(schema)
       .filter((valor) => is(valor, PgTable))
@@ -107,6 +108,36 @@ describe("arquitetura", () => {
     });
 
     expect(infratores.map(caminho)).toEqual([]);
+  });
+
+  it("toda ação do servidor começa conferindo a permissão, menos as públicas declaradas aqui", () => {
+    // Cada ação pública precisa de motivo. Ação nova que não comece por
+    // exigirPermissao faz este teste falhar até alguém decidir, de propósito.
+    const PUBLICAS: Record<string, string> = {
+      cadastrar: "criar conta: a pessoa ainda não existe",
+      entrar: "login",
+      sair: "encerra a própria sessão",
+      criarOrganizacao: "a pessoa ainda não tem empresa; começa por exigirUsuario",
+      pedirRemocaoDosDados: "LGPD: o titular não tem conta; só mexe na lista de exclusão da base pública",
+    };
+    const acoes = todos.filter((arquivo) => /^\s*["']use server["']/m.test(readFileSync(arquivo, "utf8")));
+    // Garante que o teste está mesmo enxergando as ações (hoje são 5 arquivos).
+    expect(acoes.length).toBeGreaterThanOrEqual(5);
+
+    const infratores: string[] = [];
+    let conferidas = 0;
+    for (const arquivo of acoes) {
+      const conteudo = readFileSync(arquivo, "utf8");
+      for (const [, nome, corpo] of conteudo.matchAll(/export async function (\w+)\([\s\S]*?\{\r?\n([\s\S]*?)\r?\n\}/g)) {
+        conferidas += 1;
+        if (nome in PUBLICAS) continue;
+        // A primeira linha do corpo precisa ser a checagem de permissão.
+        if (!/^\s*const \w+ = await exigirPermissao\(/.test(corpo)) infratores.push(`${caminho(arquivo)}: ${nome}`);
+      }
+    }
+    // Hoje são 26 ações; menos que isso indica que a leitura dos arquivos quebrou.
+    expect(conferidas).toBeGreaterThanOrEqual(26);
+    expect(infratores).toEqual([]);
   });
 
   it("nenhum arquivo da interface importa a chave secreta do login", () => {

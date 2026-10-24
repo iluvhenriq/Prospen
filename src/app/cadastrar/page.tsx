@@ -32,6 +32,18 @@ export default function PaginaCadastro() {
         <RedirecionarSeLogado />
       </Suspense>
       <FormularioCadastro />
+      {/* Aceite dos termos e ciência da política, antes de criar a conta (LGPD, art. 9º). */}
+      <p className="text-xs text-texto-suave">
+        {ptBR.termos.aceiteInicio}{" "}
+        <Link href="/termos" className={classeLinkTexto}>
+          {ptBR.termos.link.toLowerCase()}
+        </Link>{" "}
+        {ptBR.termos.aceiteMeio}{" "}
+        <Link href="/privacidade" className={classeLinkTexto}>
+          {ptBR.privacidade.link.toLowerCase()}
+        </Link>
+        .
+      </p>
     </CartaoAcesso>
   );
 }

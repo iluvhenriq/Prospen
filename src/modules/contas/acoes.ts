@@ -12,6 +12,7 @@ import {
 import { exigirUsuario } from "@/modules/organizacoes/contexto";
 import { resolverOrganizacao } from "@/modules/organizacoes/membros";
 import { traduzirErroLogin } from "./erros";
+import { registrarAcesso } from "./registros-acesso";
 import { ipDaRequisicao, LIMITES, mensagemDeEspera } from "./limites";
 import {
   errosPorCampo,
@@ -54,8 +55,9 @@ export async function cadastrar(
     registrarTentativa(chaveIp, LIMITES.cadastroPorIp.janelaMs);
   }
 
+  let novoUsuario: string;
   try {
-    await getAuth().api.signUpEmail({
+    const criado = await getAuth().api.signUpEmail({
       body: {
         name: resultado.data.nome,
         email: resultado.data.email,
@@ -63,11 +65,14 @@ export async function cadastrar(
       },
       headers: cabecalhos,
     });
+    novoUsuario = criado.user.id;
   } catch (erro) {
     console.error("Falha no cadastro:", erro instanceof Error ? erro.message : erro);
     return { mensagem: traduzirErroLogin(erro), valores };
   }
 
+  // O cadastro já entra na conta: conta como acesso (Marco Civil, art. 15).
+  await anotarAcesso(novoUsuario, ip);
   redirect("/criar-organizacao");
 }
 
@@ -95,11 +100,13 @@ export async function entrar(
     return { mensagem: mensagemDeEspera(bloqueio.segundosParaLiberar), valores };
   }
 
+  let usuarioId: string;
   try {
-    await getAuth().api.signInEmail({
+    const entrada = await getAuth().api.signInEmail({
       body: { email: resultado.data.email, password: resultado.data.senha },
       headers: cabecalhos,
     });
+    usuarioId = entrada.user.id;
   } catch (erro) {
     console.error("Falha na entrada:", erro instanceof Error ? erro.message : erro);
     registrarTentativa(chaveEmail, LIMITES.entradaPorEmail.janelaMs);
@@ -109,9 +116,20 @@ export async function entrar(
 
   // Login certo: a conta volta a ter todas as tentativas.
   zerarTentativas(chaveEmail);
+  await anotarAcesso(usuarioId, ip);
 
   // O painel manda para a criação da empresa se a pessoa ainda não tiver uma.
   redirect("/painel");
+}
+
+// Registro de acesso exigido pelo Marco Civil. Se falhar, a pessoa entra mesmo
+// assim (o login já aconteceu), e o terminal registra a falha, sem dado pessoal.
+async function anotarAcesso(usuarioId: string, ip: string | null): Promise<void> {
+  try {
+    await registrarAcesso(getDb(), usuarioId, ip);
+  } catch (erro) {
+    console.error("Falha ao gravar o registro de acesso:", erro instanceof Error ? erro.message : erro);
+  }
 }
 
 export async function sair(): Promise<void> {

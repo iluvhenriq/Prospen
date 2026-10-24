@@ -61,7 +61,7 @@ export const ptBR = {
     leads: "Leads",
     leadsVazioTitulo: "Você ainda não tem leads",
     leadsVazioDescricao:
-      "Cadastre um lead ou importe uma planilha para começar a montar a sua lista.",
+      "Busque empresas na base pública, cadastre um lead ou importe uma planilha para começar a montar a sua lista.",
     leadsTotal: (total: number) =>
       total === 1 ? "1 lead cadastrado" : `${total} leads cadastrados`,
     verLeads: "Ver leads",
@@ -96,6 +96,8 @@ export const ptBR = {
     leads: "Leads",
     funil: "Funil",
     busca: "Buscar empresas",
+    // No celular, para caber o menu inteiro numa linha.
+    buscaCurto: "Buscar",
     campanhas: "Campanhas",
   },
   busca: {
@@ -131,6 +133,8 @@ export const ptBR = {
     atividadesUsadas: (total: number) =>
       total === 1 ? "Buscando em 1 atividade:" : `Buscando em ${total} atividades:`,
     atividadesNoLimite: "Muitas atividades casaram. Use uma palavra mais específica para refinar.",
+    limiteDiario: (horas: number) =>
+      `Sua empresa chegou ao limite de páginas de busca de hoje. Ele libera em ${horas} ${horas === 1 ? "hora" : "horas"}. Os leads que você já salvou continuam disponíveis.`,
     semResultadoTitulo: "Nenhuma empresa encontrada",
     semResultadoDescricao: "Tente outra cidade, outra atividade ou inclua MEIs.",
     mostrando: (total: number) => quantidade(total, "empresa nesta página", "empresas nesta página"),
@@ -267,6 +271,7 @@ export const ptBR = {
       totalLeads: (total: number) => (total === 1 ? "1 lead" : `${total} leads`),
       excluir: "Excluir",
       excluirAviso: "Ela será removida de todos os leads.",
+      excluirConfirmar: "Excluir etiqueta",
       soAdmin: "Apenas administradores e donos podem excluir etiquetas.",
       criada: "Etiqueta criada.",
       jaExiste: "Já existe uma etiqueta com este nome.",
@@ -291,6 +296,8 @@ export const ptBR = {
       importando: "Importando",
       escolhaArquivo: "Escolha um arquivo CSV.",
       arquivoGrande: "O arquivo é grande demais. O limite é 2 MB. Divida a planilha em partes.",
+      muitasSeguidas: (minutos: number) =>
+        `Muitas planilhas enviadas em pouco tempo pela sua empresa. Tente de novo em ${minutos} ${minutos === 1 ? "minuto" : "minutos"}.`,
       resultadoTitulo: "Resultado da conferência",
       aImportar: "Serão importados",
       importados: "Importados",
@@ -353,7 +360,7 @@ export const ptBR = {
       total === 1 ? "1 lead no funil" : `${total.toLocaleString("pt-BR")} leads no funil`,
     vazioTitulo: "O funil está vazio",
     vazioDescricao:
-      "Todo lead cadastrado ou importado entra na etapa Novo. Comece cadastrando ou importando os seus contatos.",
+      "Todo lead novo entra na etapa Novo. Comece buscando empresas, cadastrando ou importando os seus contatos.",
     colunaVazia: "Nenhum lead nesta etapa.",
     totalColuna: (total: number) => (total === 1 ? "1 lead" : `${total.toLocaleString("pt-BR")} leads`),
     verTodos: (total: number) => `Ver todos os ${total.toLocaleString("pt-BR")} na lista`,
@@ -565,10 +572,194 @@ export const ptBR = {
       generica: "Algo deu errado. Tente novamente em instantes.",
     },
   },
+  remocao: {
+    link: "Remover meus dados",
+    titulo: "Remover os dados da sua empresa",
+    descricao:
+      "O PROSPEN mostra empresas ativas da base pública de CNPJ da Receita Federal, para que outras empresas encontrem possíveis clientes. Se você é responsável por uma empresa e não quer que ela apareça, peça a remoção aqui.",
+    comoFunciona: "Como funciona",
+    itens: [
+      "A remoção é imediata: o CNPJ deixa de aparecer na busca para todos os usuários.",
+      "Ele não volta quando a base da Receita for atualizada.",
+      "Empresas que já tinham salvo seus dados antes do pedido continuam com eles. Para isso, fale com a empresa que entrou em contato com você.",
+      "Não pedimos nem guardamos nome, e-mail ou documento de quem faz o pedido. Guardamos só o CNPJ e a data.",
+    ],
+    cnpj: "CNPJ da empresa",
+    cnpjAjuda: "Com ou sem pontuação. Vale também para CNPJ com letras.",
+    confirmacao: "Confirmo que sou responsável por esta empresa ou tenho autorização para pedir a remoção.",
+    botao: "Remover da busca",
+    cnpjInvalido: "Confira o CNPJ. Os dígitos verificadores não batem.",
+    confirmacaoObrigatoria: "Marque a confirmação para continuar.",
+    muitosPedidos: "Recebemos muitos pedidos em pouco tempo. Tente de novo mais tarde.",
+    falhou: "Não foi possível registrar o pedido agora. Tente de novo em instantes.",
+    pronto: (cnpj: string) =>
+      `Pronto. O CNPJ ${cnpj} não aparece mais na busca do PROSPEN e não volta nas próximas atualizações.`,
+    fonte: "Fonte dos dados: dados abertos do CNPJ, Receita Federal. Uso para prospecção entre empresas.",
+  },
+  privacidade: {
+    link: "Política de privacidade",
+    titulo: "Política de privacidade",
+    atualizadaEm: "Última atualização: 23 de outubro de 2026.",
+    introducao:
+      "Esta política explica quais dados pessoais o PROSPEN trata, para quê, com qual base na Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018) e como você exerce os seus direitos.",
+    responsavelTitulo: "Quem é o responsável",
+    responsavel: (nome: string) =>
+      `O responsável pelo tratamento dos dados (controlador) é ${nome}, que também atua como encarregado pelo tratamento de dados pessoais (art. 41 da LGPD). Para qualquer assunto sobre privacidade, inclusive os pedidos de titulares, escreva para:`,
+    secoes: [
+      {
+        titulo: "Dados de quem usa o PROSPEN",
+        paragrafos: [
+          "Ao criar uma conta, guardamos o seu nome, o seu e-mail e a sua senha. A senha é guardada protegida, nunca em texto puro. Guardamos também o nome da sua empresa e as configurações dela (país, moeda, fuso horário e idioma).",
+          "Usamos esses dados para dar acesso à conta e prestar o serviço contratado. Base legal: execução de contrato e de procedimentos preliminares a ele (art. 7º, V, da LGPD).",
+          "Para proteger as contas contra tentativas de adivinhar senhas, contamos por pouco tempo as tentativas de entrada por e-mail e por endereço de internet (IP). Essa contagem fica só na memória do servidor e some em até uma hora. Base legal: legítimo interesse na segurança do serviço (art. 7º, IX).",
+          "Guardamos por 6 meses, em sigilo, a data, a hora e o endereço IP de cada entrada na conta, como exige o Marco Civil da Internet (Lei 12.965/2014, art. 15). Esses registros só são entregues a terceiros com ordem judicial e são apagados depois do prazo, mesmo que a conta tenha sido excluída antes. Base legal: cumprimento de obrigação legal (art. 7º, II).",
+          "Usamos apenas o cookie necessário para manter você conectado. Não usamos cookies de publicidade nem ferramentas de rastreamento.",
+        ],
+      },
+      {
+        titulo: "Leads que a sua empresa cadastra",
+        paragrafos: [
+          "Os contatos que a sua empresa cadastra à mão, importa de planilha ou adiciona a partir da busca, com as notas, etiquetas, etapas do funil e campanhas, pertencem à sua empresa. Para esses dados, a sua empresa é a controladora e o PROSPEN trata os dados em nome dela (operador), só para prestar o serviço.",
+          "Os dados de uma empresa cliente nunca aparecem para outra. Do histórico de importação guardamos só um resumo, nunca o conteúdo da planilha.",
+          "Quem receber contato de uma empresa cliente do PROSPEN e quiser exercer os seus direitos sobre esses dados deve procurar essa empresa. Se precisar, ajudamos a encaminhar o pedido.",
+        ],
+      },
+      {
+        titulo: "Empresas da base pública de CNPJ",
+        paragrafos: [
+          "A busca de empresas usa os dados abertos do CNPJ, publicados pela Receita Federal: razão social, nome fantasia, situação, atividade econômica, porte, natureza jurídica, data de abertura, endereço e o telefone e o e-mail informados no cadastro. Mostramos só empresas ativas.",
+          "Finalidade: permitir que empresas encontrem outras empresas como possíveis clientes (prospecção entre empresas). Base legal: legítimo interesse (art. 7º, IX), sobre dados tornados públicos pela própria Receita (art. 7º, §§ 3º, 4º e 7º), com finalidade compatível com a da publicação: dar transparência sobre quem são as empresas ativas do país.",
+          "No caso do microempreendedor individual (MEI), os dados da empresa também são dados pessoais do empreendedor. Por isso, tudo nesta política vale também para eles.",
+          "Não usamos os dados dos sócios. No caso do microempreendedor individual (MEI), retiramos o CPF que muitas vezes aparece no nome da empresa, e ele nunca é exibido.",
+          "Para ordenar os resultados, cada empresa recebe uma pontuação automática de 0 a 100, calculada só com dados do cadastro na Receita: se tem telefone, se tem e-mail (e se ele parece ser de escritório de contabilidade), há quanto tempo foi aberta, o porte, se é matriz e se é MEI. A pontuação só define a ordem em que as empresas aparecem para os clientes do PROSPEN. Ela não é usada para crédito, não recusa nada a ninguém e não usa dados sensíveis. Você pode pedir a explicação dos critérios ou a revisão pelo e-mail de privacidade (art. 20).",
+          "Quem for responsável por uma empresa pode tirá-la da busca a qualquer momento, sem criar conta, na página \"Remover meus dados\". A remoção é imediata e vale também para as próximas atualizações da base.",
+        ],
+      },
+      {
+        titulo: "Com quem os dados são compartilhados",
+        paragrafos: [
+          "Não vendemos nem alugamos dados pessoais. Os dados ficam em servidores de provedores de infraestrutura contratados para hospedar o serviço, que só os tratam para esse fim. Também podemos fornecer dados quando a lei ou uma autoridade competente exigir.",
+          "Preferimos provedores com servidores no Brasil. Se algum provedor guardar dados fora do país, a transferência seguirá as regras da LGPD (arts. 33 a 36) e da ANPD, e esta política dirá qual é o provedor e o país.",
+        ],
+      },
+      {
+        titulo: "Por quanto tempo guardamos",
+        paragrafos: [
+          "Os dados da conta e da empresa ficam guardados enquanto a conta existir. Quando a empresa é excluída, os dados dela (leads, notas, etiquetas, funil, campanhas e importações) são apagados junto. Para excluir a sua conta ou a sua empresa, escreva para o e-mail de privacidade.",
+          "Os registros de acesso à conta (data, hora e IP) ficam 6 meses e depois são apagados automaticamente.",
+          "A lista de CNPJs que pediram para sair da base pública é guardada sem prazo, porque é ela que garante que esses CNPJs não voltem. Ela tem só o CNPJ e a data do pedido.",
+          "Podemos guardar dados por mais tempo quando a lei exigir.",
+        ],
+      },
+      {
+        titulo: "Como protegemos os dados",
+        paragrafos: [
+          "Senhas guardadas protegidas, acesso sempre conferido no servidor, separação dos dados de cada empresa cliente em todas as consultas e limites contra tentativas repetidas de acesso. Nenhuma medida elimina todo risco; se houver um incidente de segurança que possa causar dano relevante, avisaremos os titulares afetados e a Autoridade Nacional de Proteção de Dados (ANPD) em até 3 dias úteis, como manda a Resolução CD/ANPD nº 15/2024.",
+        ],
+      },
+      {
+        titulo: "Os seus direitos",
+        paragrafos: [
+          "Pela LGPD (art. 18), você pode pedir: confirmação de que tratamos seus dados, acesso a eles, correção, anonimização, bloqueio ou eliminação de dados desnecessários, portabilidade, informação sobre com quem compartilhamos, e se opor a um tratamento feito por legítimo interesse.",
+          "Escreva para o e-mail de privacidade. Confirmamos o recebimento assim que lermos o pedido e respondemos de forma completa em até 15 dias. Se não ficar satisfeito, você também pode reclamar à ANPD.",
+        ],
+      },
+      {
+        titulo: "Crianças e adolescentes",
+        paragrafos: ["O PROSPEN é um serviço para empresas e não se destina a menores de 18 anos."],
+      },
+      {
+        titulo: "Mudanças nesta política",
+        paragrafos: [
+          "Quando esta política mudar, a data no topo é atualizada. Mudanças importantes serão avisadas a quem tem conta.",
+        ],
+      },
+    ],
+  },
+  termos: {
+    link: "Termos de uso",
+    titulo: "Termos de uso",
+    atualizadaEm: "Última atualização: 23 de outubro de 2026.",
+    introducao:
+      "Estes termos regulam o uso do PROSPEN, plataforma de busca de empresas e gestão comercial para empresas. Ao criar uma conta, você aceita estes termos em nome da empresa que representa e confirma que leu a política de privacidade.",
+    // Aceite no cadastro: "Ao criar a conta, você aceita os [termos] e leu a [política]."
+    aceiteInicio: "Ao criar a conta, você aceita os",
+    aceiteMeio: "e confirma que leu a",
+    secoes: [
+      {
+        titulo: "1. Quem pode usar",
+        paragrafos: [
+          "O PROSPEN é um serviço para uso profissional. Para criar uma conta, você precisa ter pelo menos 18 anos, informar dados verdadeiros e ter autorização para agir em nome da empresa cadastrada.",
+          "Você é responsável por guardar a sua senha e pelo que for feito com a sua conta. Se perceber uso indevido, avise pelo e-mail de privacidade.",
+        ],
+      },
+      {
+        titulo: "2. O serviço",
+        paragrafos: [
+          "O PROSPEN permite buscar empresas ativas na base pública de CNPJ da Receita Federal, cadastrar e importar leads, acompanhar o funil de vendas e organizar campanhas.",
+          "O serviço está em fase inicial (pré-venda). Funcionalidades podem mudar, e não garantimos que ele fique disponível sem interrupções. Avisaremos com antecedência mudanças que tirem funcionalidades que você usa.",
+          "As condições comerciais (preço, forma de pagamento e período) são informadas antes da contratação e fazem parte destes termos.",
+        ],
+      },
+      {
+        titulo: "3. Uso permitido e proibido",
+        paragrafos: [
+          "O PROSPEN serve para prospecção entre empresas e gestão comercial legítima. É proibido: enviar mensagens em massa sem oferecer uma forma simples de a pessoa pedir para não receber mais; continuar contatando quem pediu para não ser contatado; revender, publicar ou repassar a terceiros os dados da base pública; extrair dados em massa por robôs ou meios automáticos; usar os dados para golpes, fraudes, assédio, discriminação, cobrança ou decisões de crédito sobre pessoas; e tentar acessar dados de outras empresas ou contornar os limites do sistema.",
+          "Podemos suspender ou encerrar a conta que descumprir estas regras, avisando o motivo, sem prejuízo de outras medidas legais.",
+        ],
+      },
+      {
+        titulo: "4. Proteção de dados: o que é responsabilidade de cada um",
+        paragrafos: [
+          "Leads da sua empresa: quando a sua empresa cadastra, importa ou salva um lead (inclusive a partir da busca), ela passa a ser a controladora desses dados pela LGPD. Cabe a ela ter base legal para o uso, informar os titulares quando a lei exigir, respeitar pedidos de não contato e atender os pedidos dos titulares.",
+          "O papel do PROSPEN sobre esses leads é o de operador (LGPD, art. 39): tratamos os dados só para prestar o serviço, conforme as instruções que a sua empresa dá ao usar o sistema; mantemos medidas de segurança; avisamos a sua empresa sem demora sobre incidentes que afetem os dados dela; ajudamos a atender os pedidos dos titulares; e não usamos esses dados para nenhuma outra finalidade.",
+          "Usamos provedores de infraestrutura (hospedagem e banco de dados) para operar o serviço. Eles só tratam os dados para esse fim e estão citados na política de privacidade quando contratados.",
+          "Base pública de CNPJ: o PROSPEN é o controlador da base que oferece na busca. Quando alguém pede para sair dela, a empresa some da busca de todos os clientes. Leads que a sua empresa já salvou continuam com ela, e o pedido de não contato que chegar a ela deve ser respeitado.",
+        ],
+      },
+      {
+        titulo: "5. Dados da base pública",
+        paragrafos: [
+          "Os dados da busca vêm dos dados abertos da Receita Federal, como foram publicados. Eles podem estar desatualizados ou incompletos, e o telefone e o e-mail muitas vezes são do escritório de contabilidade da empresa. A pontuação é uma ordem de prioridade feita por regras simples, não uma promessa de resultado.",
+        ],
+      },
+      {
+        titulo: "6. Seus dados e o fim da conta",
+        paragrafos: [
+          "Os leads, notas, etiquetas, campanhas e demais dados que a sua empresa cadastra são dela. Você pode pedir o encerramento da conta a qualquer momento pelo e-mail de privacidade. Ao excluir a empresa, os dados dela são apagados, exceto o que a lei mandar guardar (como os registros de acesso, por 6 meses).",
+          "O software, a marca e a organização da plataforma são do PROSPEN.",
+        ],
+      },
+      {
+        titulo: "7. Responsabilidades",
+        paragrafos: [
+          "Respondemos pelos danos que causarmos por descumprir estes termos ou a lei. Não respondemos pelo uso que a sua empresa faz dos dados, pelas mensagens que ela envia nem pelos resultados comerciais das campanhas.",
+        ],
+      },
+      {
+        titulo: "8. Mudanças nestes termos",
+        paragrafos: [
+          "Quando estes termos mudarem, a data no topo é atualizada e as mudanças importantes são avisadas a quem tem conta antes de valer. Se não concordar, você pode encerrar a conta.",
+        ],
+      },
+      {
+        titulo: "9. Lei aplicável e contato",
+        paragrafos: [
+          "Estes termos seguem a lei brasileira. Dúvidas e pedidos: pelo e-mail de privacidade, no fim desta página.",
+        ],
+      },
+    ],
+  },
   naoEncontrado: {
     titulo: "Página não encontrada",
     descricao: "O endereço não existe ou foi movido.",
     voltar: "Voltar ao início",
+    // Dentro do painel (lead ou campanha que não existe). Não diz se o item
+    // existe em outra empresa: a resposta é a mesma nos dois casos.
+    painelTitulo: "Não encontramos este item",
+    painelDescricao: "O lead ou a campanha não existe, foi excluído ou o endereço está incompleto.",
+    verLeads: "Ver leads",
+    verCampanhas: "Ver campanhas",
   },
 } as const;
 

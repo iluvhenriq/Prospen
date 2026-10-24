@@ -3,6 +3,7 @@ import { getDb } from "@/db/client";
 import { repositorioCampanhas } from "@/modules/campanhas/repositorio";
 import { repositorioLeads } from "@/modules/leads/repositorio";
 import type { Contexto } from "@/modules/organizacoes/contexto";
+import { consumirLimiteDeBusca } from "./limite-busca";
 import { RESULTADOS_POR_PAGINA, type ParametrosBusca } from "./parametros";
 import { repositorioBaseCnpj, type Cursor, type ResultadoDaBusca } from "./repositorio";
 
@@ -22,6 +23,8 @@ export type TelaDeBusca = {
   buscou: boolean;
   // Campanhas ativas, para colocar as empresas adicionadas direto numa delas.
   campanhasAtivas: { id: string; nome: string }[];
+  // Horas até liberar, quando a empresa passou do limite diário de páginas.
+  limiteAtingido: number | null;
 };
 
 export async function obterTelaDeBusca(contexto: Contexto, parametros: ParametrosBusca): Promise<TelaDeBusca> {
@@ -38,10 +41,14 @@ export async function obterTelaDeBusca(contexto: Contexto, parametros: Parametro
     proximo: null,
     buscou: false,
     campanhasAtivas: [],
+    limiteAtingido: null,
   };
   // CNPJ digitado e válido: busca só por ele, em qualquer estado carregado.
   const porCnpj = Boolean(parametros.cnpj);
   if (!uf && !porCnpj) return vazio;
+
+  const limite = consumirLimiteDeBusca(contexto.organizacao.id);
+  if (limite.bloqueado) return { ...vazio, limiteAtingido: Math.ceil(limite.segundosParaLiberar / 3600) };
 
   const [municipios, atividades] = await Promise.all([
     uf ? base.municipiosDoEstado(uf) : Promise.resolve([]),
@@ -78,6 +85,7 @@ export async function obterTelaDeBusca(contexto: Contexto, parametros: Parametro
         ? { pontos: resultados[resultados.length - 1].pontuacao, cnpj: resultados[resultados.length - 1].cnpj }
         : null,
     buscou: true,
+    limiteAtingido: null,
     campanhasAtivas: campanhas
       .filter((campanha) => campanha.situacao === "ativa")
       .map((campanha) => ({ id: campanha.id, nome: campanha.nome })),

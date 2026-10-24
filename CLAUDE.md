@@ -29,7 +29,7 @@ PROSPEN é uma plataforma de aquisição de leads e gestão de marketing para em
 | 5 | Base pública de CNPJ e busca real de leads | em andamento. 5a testes de navegador: concluída. 5b regra de duplicados por CNPJ (banco e repositório): concluída. 5c prova de conceito com SP: concluída (23/10/2026). SP importado no banco local: 8,8 milhões de ativos, 56% MEI, cerca de 4 GB, 131 min. Números e lições para a busca em `docs/arquitetura.md`. 5d tela de busca (`/painel/busca`): concluída (23/10/2026), testada no navegador e com teste em `e2e/busca.spec.ts`. Depois: busca por CNPJ exato e aviso "contato compartilhado com N leads" na página do lead (23/10/2026). Carga de SP sem índices medida: 46 min (antes 131). Em aberto: busca por nome (exige índice grande, decisão do Henrique) |
 | 6 | Pontuação dos leads por regras simples, com dados da base pública (sem Google Places, decisão de 23/10/2026) | concluída (23/10/2026): regras em `src/modules/pontuacao/regras.ts`, pontuação na base (busca ordena pelos melhores, 3 a 358 ms em SP) e no lead (selo e motivos). Testada no navegador |
 | 7 | Campanhas manuais (sem integração com anúncios) e painel de indicadores | concluída (23/10/2026), testada no navegador: motivo da perda e valor da venda, painel de indicadores (`/painel`) e campanhas (`/painel/campanhas`: lista de trabalho e ação com custo; números vêm do funil). Henrique ainda vai testar as telas |
-| 8 | Revisão final: erros, estados vazios, testes dos fluxos críticos, segurança, celular | próxima. Código no GitHub (`iluvhenriq/prospen`, privado), branch `master` |
+| 8 | Revisão final: erros, estados vazios, testes dos fluxos críticos, segurança, celular | em andamento (23/10/2026): segurança revisada, telas revisadas no computador e no celular, testes de navegador novos, limite na importação, página "remover meus dados", política de privacidade (rascunho). Falta o que depende do Henrique: domínio e provedor de e-mail (recuperação de senha e confirmação de e-mail), hospedagem, identificação completa do responsável na política. Código no GitHub (`iluvhenriq/prospen`, privado), branch `master` |
 
 Fora do MVP, de propósito: Google Ads, Meta Ads, formulários de captação, automação, inteligência artificial, cobrança e planos. Não implemente antes da hora.
 
@@ -55,6 +55,8 @@ TypeScript, Next.js (App Router, versão 16), PostgreSQL, Drizzle ORM, Better Au
 | `npm run cnpj:importar -- 2026-10 SP` | Carrega um estado no banco (apaga e refaz). Lê o país inteiro, leva horas |
 | `npm run cnpj:registrar -- 2026-10 SP` | Registra atividades e cidades de um estado já carregado, sem importar de novo |
 | `npm run cnpj:excluir -- CNPJ` | Pedido do titular (LGPD): tira o CNPJ da busca para sempre |
+| `npm run conta:exportar -- email` | Pedido do titular: dados da conta em JSON (confira a identidade antes) |
+| `npm run conta:excluir -- email --confirmar` | Pedido do titular: apaga a conta e as empresas só dela. Sem volta |
 
 Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `npm run test:e2e`. Teste também no navegador o que for tela nova (Playwright MCP) e, quando o fluxo for crítico, acrescente um teste em `e2e/`. Diga com clareza o que NÃO foi testado.
 
@@ -84,17 +86,20 @@ Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `np
 - PostgreSQL local com memória ajustada por `ALTER SYSTEM` (veja `docs/arquitetura.md`). Reiniciar o serviço exige administrador; o Claude não consegue.
 - O comando `tar` do Git Bash é outro programa e quebra caminhos com "C:". Rode os testes da importação da base pelo PowerShell.
 - Fontes vêm do pacote `geist`, não do Google Fonts.
+- `npm run dev` recarregando a página sem parar logo depois de um build: pare o servidor e apague `.nextdev` (reiniciar sozinho não resolve).
+- Toda ação do servidor nova precisa começar por `exigirPermissao`, senão `tests/arquitetura.test.ts` falha. Ação pública entra na lista `PUBLICAS` desse teste, com motivo.
 - O PGlite em modo servidor só aceita várias conexões com `maxConnections` maior que 1. Isso é só do ambiente de teste, não do produto.
 
 ## Pendências e riscos conhecidos
 
 - Sem recuperação de senha e sem verificação de e-mail (dependem de provedor de e-mail). **Obrigatório antes de abrir para clientes.**
-- **LGPD (decidido em 23/10/2026, padrão de mercado):** leads da base pública usam "legítimo interesse" e guardam origem e base legal. MEIs entram, mas o CPF no fim da razão social é retirado na importação. CNPJ removido a pedido entra numa lista de exclusão e não volta. Página "remover meus dados" e política de privacidade antes de ir ao ar. Detalhes em `docs/arquitetura.md`.
+- **Conformidade (23/10/2026):** o PROSPEN se trata como alto risco (Resolução CD/ANPD nº 2/2022): encarregado indicado, prazos normais. Documentos em `docs/lgpd/`; mudou o tratamento de dados, atualize o documento na mesma mudança. Registros de acesso: 6 meses (Marco Civil). Pedidos de titulares: `npm run conta:exportar` e `npm run conta:excluir`. Busca limitada a 300 páginas por dia por empresa.
+- **LGPD (decidido em 23/10/2026, padrão de mercado):** leads da base pública usam "legítimo interesse" e guardam origem e base legal. MEIs entram, mas o CPF no fim da razão social é retirado na importação. CNPJ removido a pedido entra numa lista de exclusão e não volta. Página "remover meus dados" pronta (`/remover-meus-dados`, automática, com limites contra abuso). Política de privacidade em `/privacidade` (rascunho; antes de ir ao ar: nome completo e CPF ou CNPJ do responsável em `src/lib/responsavel.ts`, provedor de hospedagem e revisão de advogado). Detalhes em `docs/arquitetura.md`.
 - O limite de tentativas de login vive na memória do servidor. Com mais de um servidor, mover para o banco. O limite por endereço depende do cabeçalho `x-forwarded-for`.
 - **Regra de duplicados (decidida em 22/10/2026, no banco e no repositório desde 23/10):** lead com CNPJ é único pelo CNPJ dentro da empresa. E-mail e telefone são únicos só entre leads sem CNPJ (manual e planilha). O CNPJ pode ser alfanumérico (regra da Receita desde 07/2026): use `src/modules/leads/cnpj.ts`, nunca "14 números". A página do lead avisa quando o e-mail ou telefone está em outros leads da empresa.
 - Mensagens de validação e erro geradas na lógica ficam em `ptBR.mensagens` (movidas em 23/10/2026). Não escreva texto visível solto em `src/modules`.
 - Ao criar exportação de leads, neutralizar células que começam com `=`, `+`, `-` ou `@`.
-- Importação sem limite de frequência por empresa.
+- Limites de login e de importação (20 planilhas e 60 conferências por hora por empresa) vivem na memória do servidor.
 - Importação só aceita CSV, até 2 MB e 5.000 linhas.
 
 ## Ambiente do Henrique

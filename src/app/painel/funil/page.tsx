@@ -22,7 +22,10 @@ async function ConteudoFunil() {
         descricao={t.vazioDescricao}
         acao={
           <div className="flex flex-wrap justify-center gap-3">
-            <BotaoLink href="/painel/leads/novo">{ptBR.leads.novo}</BotaoLink>
+            <BotaoLink href="/painel/busca">{ptBR.busca.titulo}</BotaoLink>
+            <BotaoLink href="/painel/leads/novo" variante="contorno">
+              {ptBR.leads.novo}
+            </BotaoLink>
             <BotaoLink href="/painel/leads/importar" variante="contorno">
               {ptBR.leads.importar}
             </BotaoLink>
