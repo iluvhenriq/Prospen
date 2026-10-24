@@ -188,6 +188,7 @@ Regras da leitura:
 | 23/10/2026 | Termos de uso com as cláusulas de controlador (cliente) e operador (PROSPEN) | LGPD, art. 39: o operador segue as instruções do controlador; os termos são esse contrato |
 | 23/10/2026 | Comandos `conta:exportar` e `conta:excluir` para pedidos de titulares | A política promete responder em 15 dias; sem ferramenta, a promessa dependeria de SQL à mão |
 | 23/10/2026 | Limite de 300 páginas da busca por dia por empresa | Torna real a proibição de extrair a base em massa |
+| 23/10/2026 | Política sem CPF e sem nome completo do responsável, risco aceito pelo Henrique, inclusive com vendas, por pelo menos 6 meses (confirmado em 24/10/2026; reavaliar em abril de 2027) | Razões pessoais. A LGPD pede identificação do controlador sem exigir documento; o decreto do comércio eletrônico exige CPF ou CNPJ só ao vender |
 | 23/10/2026 | Excluir etiqueta pede confirmação, como excluir lead | Tira a etiqueta de todos os leads com um clique; no celular o aviso nem aparecia |
 | 22/10/2026 | Registro das ações do servidor desligado no terminal (`logging.serverFunctions: false`) | Em desenvolvimento, o Next.js escrevia nome, e-mail e telefone de leads no terminal |
 

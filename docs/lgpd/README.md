@@ -13,7 +13,7 @@ Documentos públicos no próprio sistema: política de privacidade (`/privacidad
 
 ## Pendências que dependem do responsável
 
-1. Nome completo e CPF ou CNPJ do controlador em `src/lib/responsavel.ts` (aparece na política).
+1. Identificação do controlador em `src/lib/responsavel.ts`. **Risco aceito pelo Henrique em 23/10/2026:** fica sem CPF e sem nome completo até haver cobrança ou questionamento. A LGPD não exige CPF; o nome completo já fortaleceria. Em 24/10/2026 o Henrique decidiu manter assim mesmo com vendas, por pelo menos 6 meses, ciente de que vender pela internet pede CPF ou CNPJ (Decreto 7.962/2013), de que clientes empresa costumam pedir nota fiscal e de que a receita precisa ser declarada. Reavaliar em abril de 2027.
 2. Ao abrir CNPJ: confirmar com o contador se a empresa se enquadra no Marco Civil, art. 15 (os registros de acesso já são guardados) e incluir nome empresarial, CNPJ e endereço nas páginas de venda (Decreto 7.962/2013, comércio eletrônico).
 3. Hospedagem e provedor de e-mail: atualizar `registro-de-operacoes.md` e a política; se o servidor for fora do Brasil, seguir as regras de transferência internacional.
 4. Revisão por advogado destes documentos, da política e dos termos.
