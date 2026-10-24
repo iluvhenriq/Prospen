@@ -131,6 +131,6 @@ e2e/              testes no navegador (Playwright)
 | 3 | Leads, importação CSV, notas, etiquetas | concluída, testada no navegador em 22/10/2026 |
 | 4 | Funil e histórico | concluída, testada no navegador em 22/10/2026 |
 | 5 | Base de CNPJ e busca real | em andamento: 5a testes de navegador e 5b regra de duplicados por CNPJ concluídas; 5c prova de conceito com SP concluída em 23/10/2026 (8,8 milhões de estabelecimentos, cerca de 4 GB); 5d tela de busca concluída em 23/10/2026 (estado, cidade, atividade, CNPJ exato, sem MEI por padrão, adicionar como lead, aviso de contato compartilhado); em aberto: busca por nome |
-| 6 | Pontuação dos leads por regras | em andamento |
-| 7 | Campanhas manuais e painel | pronta para revisão: motivo da perda, valor da venda, painel de indicadores e campanhas |
+| 6 | Pontuação dos leads por regras | concluída |
+| 7 | Campanhas manuais e painel | concluída: motivo da perda, valor da venda, painel de indicadores e campanhas |
 | 8 | Revisão final, testes, segurança, celular | pendente |
