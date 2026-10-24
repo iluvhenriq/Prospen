@@ -57,6 +57,8 @@ TypeScript, Next.js (App Router, versão 16), PostgreSQL, Drizzle ORM, Better Au
 | `npm run cnpj:excluir -- CNPJ` | Pedido do titular (LGPD): tira o CNPJ da busca para sempre |
 | `npm run conta:exportar -- email` | Pedido do titular: dados da conta em JSON (confira a identidade antes) |
 | `npm run conta:excluir -- email --confirmar` | Pedido do titular: apaga a conta e as empresas só dela. Sem volta |
+| `iniciar-prospen.cmd` (dois cliques) | Abre o PROSPEN como app no PC (versão de produção). Depois de mudar o código, rode `npm run build` |
+| `npx tsx scripts/gerar-icones.ts` | Refaz os ícones do app instalável se o ícone mudar |
 | `npm run pre-cadastro:listar > arquivo.csv` | Lista do pré-cadastro da pré-venda (dados pessoais: não compartilhe) |
 | `npm run pre-cadastro:excluir -- email` | Tira uma pessoa da lista de pré-cadastro |
 
