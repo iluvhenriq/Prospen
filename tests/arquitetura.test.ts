@@ -95,6 +95,7 @@ describe("arquitetura", () => {
       base_cnpj_municipios: "cidades da base pública, só leitura",
       base_cnpj_cargas: "registro dos estados carregados da base pública",
       base_cnpj_exclusoes: "LGPD: CNPJs que pediram para sair da base pública, vale para todas as empresas",
+      base_cnpj_sinais: "Radar: mudanças da base pública entre um mês e outro, iguais para todas as empresas",
       pre_cadastros: "pré-venda: interessados que ainda não são clientes nem têm empresa no sistema",
       registros_acesso: "Marco Civil, art. 15: acesso de cada pessoa à aplicação, guardado mesmo se a conta for apagada",
     };

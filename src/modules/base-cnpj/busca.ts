@@ -8,6 +8,7 @@ import type { Contexto } from "@/modules/organizacoes/contexto";
 import { consumirLimiteDeBusca } from "./limite-busca";
 import { DIAS_DE_RECENTES, enderecoDaBusca, RESULTADOS_POR_PAGINA, type ParametrosBusca } from "./parametros";
 import { repositorioBaseCnpj, type Cursor, type ResultadoDaBusca } from "./repositorio";
+import { cruzarSinaisComLeads, SINAIS_NO_PAINEL, type SinalDoLead } from "./radar";
 import { cnpjsRecentesDaBase } from "./recentes";
 import { repositorioBuscasVigiadas } from "./repositorio-buscas-vigiadas";
 
@@ -181,4 +182,28 @@ export async function obterNovidadesDasBuscasVigiadas(contexto: Contexto): Promi
       return { ...comum, novas: contadas.length - jaSaoLeads.size, maisQue, estadoCarregado: true };
     }),
   );
+}
+
+export type RadarDosLeads = {
+  sinais: SinalDoLead[];
+  total: number;
+  // Leads com CNPJ (os que o radar consegue acompanhar).
+  acompanhados: number;
+};
+
+// Painel (Radar): mudanças da Receita nas empresas dos leads desta empresa,
+// das mais recentes. Busca mais sinais do que mostra porque a regra descarta
+// as novas unidades que já são leads.
+export async function obterRadarDosLeads(contexto: Contexto): Promise<RadarDosLeads> {
+  const db = getDb();
+  const leads = await repositorioLeads(db, contexto.organizacao.id).comCnpj();
+  if (leads.length === 0) return { sinais: [], total: 0, acompanhados: 0 };
+  const raizes = [...new Set(leads.map((lead) => lead.cnpj.slice(0, 8)))];
+  const sinais = await repositorioBaseCnpj(db).sinaisDe(
+    leads.map((lead) => lead.cnpj),
+    raizes,
+    1000,
+  );
+  const cruzados = cruzarSinaisComLeads(sinais, leads);
+  return { sinais: cruzados.slice(0, SINAIS_NO_PAINEL), total: cruzados.length, acompanhados: leads.length };
 }

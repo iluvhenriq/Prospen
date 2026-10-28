@@ -114,6 +114,9 @@ export type LeadEncerrado = Pick<
   "motivoPerda" | "origem" | "telefone" | "email" | "dataAbertura" | "porte" | "matriz" | "naturezaJuridica"
 > & { etapa: "ganho" | "perdido"; tentativas: number };
 
+// Lead com CNPJ, só com o que o Radar usa para cruzar com a base pública.
+export type LeadComCnpj = Pick<Lead, "id" | "nome" | "empresa" | "etapa"> & { cnpj: string };
+
 export type ColunaDoQuadro = {
   etapa: EtapaFunil;
   total: number;
@@ -462,6 +465,18 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
         .from(leads)
         .where(and(daOrganizacao, inArray(leads.cnpj, cnpjs)));
       return new Set(linhas.map((linha) => linha.cnpj).filter((cnpj): cnpj is string => Boolean(cnpj)));
+    },
+
+    // Leads desta empresa que têm CNPJ (Radar): só o necessário para cruzar com
+    // as mudanças da base pública. Os mais recentes primeiro.
+    async comCnpj(limite = 5000): Promise<LeadComCnpj[]> {
+      const linhas = await db
+        .select({ id: leads.id, nome: leads.nome, empresa: leads.empresa, cnpj: leads.cnpj, etapa: leads.etapa })
+        .from(leads)
+        .where(and(daOrganizacao, isNotNull(leads.cnpj)))
+        .orderBy(desc(leads.criadoEm))
+        .limit(limite);
+      return linhas.filter((linha): linha is LeadComCnpj => linha.cnpj !== null);
     },
 
     async atualizar(id: string, dados: DadosAtualizacaoLead): Promise<Lead | null> {

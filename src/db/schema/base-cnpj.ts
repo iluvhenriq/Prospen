@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, check, date, index, integer, pgTable, smallint, text, timestamp } from "drizzle-orm/pg-core";
+import { boolean, check, date, index, integer, pgTable, smallint, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 // Base pública de CNPJ (dados abertos da Receita Federal), carregada por
 // `npm run cnpj:importar`. EXCEÇÃO CONSCIENTE à regra de isolamento: estas
@@ -109,6 +109,44 @@ export const baseCnpjCargas = pgTable("base_cnpj_cargas", {
   estabelecimentos: integer("estabelecimentos").notNull(),
   concluidaEm: timestamp("concluida_em", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Radar (27/10/2026): mudanças detectadas ao comparar a base nova de um estado
+// com a anterior, no fim da importação. Só o que a Receita publicou: o tipo, o
+// antes, o depois e o mês. Nada de empresa cliente (exceção declarada em
+// tests/arquitetura.test.ts). Guardados por 12 meses.
+export const TIPOS_DE_SINAL = ["nova_unidade", "mudou_cidade", "mudou_atividade", "deixou_ativa"] as const;
+export type TipoDeSinal = (typeof TIPOS_DE_SINAL)[number];
+
+export const baseCnpjSinais = pgTable(
+  "base_cnpj_sinais",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    // CNPJ que mudou. Em "nova_unidade", é a unidade nova; a raiz liga à empresa.
+    cnpj: text("cnpj").notNull(),
+    cnpjBasico: text("cnpj_basico").notNull(),
+    uf: text("uf").notNull(),
+    tipo: text("tipo").$type<TipoDeSinal>().notNull(),
+    // Valores legíveis para explicar a mudança (cidade, atividade). Podem ser vazios.
+    antes: text("antes"),
+    depois: text("depois"),
+    // Mês da base em que a mudança apareceu (AAAA-MM).
+    mesReferencia: text("mes_referencia").notNull(),
+    detectadoEm: timestamp("detectado_em", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (tabela) => [
+    index("base_cnpj_sinais_cnpj_idx").on(tabela.cnpj),
+    index("base_cnpj_sinais_basico_idx").on(tabela.cnpjBasico),
+    index("base_cnpj_sinais_mes_idx").on(tabela.mesReferencia),
+    // A mesma mudança não entra duas vezes se a importação do mês rodar de novo.
+    uniqueIndex("base_cnpj_sinais_unico").on(tabela.cnpj, tabela.tipo, tabela.mesReferencia),
+    check(
+      "base_cnpj_sinais_tipo_valido",
+      sql`${tabela.tipo} in ('nova_unidade', 'mudou_cidade', 'mudou_atividade', 'deixou_ativa')`,
+    ),
+  ],
+);
+
+export type SinalDaBase = typeof baseCnpjSinais.$inferSelect;
 
 // Lista de exclusão (LGPD, decisão de 23/10/2026): CNPJ que pediu para sair.
 // Nunca aparece na busca nem vira lead pela busca, mesmo depois de nova importação.

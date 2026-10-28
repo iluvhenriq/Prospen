@@ -3,7 +3,8 @@ import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { AprendizadoDoPainel } from "@/components/painel/aprendizado";
 import { NovidadesDasBuscas } from "@/components/painel/novidades-buscas";
-import { obterNovidadesDasBuscasVigiadas } from "@/modules/base-cnpj/busca";
+import { RadarDoPainel } from "@/components/painel/radar";
+import { obterNovidadesDasBuscasVigiadas, obterRadarDosLeads } from "@/modules/base-cnpj/busca";
 import { Barras } from "@/components/painel/barras";
 import { BotaoLink } from "@/components/ui/botao";
 import { Esqueleto } from "@/components/ui/carregando";
@@ -53,6 +54,10 @@ const classeAtalho = "text-sm font-semibold text-musgo-700 underline hover:text-
 
 async function BlocoNovidades({ contexto }: { contexto: Contexto }) {
   return <NovidadesDasBuscas buscas={await obterNovidadesDasBuscasVigiadas(contexto)} />;
+}
+
+async function BlocoRadar({ contexto }: { contexto: Contexto }) {
+  return <RadarDoPainel radar={await obterRadarDosLeads(contexto)} />;
 }
 
 async function ConteudoPainel() {
@@ -224,6 +229,10 @@ async function ConteudoPainel() {
           {/* Carrega à parte: a primeira contagem do dia pode demorar e não segura o painel. */}
           <Suspense fallback={<Esqueleto className="h-32 w-full" />}>
             <BlocoNovidades contexto={contexto} />
+          </Suspense>
+
+          <Suspense fallback={<Esqueleto className="h-32 w-full" />}>
+            <BlocoRadar contexto={contexto} />
           </Suspense>
 
           <AprendizadoDoPainel aprendizado={aprendizado} />

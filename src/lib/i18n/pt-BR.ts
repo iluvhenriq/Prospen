@@ -287,6 +287,24 @@ export const ptBR = {
       vazio: "Vigie uma busca (botão na tela Buscar empresas) e o painel avisa quando abrirem empresas novas nela.",
       buscar: "Buscar empresas",
     },
+    // Radar (27/10/2026): mudanças da Receita nas empresas dos leads.
+    radar: {
+      titulo: "Mudanças nas empresas dos seus leads",
+      descricao: "Comparando a base nova da Receita com a anterior. Bom motivo para retomar o contato.",
+      vazio: "Nenhuma mudança nas empresas dos seus leads. O radar compara cada nova base mensal da Receita com a anterior.",
+      semCnpj: "O radar acompanha os leads com CNPJ. Adicione empresas pela busca e as mudanças delas aparecem aqui.",
+      tipos: {
+        nova_unidade: (depois: string | null) => (depois ? `Abriu uma nova unidade em ${depois}` : "Abriu uma nova unidade"),
+        mudou_cidade: (antes: string | null, depois: string | null) =>
+          antes && depois ? `Mudou de ${antes} para ${depois}` : "Mudou de cidade",
+        mudou_atividade: (antes: string | null, depois: string | null) =>
+          antes && depois ? `Mudou a atividade principal: de "${antes}" para "${depois}"` : "Mudou a atividade principal",
+        deixou_ativa: () => "Deixou de constar como ativa na Receita",
+      },
+      verUnidade: "Ver unidade nova",
+      mes: (mes: string) => `Base de ${mes.slice(5, 7)}/${mes.slice(0, 4)}`,
+      mostrando: (mostradas: number, total: number) => `Mostrando as ${mostradas} mais recentes de ${total}.`,
+    },
     // O que os negócios encerrados ensinam (etapa 9d). Sem conclusão com pouco dado.
     aprendizado: {
       titulo: "O que os seus resultados ensinam",

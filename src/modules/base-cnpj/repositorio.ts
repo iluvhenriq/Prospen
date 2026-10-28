@@ -1,4 +1,4 @@
-import { and, asc, count, eq, getTableColumns, gte, inArray, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, desc, eq, getTableColumns, gte, inArray, sql, type SQL } from "drizzle-orm";
 import { pgTable } from "drizzle-orm/pg-core";
 import {
   baseCnpjCargas,
@@ -7,7 +7,9 @@ import {
   baseCnpjEstabelecimentos,
   baseCnpjExclusoes,
   baseCnpjMunicipios,
+  baseCnpjSinais,
   colunasDoEstabelecimento,
+  type SinalDaBase,
   type EmpresaBase,
   type EstabelecimentoBase,
 } from "@/db/schema";
@@ -61,6 +63,81 @@ function expressaoDaPontuacao(hoje: Date, s: typeof baseCnpjEstabCarga): SQL {
     + (case when ${s.matriz} then ${n(PESOS.matriz)} else 0 end)
     + (case when ${e.naturezaJuridica} = ${NATUREZA_MEI} then ${n(PESOS.mei)} else 0 end)
   ))`;
+}
+
+// Quantos meses os sinais do Radar ficam guardados.
+export const MESES_DE_SINAIS = 12;
+
+// "SAO PAULO/SP": cidade (ou o código, se não houver nome) e estado.
+function local(t: { municipioNome: unknown; municipioCodigo: unknown; uf: unknown }): SQL {
+  return sql`coalesce(${t.municipioNome}, ${t.municipioCodigo}) || '/' || ${t.uf}`;
+}
+
+// Radar (27/10/2026): compara a base nova do estado (tabela temporária) com a
+// atual e grava as mudanças em base_cnpj_sinais. Só quando o mês muda: o
+// recálculo do mesmo mês (cnpj:registrar) não gera sinal, e a primeira carga
+// de um estado também não (não há com o que comparar). Junções em lote
+// ("hash"): os índices de busca estão fora durante a troca, só a chave (CNPJ)
+// continua. CNPJ que pediu para sair não gera sinal.
+// Limitação conhecida: empresa que mudou de estado aparece como "deixou de
+// constar como ativa" no estado antigo até o novo ser importado.
+async function detectarSinais(tx: Banco, uf: string): Promise<void> {
+  const [anterior] = await tx.select().from(baseCnpjCargas).where(eq(baseCnpjCargas.uf, uf)).limit(1);
+  const [nova] = await tx
+    .select({ mes: baseCnpjEstabCarga.mesReferencia })
+    .from(baseCnpjEstabCarga)
+    .where(eq(baseCnpjEstabCarga.uf, uf))
+    .limit(1);
+  if (!anterior || !nova || anterior.mesReferencia === nova.mes) return;
+  const mes = nova.mes;
+
+  const n = baseCnpjEstabCarga;
+  const o = baseCnpjEstabelecimentos;
+  const x = baseCnpjExclusoes;
+  const s = baseCnpjSinais;
+  const colunas = sql`(${sql.identifier(s.cnpj.name)}, ${sql.identifier(s.cnpjBasico.name)}, ${sql.identifier(s.uf.name)}, ${sql.identifier(s.tipo.name)}, ${sql.identifier(s.antes.name)}, ${sql.identifier(s.depois.name)}, ${sql.identifier(s.mesReferencia.name)})`;
+  const semExcluidos = (cnpj: unknown) => sql`not exists (select 1 from ${x} where ${x.cnpj} = ${cnpj})`;
+
+  // Abriu nova unidade: CNPJ que não existia, com a raiz de uma empresa que já existia.
+  await tx.execute(sql`
+    insert into ${s} ${colunas}
+    select ${n.cnpj}, ${n.cnpjBasico}, ${n.uf}, 'nova_unidade', null, ${local(n)}, ${mes}
+    from ${n}
+    left join ${o} on ${o.cnpj} = ${n.cnpj}
+    where ${n.uf} = ${uf} and ${o.cnpj} is null
+      and ${n.cnpjBasico} in (select ${o.cnpjBasico} from ${o})
+      and ${semExcluidos(n.cnpj)}
+    on conflict do nothing`);
+
+  // Mudou de cidade.
+  await tx.execute(sql`
+    insert into ${s} ${colunas}
+    select ${n.cnpj}, ${n.cnpjBasico}, ${n.uf}, 'mudou_cidade', ${local(o)}, ${local(n)}, ${mes}
+    from ${n}
+    join ${o} on ${o.cnpj} = ${n.cnpj}
+    where ${n.uf} = ${uf} and ${o.municipioCodigo} <> ${n.municipioCodigo} and ${semExcluidos(n.cnpj)}
+    on conflict do nothing`);
+
+  // Mudou a atividade principal (descrição da Receita, ou o código se não houver).
+  await tx.execute(sql`
+    insert into ${s} ${colunas}
+    select ${n.cnpj}, ${n.cnpjBasico}, ${n.uf}, 'mudou_atividade',
+      coalesce((select ${baseCnpjCnaes.descricao} from ${baseCnpjCnaes} where ${baseCnpjCnaes.codigo} = ${o.cnaePrincipal}), ${o.cnaePrincipal}),
+      coalesce((select ${baseCnpjCnaes.descricao} from ${baseCnpjCnaes} where ${baseCnpjCnaes.codigo} = ${n.cnaePrincipal}), ${n.cnaePrincipal}),
+      ${mes}
+    from ${n}
+    join ${o} on ${o.cnpj} = ${n.cnpj}
+    where ${n.uf} = ${uf} and ${o.cnaePrincipal} <> ${n.cnaePrincipal} and ${semExcluidos(n.cnpj)}
+    on conflict do nothing`);
+
+  // Deixou de constar como ativa: estava no estado e não veio na base nova.
+  await tx.execute(sql`
+    insert into ${s} ${colunas}
+    select ${o.cnpj}, ${o.cnpjBasico}, ${o.uf}, 'deixou_ativa', ${local(o)}, null, ${mes}
+    from ${o}
+    left join ${n} on ${n.cnpj} = ${o.cnpj}
+    where ${o.uf} = ${uf} and ${n.cnpj} is null and ${semExcluidos(o.cnpj)}
+    on conflict do nothing`);
 }
 
 export function repositorioBaseCnpj(db: Banco) {
@@ -120,6 +197,8 @@ export function repositorioBaseCnpj(db: Banco) {
       await db.transaction(async (tx) => {
         // Só nesta transação: memória para cruzar milhões de linhas sem ir ao disco.
         await tx.execute(sql`set local work_mem = '512MB'`);
+        // Radar: antes de apagar a base antiga, guarda o que mudou.
+        await detectarSinais(tx, uf);
         await tx.delete(baseCnpjEstabelecimentos).where(eq(baseCnpjEstabelecimentos.uf, uf));
         await tx.execute(sql`
           insert into ${baseCnpjEstabelecimentos} (${sql.join(
@@ -183,6 +262,7 @@ export function repositorioBaseCnpj(db: Banco) {
           target: baseCnpjCargas.uf,
           set: { mesReferencia: mes, estabelecimentos, concluidaEm: sql`now()` },
         });
+      await this.limparSinaisAntigos(mes);
     },
 
     async contarEstabelecimentos(uf: string): Promise<number> {
@@ -335,9 +415,40 @@ export function repositorioBaseCnpj(db: Banco) {
         );
     },
 
-    // Pedido do titular para sair da base. Vale para sempre e para todas as empresas.
+    // Pedido do titular para sair da base. Vale para sempre e para todas as
+    // empresas. Os sinais do Radar sobre esse CNPJ também saem.
     async excluirCnpj(cnpj: string): Promise<void> {
       await db.insert(baseCnpjExclusoes).values({ cnpj }).onConflictDoNothing();
+      await db.delete(baseCnpjSinais).where(eq(baseCnpjSinais.cnpj, cnpj));
+    },
+
+    // --- Radar (27/10/2026). Só leitura, menos a limpeza. -------------------
+
+    // Sinais sobre estes CNPJs (mudanças da própria empresa) e sobre as raízes
+    // (novas unidades da mesma empresa), dos mais recentes, sem excluídos.
+    async sinaisDe(cnpjs: string[], cnpjsBasicos: string[], limite = 200): Promise<SinalDaBase[]> {
+      if (cnpjs.length === 0 && cnpjsBasicos.length === 0) return [];
+      const daPropria = cnpjs.length > 0 ? sql`(${inArray(baseCnpjSinais.cnpj, cnpjs)} and ${baseCnpjSinais.tipo} <> 'nova_unidade')` : sql`false`;
+      const novaUnidade =
+        cnpjsBasicos.length > 0 ? sql`(${inArray(baseCnpjSinais.cnpjBasico, cnpjsBasicos)} and ${baseCnpjSinais.tipo} = 'nova_unidade')` : sql`false`;
+      return db
+        .select()
+        .from(baseCnpjSinais)
+        .where(
+          and(
+            sql`(${daPropria} or ${novaUnidade})`,
+            sql`not exists (select 1 from ${baseCnpjExclusoes} where ${baseCnpjExclusoes.cnpj} = ${baseCnpjSinais.cnpj})`,
+          ),
+        )
+        .orderBy(desc(baseCnpjSinais.mesReferencia), desc(baseCnpjSinais.detectadoEm), asc(baseCnpjSinais.cnpj))
+        .limit(Math.min(Math.max(limite, 1), 1000));
+    },
+
+    // Apaga os sinais com mais de MESES_DE_SINAIS meses (chamado ao registrar a carga).
+    async limparSinaisAntigos(mesAtual: string): Promise<void> {
+      const [ano, mes] = mesAtual.split("-").map(Number);
+      const limite = new Date(Date.UTC(ano, mes - 1 - MESES_DE_SINAIS, 1)).toISOString().slice(0, 7);
+      await db.delete(baseCnpjSinais).where(sql`${baseCnpjSinais.mesReferencia} < ${limite}`);
     },
   };
 }
