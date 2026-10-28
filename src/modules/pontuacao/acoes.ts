@@ -5,6 +5,7 @@ import { z } from "zod";
 import { getDb } from "@/db/client";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { exigirPermissao } from "@/modules/organizacoes/contexto";
+import { temRecurso } from "@/modules/planos/acesso";
 import { IDADES_DO_PERFIL, PORTES_DO_PERFIL } from "./regras";
 import { repositorioClienteIdeal } from "./repositorio-cliente-ideal";
 
@@ -28,6 +29,9 @@ function atualizarTelas(): void {
 export async function salvarClienteIdeal(_anterior: EstadoClienteIdeal, dados: FormData): Promise<EstadoClienteIdeal> {
   const contexto = await exigirPermissao("definirClienteIdeal");
   const t = ptBR.clienteIdeal;
+  if (!(await temRecurso(contexto, "clienteIdeal"))) {
+    return { mensagem: ptBR.planos.bloqueado(ptBR.planos.recursos.clienteIdeal, ptBR.planos.nomes.grande, true) };
+  }
   const validado = entrada.safeParse({
     portes: dados.getAll("porte").filter((valor) => typeof valor === "string"),
     idade: dados.get("idade"),

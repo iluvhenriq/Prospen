@@ -30,9 +30,9 @@ PROSPEN é uma plataforma de aquisição de leads e gestão de marketing para em
 | 6 | Pontuação dos leads por regras simples, com dados da base pública (sem Google Places, decisão de 23/10/2026) | concluída (23/10/2026): regras em `src/modules/pontuacao/regras.ts`, pontuação na base (busca ordena pelos melhores, 3 a 358 ms em SP) e no lead (selo e motivos). Testada no navegador |
 | 7 | Campanhas manuais (sem integração com anúncios) e painel de indicadores | concluída (23/10/2026), testada no navegador: motivo da perda e valor da venda, painel de indicadores (`/painel`) e campanhas (`/painel/campanhas`: lista de trabalho e ação com custo; números vêm do funil). Henrique ainda vai testar as telas |
 | 8 | Revisão final: erros, estados vazios, testes dos fluxos críticos, segurança, celular | em andamento (23/10/2026): segurança revisada, telas revisadas no computador e no celular, testes de navegador novos, limite na importação, página "remover meus dados", política de privacidade (rascunho). Falta o que depende do Henrique: domínio e provedor de e-mail (recuperação de senha e confirmação de e-mail), hospedagem, identificação completa do responsável na política. Código no GitHub (`iluvhenriq/prospen`, privado), branch `master` |
-| 9 | Nova identidade e diferenciais | em andamento (27/10/2026): identidade nova, página de pré-venda ("mesa do vendedor"), telas internas, tema escuro, contato em um clique, registro de contato com próxima ação, tela "Hoje", aprendizado com os resultados, recém-abertas com buscas vigiadas e radar de mudanças na Receita (painel e página do lead), exportação de leads em CSV e pontuação ajustada ao cliente ideal (28/10/2026) concluídos. A busca não usa o cliente ideal na ordem (medido: lento demais sem índice novo, decisão do Henrique). Depois: primeiro assistente de inteligência artificial, só após validar a pré-venda |
+| 9 | Nova identidade e diferenciais | em andamento (27/10/2026): identidade nova, página de pré-venda ("mesa do vendedor"), telas internas, tema escuro, contato em um clique, registro de contato com próxima ação, tela "Hoje", aprendizado com os resultados, recém-abertas com buscas vigiadas e radar de mudanças na Receita (painel e página do lead), exportação de leads em CSV, pontuação ajustada ao cliente ideal e planos com equipe por convite (28/10/2026) concluídos. A busca não usa o cliente ideal na ordem (medido: lento demais sem índice novo, decisão do Henrique). Depois: primeiro assistente de inteligência artificial, só após validar a pré-venda |
 
-Fora do MVP, de propósito: Google Ads, Meta Ads, formulários de captação, automação, inteligência artificial, cobrança e planos. Não implemente antes da hora. Exceção decidida em 27/10/2026: um primeiro assistente de inteligência artificial entra logo depois de a pré-venda ser validada (não antes).
+Fora do MVP, de propósito: Google Ads, Meta Ads, formulários de captação, automação, inteligência artificial e cobrança automática. Planos existem desde 28/10/2026, com liberação manual. Não implemente antes da hora. Exceção decidida em 27/10/2026: um primeiro assistente de inteligência artificial entra logo depois de a pré-venda ser validada (não antes).
 
 ## Stack
 
@@ -62,6 +62,7 @@ TypeScript, Next.js (App Router, versão 16), PostgreSQL, Drizzle ORM, Better Au
 | `npx tsx scripts/gerar-icones.ts` | Refaz os ícones do app instalável se o ícone mudar |
 | `npm run pre-cadastro:listar > arquivo.csv` | Lista do pré-cadastro da pré-venda (dados pessoais: não compartilhe) |
 | `npm run pre-cadastro:excluir -- email` | Tira uma pessoa da lista de pré-cadastro |
+| `npm run plano:definir -- email-do-dono grande [--fundador]` | Libera o plano depois de conferir o pagamento (sem o plano, só mostra o atual) |
 
 Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `npm run test:e2e`. Teste também no navegador o que for tela nova (Playwright MCP) e, quando o fluxo for crítico, acrescente um teste em `e2e/`. Diga com clareza o que NÃO foi testado.
 
@@ -108,6 +109,8 @@ Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `np
 - Exportação de leads em CSV (28/10/2026, `/painel/leads/exportar`, só administrador e dono, até 10.000 por vez): células que começam com `=`, `+`, `-` ou `@` saem com apóstrofo (`celulaSegura` em `src/modules/leads/exportacao.ts`). Toda rota (`route.ts`) dentro de `/painel` também começa por `exigirPermissao` (cobrado em `tests/arquitetura.test.ts`).
 - Limites de login e de importação (20 planilhas e 60 conferências por hora por empresa) vivem na memória do servidor.
 - Importação só aceita CSV, até 2 MB e 5.000 linhas.
+- **Planos (28/10/2026):** regras e preços em `src/modules/planos/planos.ts`. Recurso novo que for de um plano só: entra em `RECURSOS`, é conferido na ação ou rota (`temRecurso`) e a tela mostra `AvisoDoPlano`. Empresa sem plano gravado fica no Pequeno (`PLANO_PADRAO`): **teste grátis ou bloqueio até pagar ainda é decisão do Henrique**. O limite mensal é um contador (`uso_mensal`), não a contagem de leads: apagar lead não devolve vaga. O limite de usuários vale no login (`membershipLimit` em `auth-config.ts`). Testes de navegador que usam recurso pago chamam `definirPlano` (`e2e/apoio.ts`).
+- **Convite sem e-mail de confirmação:** quem tiver o link E criar conta com o e-mail convidado entra na equipe. Enquanto não houver provedor de e-mail, o link só deve ir para a pessoa certa. Ao ligar o e-mail, ativar `requireEmailVerificationOnInvitation`.
 
 ## Ambiente do Henrique
 

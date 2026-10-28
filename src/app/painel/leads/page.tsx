@@ -13,6 +13,7 @@ import { obterListaDeLeads } from "@/modules/leads/consultas";
 import { LIMITE_DE_EXPORTACAO } from "@/modules/leads/exportacao";
 import { enderecoDaExportacao, lerParametrosLista } from "@/modules/leads/parametros";
 import { papelPode } from "@/modules/organizacoes/membros";
+import { temRecurso } from "@/modules/planos/acesso";
 import { obterClienteIdeal } from "@/modules/pontuacao/cliente-ideal";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
 
@@ -25,7 +26,11 @@ async function ConteudoLeads({
 }) {
   const contexto = await exigirContexto();
   const parametros = lerParametrosLista(await searchParams);
-  const [lista, perfil] = await Promise.all([obterListaDeLeads(contexto, parametros), obterClienteIdeal(contexto)]);
+  const [lista, perfil, exporta] = await Promise.all([
+    obterListaDeLeads(contexto, parametros),
+    obterClienteIdeal(contexto),
+    temRecurso(contexto, "exportarCsv"),
+  ]);
   const t = ptBR.leads;
 
   return (
@@ -35,7 +40,7 @@ async function ConteudoLeads({
           {t.total(lista.total)}
         </p>
         {/* Link comum (não o do Next): é um download, não uma página. */}
-        {lista.total > 0 && papelPode(contexto.papel, "exportarLeads") ? (
+        {lista.total > 0 && exporta && papelPode(contexto.papel, "exportarLeads") ? (
           <a
             href={enderecoDaExportacao(parametros)}
             download

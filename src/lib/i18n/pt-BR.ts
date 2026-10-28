@@ -17,7 +17,8 @@ export const ptBR = {
     detalhe: "As funcionalidades chegam por etapas. Já é possível criar uma conta e a sua empresa.",
   },
   // Página de apresentação e pré-cadastro (pré-venda, 24/10/2026). Só o que o
-  // produto faz de verdade: sem números inventados, depoimentos ou preço.
+  // produto faz de verdade: sem números inventados nem depoimentos. Preços
+  // desde 28/10/2026 (seção de planos, textos em `planos.pagina`).
   preVenda: {
     tituloDaAba: "PROSPEN: saiba para quem ligar primeiro",
     menu: { comoFunciona: "Como funciona", perguntas: "Perguntas", entrar: "Entrar" },
@@ -131,7 +132,7 @@ export const ptBR = {
       itens: [
         {
           pergunta: "Quanto custa?",
-          resposta: "As condições da pré-venda serão enviadas por e-mail para quem fizer o pré-cadastro. O pré-cadastro não tem custo nem compromisso.",
+          resposta: "Três planos: Pequeno (R$ 97 por mês), Médio (R$ 177) e Grande (R$ 197), na seção de planos acima. Os 20 primeiros clientes são fundadores e ficam com o preço travado. O pré-cadastro não tem custo nem compromisso.",
         },
         {
           pergunta: "Quando abre?",
@@ -906,6 +907,90 @@ export const ptBR = {
     definir: "Definir",
     mudar: "Mudar",
   },
+  // Planos (decisão de 28/10/2026). Regras e preços em src/modules/planos/planos.ts.
+  planos: {
+    nomes: { pequeno: "Pequeno", medio: "Médio", grande: "Grande" },
+    recursos: {
+      exportarCsv: "Exportar leads em CSV",
+      buscasVigiadas: "Buscas vigiadas",
+      radar: "Radar de mudanças na Receita",
+      clienteIdeal: "Nota pelo seu cliente ideal",
+      aprendizado: "Aprendizado com os resultados",
+    },
+    // "Buscas vigiadas fazem parte do plano Médio em diante."
+    bloqueado: (recurso: string, plano: string, ultimo: boolean) =>
+      ultimo ? `${recurso}: só no plano ${plano}.` : `${recurso}: a partir do plano ${plano}.`,
+    seuPlano: (plano: string) => `Seu plano: ${plano}`,
+    fundador: "Fundador, preço travado",
+    usoDoMes: (usadas: number, limite: number | null) =>
+      limite === null
+        ? `${quantidade(usadas, "empresa salva", "empresas salvas")} como lead este mês, sem limite mensal.`
+        : `${usadas.toLocaleString("pt-BR")} de ${limite.toLocaleString("pt-BR")} empresas salvas como lead este mês.`,
+    foraDoLimite: (fora: number, limite: number) =>
+      `${quantidade(fora, "empresa ficou", "empresas ficaram")} de fora: o seu plano salva até ${limite.toLocaleString("pt-BR")} por mês. O limite volta no dia 1º.`,
+    limiteDoMesAtingido: (limite: number) =>
+      `Você já salvou ${limite.toLocaleString("pt-BR")} empresas este mês, o limite do seu plano. Volta no dia 1º.`,
+    usuariosDoPlano: (membros: number, limite: number) =>
+      `${membros} de ${quantidade(limite, "usuário", "usuários")} do seu plano.`,
+    // Página inicial
+    pagina: {
+      titulo: "Planos",
+      subtitulo: "Busca na base de São Paulo em todos os planos. Os outros estados entram aos poucos.",
+      porMes: "/mês",
+      melhorCustoBeneficio: "Melhor custo-benefício",
+      naoIncluso: "(não incluso)",
+      usuarios: (n: number) => quantidade(n, "usuário", "usuários"),
+      empresasPorMes: (n: number | null) =>
+        n === null ? "Empresas salvas como lead sem limite mensal" : `Até ${n.toLocaleString("pt-BR")} empresas salvas como lead por mês`,
+      todos: "Busca, nota de 0 a 100 com motivos, funil, tela \"Hoje\" e contato em um clique",
+      fundadores: (vagas: number) =>
+        `Os ${vagas} primeiros clientes são fundadores: o preço fica travado enquanto a assinatura durar.`,
+      chamada: "Quero uma vaga de fundador",
+      limiteDiario: "Todos os planos têm um limite diário de páginas de busca, contra uso automatizado.",
+    },
+  },
+  // Equipe e convites
+  equipe: {
+    titulo: "Equipe",
+    descricao: "Quem usa o PROSPEN na sua empresa.",
+    voce: "você",
+    convidar: "Convidar pessoa",
+    convidarAjuda: "Gere o link e envie você mesmo, por WhatsApp ou e-mail. A pessoa precisa entrar com este mesmo e-mail.",
+    email: "E-mail da pessoa",
+    gerarLink: "Gerar link de convite",
+    convitesPendentes: "Convites esperando resposta",
+    copiar: "Copiar link",
+    copiado: "Link copiado",
+    expiraEm: (data: string) => `Vale até ${data}`,
+    cancelar: "Cancelar convite",
+    remover: "Remover da equipe",
+    linkGerado: "Convite criado. Copie o link abaixo e envie para a pessoa.",
+    emailInvalido: "Confira o e-mail.",
+    jaEhMembro: "Esta pessoa já está na equipe.",
+    jaConvidada: "Já existe um convite para este e-mail. Use o link da lista.",
+    limite: (limite: number, proximo: string | null) =>
+      proximo
+        ? `O seu plano tem ${quantidade(limite, "usuário", "usuários")}, contando os convites. Para mais, mude para o plano ${proximo}.`
+        : `O seu plano tem ${quantidade(limite, "usuário", "usuários")}, contando os convites.`,
+    falhou: "Não foi possível agora. Tente de novo.",
+    naoPodeRemoverDono: "O dono não pode ser removido.",
+    semPermissao: "Só administradores e donos da empresa convidam e removem pessoas.",
+    // Página do convite
+    convite: {
+      titulo: "Convite para o PROSPEN",
+      para: (empresa: string) => `Você recebeu um convite para a equipe da empresa ${empresa}.`,
+      paraEmail: (email: string) => `O convite é para o e-mail ${email}.`,
+      aceitar: "Aceitar e entrar",
+      entrarPrimeiro: "Entre ou crie a sua conta com este e-mail para aceitar.",
+      entrar: "Já tenho conta",
+      criarConta: "Criar conta",
+      outroEmail: (email: string) =>
+        `A conta aberta agora é de outro e-mail. Saia e entre com ${email} para aceitar este convite.`,
+      jaTemEmpresa: "A sua conta já faz parte de uma empresa no PROSPEN. Por enquanto, cada conta participa de uma empresa só.",
+      invalido: "Este convite não existe, já foi usado ou expirou. Peça um novo link a quem enviou.",
+      cheio: "A equipe desta empresa já está completa no plano dela. Avise quem enviou o convite.",
+    },
+  },
   // Mensagens de validação e de erro geradas na lógica (servidor), que a
   // pessoa lê na tela ou no resumo da importação.
   mensagens: {
@@ -1011,7 +1096,7 @@ export const ptBR = {
   privacidade: {
     link: "Política de privacidade",
     titulo: "Política de privacidade",
-    atualizadaEm: "Última atualização: 23 de outubro de 2026.",
+    atualizadaEm: "Última atualização: 28 de outubro de 2026.",
     introducao:
       "Esta política explica quais dados pessoais o PROSPEN trata, para quê, com qual base na Lei Geral de Proteção de Dados (LGPD, Lei 13.709/2018) e como você exerce os seus direitos.",
     responsavelTitulo: "Quem é o responsável",
@@ -1021,7 +1106,8 @@ export const ptBR = {
       {
         titulo: "Dados de quem usa o PROSPEN",
         paragrafos: [
-          "Ao criar uma conta, guardamos o seu nome, o seu e-mail e a sua senha. A senha é guardada protegida, nunca em texto puro. Guardamos também o nome da sua empresa e as configurações dela (país, moeda, fuso horário e idioma).",
+          "Ao criar uma conta, guardamos o seu nome, o seu e-mail e a sua senha. A senha é guardada protegida, nunca em texto puro. Guardamos também o nome da sua empresa, as configurações dela (país, moeda, fuso horário e idioma), o plano contratado e quantas empresas da busca ela salvou no mês.",
+          "Quando alguém da sua empresa convida uma pessoa para a equipe, guardamos o e-mail convidado, quem convidou e a validade do convite (7 dias). O e-mail é usado só para conferir que quem aceita o convite é a pessoa convidada.",
           "Usamos esses dados para dar acesso à conta e prestar o serviço contratado. Base legal: execução de contrato e de procedimentos preliminares a ele (art. 7º, V, da LGPD).",
           "Para proteger as contas contra tentativas de adivinhar senhas, contamos por pouco tempo as tentativas de entrada por e-mail e por endereço de internet (IP). Essa contagem fica só na memória do servidor e some em até uma hora. Base legal: legítimo interesse na segurança do serviço (art. 7º, IX).",
           "Guardamos por 6 meses, em sigilo, a data, a hora e o endereço IP de cada entrada na conta, como exige o Marco Civil da Internet (Lei 12.965/2014, art. 15). Esses registros só são entregues a terceiros com ordem judicial e são apagados depois do prazo, mesmo que a conta tenha sido excluída antes. Base legal: cumprimento de obrigação legal (art. 7º, II).",

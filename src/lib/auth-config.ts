@@ -5,6 +5,13 @@ import { organization } from "better-auth/plugins";
 import type { Banco } from "@/db/tipos";
 import * as schema from "@/db/schema";
 import { garantirConfiguracao } from "@/modules/organizacoes/configuracao";
+import { REGRAS } from "@/modules/planos/planos";
+import { repositorioPlano } from "@/modules/planos/repositorio";
+
+async function usuariosDoPlano(db: Banco, organizacaoId: string): Promise<number> {
+  const { plano } = await repositorioPlano(db, organizacaoId).obter();
+  return REGRAS[plano].usuarios;
+}
 
 export const TAMANHO_MINIMO_SENHA = 8;
 export const TAMANHO_MAXIMO_SENHA = 128;
@@ -38,6 +45,14 @@ export function criarAuth(db: Banco, { secret, baseURL, cookiesDoNext = true }: 
         // quem chamar a API direto, não só para as telas.
         organizationLimit: 1,
         creatorRole: "owner",
+        // Usuários por plano (Pequeno 1, Médio 2, Grande 3). O login confere na
+        // hora de aceitar o convite; os convites pendentes também não passam
+        // das vagas. Vale para quem chamar a API direto, não só para as telas.
+        membershipLimit: async (_usuario, empresa) => await usuariosDoPlano(db, empresa.id),
+        invitationLimit: async ({ organization: empresa }) => await usuariosDoPlano(db, empresa.id),
+        // Sem provedor de e-mail, o link vai por WhatsApp ou e-mail de quem
+        // convida; uma semana dá tempo de a pessoa abrir.
+        invitationExpiresIn: 7 * 24 * 60 * 60,
         organizationHooks: {
           // Toda empresa nasce com a configuração regional padrão (Brasil).
           // Este arquivo é onde o login se liga ao restante do produto.

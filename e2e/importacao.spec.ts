@@ -1,11 +1,14 @@
 import { readFile } from "node:fs/promises";
 import { expect, test } from "@playwright/test";
-import { cadastrarLead, criarConta, emailUnico } from "./apoio";
+import { cadastrarLead, criarConta, emailUnico, definirPlano } from "./apoio";
 
 const PLANILHA_EXEMPLO = "docs/exemplos/leads-exemplo.csv";
 
 test("importa a planilha de exemplo e não duplica ao reenviar", async ({ page }) => {
-  await criarConta(page, { nome: "Pessoa Importa", email: emailUnico("importa"), empresa: "Empresa Importa" });
+  const email = emailUnico("importa");
+  await criarConta(page, { nome: "Pessoa Importa", email, empresa: "Empresa Importa" });
+  // Planos (28/10/2026): vigiar busca e exportar CSV são do Médio em diante.
+  definirPlano(email, "medio");
 
   await page.goto("/painel/leads/importar");
   await page.getByLabel("Arquivo CSV").setInputFiles(PLANILHA_EXEMPLO);

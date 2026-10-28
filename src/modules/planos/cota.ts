@@ -1,0 +1,29 @@
+import type { Banco } from "@/db/tipos";
+import { repositorioLeads, type LeadDaBaseCnpj } from "@/modules/leads/repositorio";
+import { cabemNoMes, REGRAS, type Plano } from "./planos";
+import { repositorioPlano } from "./repositorio";
+
+// Salva empresas da base pública como leads dentro do limite do mês do plano.
+// Só as que ainda não são leads contam; as que não couberem ficam de fora.
+// Tudo numa transação, com a linha do mês travada. Fica fora de acesso.ts
+// (que depende da requisição) para os testes rodarem no banco em memória.
+export async function salvarNoMes(
+  db: Banco,
+  organizacaoId: string,
+  plano: Plano,
+  mes: string,
+  lista: LeadDaBaseCnpj[],
+  criadoPorId: string | null,
+): Promise<{ adicionados: number; foraDoLimite: number }> {
+  return db.transaction(async (tx) => {
+    const uso = repositorioPlano(tx, organizacaoId);
+    const leads = repositorioLeads(tx, organizacaoId);
+    const usadas = await uso.travarMes(mes);
+    const jaSaoLeads = await leads.cnpjsQueJaSaoLeads(lista.map((item) => item.cnpj));
+    const novas = lista.filter((item) => !jaSaoLeads.has(item.cnpj));
+    const cabem = cabemNoMes(novas.length, usadas, REGRAS[plano].empresasPorMes);
+    const adicionados = await leads.criarDaBaseCnpj(novas.slice(0, cabem), criadoPorId);
+    await uso.somarAoMes(mes, adicionados);
+    return { adicionados, foraDoLimite: novas.length - cabem };
+  });
+}

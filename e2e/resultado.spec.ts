@@ -1,9 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { cadastrarLead, criarConta, emailUnico } from "./apoio";
+import { cadastrarLead, criarConta, emailUnico, definirPlano } from "./apoio";
 
 // Etapa 7: valor da venda em "Ganho" e motivo em "Perdido", e o que o quadro mostra.
 test("registra valor da venda e motivo da perda, e limpa ao mudar de etapa", async ({ page }) => {
-  await criarConta(page, { nome: "Pessoa Resultado", email: emailUnico("resultado"), empresa: "Empresa Resultado" });
+  const email = emailUnico("resultado");
+  await criarConta(page, { nome: "Pessoa Resultado", email, empresa: "Empresa Resultado" });
+  // Planos (28/10/2026): o aprendizado é do plano Grande.
+  definirPlano(email, "grande");
   await cadastrarLead(page, { nome: "Lead Resultado" });
 
   // Fora de Ganho e Perdido, não há campo de resultado.

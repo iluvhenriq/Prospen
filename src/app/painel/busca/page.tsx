@@ -4,12 +4,14 @@ import { Suspense } from "react";
 import { FiltrosBusca } from "@/components/busca/filtros-busca";
 import { ResultadosBusca } from "@/components/busca/resultados-busca";
 import { VigiarBusca } from "@/components/busca/vigiar-busca";
+import { AvisoDoPlano } from "@/components/planos/aviso-do-plano";
 import { Alerta } from "@/components/ui/alerta";
 import { BotaoLink } from "@/components/ui/botao";
 import { Esqueleto } from "@/components/ui/carregando";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { obterTelaDeBusca } from "@/modules/base-cnpj/busca";
+import { obterUsoDoMes, temRecurso } from "@/modules/planos/acesso";
 import { obterClienteIdeal } from "@/modules/pontuacao/cliente-ideal";
 import { enderecoDaBusca, lerParametrosBusca } from "@/modules/base-cnpj/parametros";
 import { MAXIMO_DE_ATIVIDADES } from "@/modules/base-cnpj/repositorio";
@@ -20,7 +22,12 @@ export const metadata: Metadata = { title: ptBR.busca.titulo };
 async function ConteudoBusca({ searchParams }: { searchParams: PageProps<"/painel/busca">["searchParams"] }) {
   const contexto = await exigirContexto();
   const parametros = lerParametrosBusca(await searchParams);
-  const [tela, perfil] = await Promise.all([obterTelaDeBusca(contexto, parametros), obterClienteIdeal(contexto)]);
+  const [tela, perfil, vigia, uso] = await Promise.all([
+    obterTelaDeBusca(contexto, parametros),
+    obterClienteIdeal(contexto),
+    temRecurso(contexto, "buscasVigiadas"),
+    obterUsoDoMes(contexto),
+  ]);
   const t = ptBR.busca;
 
   if (tela.estados.length === 0) {
@@ -33,7 +40,9 @@ async function ConteudoBusca({ searchParams }: { searchParams: PageProps<"/paine
     <div className="flex flex-col gap-5">
       <FiltrosBusca parametros={parametros} estados={tela.estados} municipios={tela.municipios} />
 
-      {tela.vigia.pode && parametros.uf ? (
+      {tela.vigia.pode && parametros.uf && !vigia ? (
+        <AvisoDoPlano recurso="buscasVigiadas" />
+      ) : tela.vigia.pode && parametros.uf ? (
         <VigiarBusca
           uf={parametros.uf}
           cidade={parametros.municipio ?? ""}
@@ -78,6 +87,11 @@ async function ConteudoBusca({ searchParams }: { searchParams: PageProps<"/paine
           <p className="text-sm text-texto-suave" aria-live="polite">
             {t.mostrando(tela.resultados.length)}. {ptBR.pontuacao.ordemDaBusca}
           </p>
+          {uso.limite !== null && uso.usadas >= uso.limite ? (
+            <Alerta variante="aviso">{ptBR.planos.limiteDoMesAtingido(uso.limite)}</Alerta>
+          ) : (
+            <p className="text-sm text-texto-suave">{ptBR.planos.usoDoMes(uso.usadas, uso.limite)}</p>
+          )}
           {/* A chave troca a cada página: a marcação não passa de uma página para outra. */}
           <p className="text-sm text-texto-suave">
             {perfil ? ptBR.clienteIdeal.marcadasNaBusca : ptBR.clienteIdeal.semPerfilNaBusca}{" "}

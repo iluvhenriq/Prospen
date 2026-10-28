@@ -45,7 +45,7 @@ O diferencial é a junção, não um recurso isolado: achar a empresa, saber que
 
 **Pronto:** login e empresas com papéis; leads com notas, etiquetas e importação de CSV (até 2 MB e 5.000 linhas); contato em um clique (WhatsApp para celular, ligar, e-mail); registro de cada tentativa de contato com próxima ação e a tela "Hoje"; aprendizado com os resultados no painel (taxa de fechamento por prioridade e por origem, motivo de perda por porte, insistência), só a partir de 5 casos por grupo; filtro de empresas abertas nos últimos 90 dias e buscas vigiadas, com as novas no painel; radar no painel com as mudanças da Receita nas empresas dos leads (nova unidade, mudou de cidade ou de atividade, deixou de constar como ativa), a partir do segundo mês importado, também na página do lead; exportação dos leads em CSV (só administrador e dono, até 10.000 por vez); nota ajustada ao cliente ideal de cada empresa (porte que atende, empresas novas ou estabelecidas, se atende MEI) nos leads, com a busca marcando as empresas que combinam; funil com histórico, valor da venda e motivo da perda; busca na base pública (hoje só São Paulo carregado localmente) por estado, cidade, atividade e CNPJ exato, sem MEI por padrão; pontuação de 0 a 100 com motivos; campanhas manuais; painel de indicadores; página "remover meus dados"; política de privacidade (rascunho).
 
-**Fora do produto, de propósito, por enquanto:** Google Ads, Meta Ads, formulários de captação, automação, inteligência artificial, cobrança e planos.
+**Fora do produto, de propósito, por enquanto:** Google Ads, Meta Ads, formulários de captação, automação, inteligência artificial e cobrança automática (o plano é liberado à mão depois do pagamento).
 
 **Limites e regras que a interface precisa respeitar:**
 - Busca limitada a 300 páginas por dia por empresa.
@@ -53,7 +53,9 @@ O diferencial é a junção, não um recurso isolado: achar a empresa, saber que
 - CNPJ pode ter letras (regra da Receita desde 07/2026).
 - Falta recuperação de senha e confirmação de e-mail (dependem de provedor de e-mail).
 
-**Em aberto:** busca por nome da empresa; preço e planos; domínio (provável prospen.app) e hospedagem.
+**Planos (28/10/2026):** Pequeno R$ 97, Médio R$ 177 e Grande R$ 197 por mês (detalhes em `src/modules/planos/planos.ts`). Os 20 primeiros clientes são fundadores e travam o preço. No Grande, o selo é "melhor custo-benefício", nunca "mais escolhido". A página diz que a base é de São Paulo.
+
+**Em aberto:** busca por nome da empresa; teste grátis ou não; link de pagamento; domínio (provável prospen.app), hospedagem e provedor de e-mail.
 
 ## Brand Commitments
 
@@ -69,7 +71,7 @@ O diferencial é a junção, não um recurso isolado: achar a empresa, saber que
 - As regras reais da pontuação (`src/modules/pontuacao/regras.ts`), já usadas no exemplo da página inicial.
 - Números da base pública de São Paulo (outubro de 2026): 8,8 milhões de empresas ativas, das quais 56% são MEI. É dado oficial; se for usado em texto público, citar a fonte e o mês.
 
-**Não existe e não pode ser inventado:** clientes, depoimentos, logos de clientes, resultados de campanha, métricas de uso, preço, prazos de lançamento e comparações de desempenho com concorrentes. Estado vazio real é melhor que dado falso.
+**Não existe e não pode ser inventado:** clientes, depoimentos, logos de clientes, resultados de campanha, métricas de uso, "plano mais escolhido", vagas de fundador já ocupadas, prazos de lançamento e comparações de desempenho com concorrentes. Estado vazio real é melhor que dado falso.
 
 ## Product Principles
 

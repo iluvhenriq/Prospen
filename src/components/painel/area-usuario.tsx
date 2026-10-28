@@ -1,13 +1,17 @@
+import Link from "next/link";
 import { Botao } from "@/components/ui/botao";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { sair } from "@/modules/contas/acoes";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
+import { obterPlano } from "@/modules/planos/acesso";
 
-// Empresa, pessoa, papel e botão de sair. "lateral": pé da coluna da esquerda,
+// Empresa, plano, pessoa, papel e botão de sair. A empresa leva à tela de equipe e plano. "lateral": pé da coluna da esquerda,
 // no computador. "topo": canto direito da barra, no celular.
 // Lê a sessão, então precisa ficar dentro de um <Suspense>.
 export async function AreaUsuario({ forma }: { forma: "lateral" | "topo" }) {
-  const { usuario, organizacao, papel } = await exigirContexto();
+  const contexto = await exigirContexto();
+  const { usuario, organizacao, papel } = contexto;
+  const { plano } = await obterPlano(contexto);
 
   const botaoSair = (
     <form action={sair}>
@@ -25,7 +29,9 @@ export async function AreaUsuario({ forma }: { forma: "lateral" | "topo" }) {
   if (forma === "topo") {
     return (
       <div className="flex items-center gap-3">
-        <span className="max-w-36 truncate text-sm font-medium text-musgo-100">{organizacao.nome}</span>
+        <Link href="/painel/equipe" className="max-w-36 truncate text-sm font-medium text-musgo-100 hover:text-white">
+          {organizacao.nome}
+        </Link>
         {botaoSair}
       </div>
     );
@@ -38,6 +44,9 @@ export async function AreaUsuario({ forma }: { forma: "lateral" | "topo" }) {
         <p className="truncate text-musgo-200">
           {usuario.nome}, {ptBR.papeis[papel].toLocaleLowerCase("pt-BR")}
         </p>
+        <Link href="/painel/equipe" className="mt-1 inline-block text-musgo-200 underline hover:text-white">
+          {ptBR.planos.seuPlano(ptBR.planos.nomes[plano])} · {ptBR.equipe.titulo}
+        </Link>
       </div>
       {botaoSair}
     </div>

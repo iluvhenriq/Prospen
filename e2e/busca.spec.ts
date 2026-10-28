@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { Pool } from "pg";
 import { urlDoBancoE2E } from "./ambiente";
-import { criarConta, emailUnico } from "./apoio";
+import { criarConta, emailUnico, definirPlano } from "./apoio";
 
 // Busca na base pública e "adicionar como lead" (etapa 5d). O banco de testes
 // não tem a base real: três empresas fictícias são gravadas antes, com CNPJs
@@ -38,7 +38,10 @@ test.beforeAll(async () => {
 });
 
 test("busca por atividade sem MEI, adiciona como lead sem duplicar e respeita o pedido de remoção", async ({ page, baseURL }) => {
-  await criarConta(page, { nome: "Pessoa Busca", email: emailUnico("busca"), empresa: "Empresa Busca" });
+  const email = emailUnico("busca");
+  await criarConta(page, { nome: "Pessoa Busca", email, empresa: "Empresa Busca" });
+  // Planos (28/10/2026): vigiar busca e exportar CSV são do Médio em diante.
+  definirPlano(email, "medio");
 
   await page.goto("/painel/busca");
   await page.getByLabel("Estado").selectOption("SP");

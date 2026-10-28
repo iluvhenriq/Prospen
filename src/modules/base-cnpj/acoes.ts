@@ -10,6 +10,7 @@ import { repositorioCampanhas } from "@/modules/campanhas/repositorio";
 import { repositorioLeads } from "@/modules/leads/repositorio";
 import { ehUuid } from "@/modules/leads/validacao-textos";
 import { exigirPermissao } from "@/modules/organizacoes/contexto";
+import { salvarDaBaseNoLimite, temRecurso } from "@/modules/planos/acesso";
 import { RESULTADOS_POR_PAGINA } from "./parametros";
 import { repositorioBaseCnpj } from "./repositorio";
 import { MAXIMO_DE_BUSCAS_VIGIADAS, repositorioBuscasVigiadas } from "./repositorio-buscas-vigiadas";
@@ -33,7 +34,9 @@ export async function adicionarDaBusca(_anterior: EstadoAdicionar, dados: FormDa
 
   const db = getDb();
   const daBase = await repositorioBaseCnpj(db).paraVirarLead(validado.data);
-  const adicionados = await repositorioLeads(db, contexto.organizacao.id).criarDaBaseCnpj(
+  // O limite mensal do plano vale aqui, no único caminho que salva empresas da base.
+  const { adicionados, foraDoLimite, limite } = await salvarDaBaseNoLimite(
+    contexto,
     daBase.map((linha) => ({
       nome: linha.nomeFantasia ?? linha.razaoSocial ?? linha.cnpj,
       empresa: linha.razaoSocial,
@@ -46,7 +49,6 @@ export async function adicionarDaBusca(_anterior: EstadoAdicionar, dados: FormDa
       matriz: linha.matriz,
       cnaePrincipal: linha.cnaePrincipal,
     })),
-    contexto.usuario.id,
   );
 
   // Campanha opcional: entram as empresas marcadas, novas ou que já eram leads.
@@ -72,7 +74,13 @@ export async function adicionarDaBusca(_anterior: EstadoAdicionar, dados: FormDa
   revalidatePath("/painel");
   return {
     sucesso: adicionados > 0 || mensagemCampanha !== "",
-    mensagem: [t.resultado(adicionados, validado.data.length - adicionados), mensagemCampanha].filter(Boolean).join(" "),
+    mensagem: [
+      t.resultado(adicionados, validado.data.length - adicionados - foraDoLimite),
+      foraDoLimite > 0 && limite !== null ? ptBR.planos.foraDoLimite(foraDoLimite, limite) : "",
+      mensagemCampanha,
+    ]
+      .filter(Boolean)
+      .join(" "),
   };
 }
 
@@ -96,6 +104,9 @@ const filtrosParaVigiar = z
 export async function vigiarBusca(_anterior: EstadoVigiar, dados: FormData): Promise<EstadoVigiar> {
   const contexto = await exigirPermissao("trabalharComLeads");
   const t = ptBR.busca.vigiar;
+  if (!(await temRecurso(contexto, "buscasVigiadas"))) {
+    return { mensagem: ptBR.planos.bloqueado(ptBR.planos.recursos.buscasVigiadas, ptBR.planos.nomes.medio, false) };
+  }
   const lido = (campo: string) => {
     const valor = dados.get(campo);
     return typeof valor === "string" ? valor : "";

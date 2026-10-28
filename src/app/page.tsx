@@ -6,6 +6,7 @@ import { FormularioPreCadastro } from "@/components/pre-venda/formulario-pre-cad
 import { BotaoLink } from "@/components/ui/botao";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { emPreVenda } from "@/lib/pre-venda";
+import { PLANOS, REGRAS, RECURSOS, VAGAS_DE_FUNDADOR } from "@/modules/planos/planos";
 import { RESPONSAVEL } from "@/lib/responsavel";
 
 export const metadata: Metadata = {
@@ -24,6 +25,11 @@ function IconeCerto({ className }: { className?: string }) {
   );
 }
 
+// Preço sem centavos quando é redondo: "R$ 97".
+function formatarPreco(centavos: number): string {
+  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 }).format(centavos / 100);
+}
+
 // Página de apresentação com pré-cadastro. Direção "a mesa do vendedor"
 // (27/10/2026): tudo sobre o forro verde-musgo, com papéis por cima (a lista
 // impressa, a fita da calculadora, a ficha do pré-cadastro). Estática: gerada
@@ -32,6 +38,7 @@ export default function PaginaInicial() {
   const t = ptBR.preVenda;
   const appAberto = !emPreVenda();
   const etapas = ptBR.funil.etapas;
+  const tp = ptBR.planos.pagina;
 
   return (
     <div className="mesa flex min-h-screen flex-col">
@@ -50,6 +57,9 @@ export default function PaginaInicial() {
           <nav aria-label={ptBR.menu.principal} className="flex items-center gap-1 text-sm">
             <a href="#como-funciona" className="hidden rounded-controle px-3 py-2 text-musgo-200 hover:text-white md:inline">
               {t.menu.comoFunciona}
+            </a>
+            <a href="#planos" className="hidden rounded-controle px-3 py-2 text-musgo-200 hover:text-white md:inline">
+              {ptBR.planos.pagina.titulo}
             </a>
             <a href="#perguntas" className="hidden rounded-controle px-3 py-2 text-musgo-200 hover:text-white md:inline">
               {t.menu.perguntas}
@@ -195,6 +205,74 @@ export default function PaginaInicial() {
               </ul>
             </div>
           </div>
+        </section>
+
+        {/* Planos: três folhas; a do Grande, marcada (decisão de 28/10/2026). */}
+        <section id="planos" className="mx-auto w-full max-w-6xl scroll-mt-6 px-4 pt-16 sm:px-6 md:pt-24">
+          <h2 className={classeTituloMesa}>{tp.titulo}</h2>
+          <p className="mt-4 max-w-[36rem] text-lg leading-relaxed text-musgo-100">{tp.subtitulo}</p>
+          <ul className="mt-10 grid gap-6 md:grid-cols-3 md:items-stretch">
+            {PLANOS.map((plano) => {
+              const regras = REGRAS[plano];
+              const destaque = plano === "grande";
+              return (
+                <li
+                  key={plano}
+                  className={`papel flex flex-col gap-5 rounded-[3px] px-6 py-7 ${destaque ? "ring-4 ring-marca-texto md:-translate-y-2" : ""}`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b-2 border-texto pb-3">
+                    <h3 className="text-xl font-extrabold text-musgo-900">{ptBR.planos.nomes[plano]}</h3>
+                    {destaque ? (
+                      <span className="rounded-[3px] bg-marca-texto px-2 py-0.5 text-xs font-bold text-tinta">{tp.melhorCustoBeneficio}</span>
+                    ) : null}
+                  </div>
+                  <p className="flex items-baseline gap-1 text-texto">
+                    <span className="numeros text-4xl font-extrabold tracking-[-0.03em]">
+                      {formatarPreco(regras.precoCentavos)}
+                    </span>
+                    <span className="text-sm text-texto-suave">{tp.porMes}</span>
+                  </p>
+                  <ul className="flex flex-col gap-2.5 text-sm text-texto">
+                    <li className="flex gap-3">
+                      <IconeCerto className="mt-0.5 size-4 shrink-0 text-musgo-600" />
+                      {tp.usuarios(regras.usuarios)}
+                    </li>
+                    <li className="flex gap-3">
+                      <IconeCerto className="mt-0.5 size-4 shrink-0 text-musgo-600" />
+                      {tp.empresasPorMes(regras.empresasPorMes)}
+                    </li>
+                    <li className="flex gap-3">
+                      <IconeCerto className="mt-0.5 size-4 shrink-0 text-musgo-600" />
+                      {tp.todos}
+                    </li>
+                    {RECURSOS.map((recurso) =>
+                      regras.recursos.includes(recurso) ? (
+                        <li key={recurso} className="flex gap-3 font-semibold">
+                          <IconeCerto className="mt-0.5 size-4 shrink-0 text-musgo-600" />
+                          {ptBR.planos.recursos[recurso]}
+                        </li>
+                      ) : (
+                        <li key={recurso} className="flex gap-3 text-texto-suave line-through decoration-texto-suave/60">
+                          <span aria-hidden="true" className="size-4 shrink-0" />
+                          {ptBR.planos.recursos[recurso]}
+                          <span className="sr-only"> {tp.naoIncluso}</span>
+                        </li>
+                      ),
+                    )}
+                  </ul>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <p className="max-w-[40rem] text-musgo-100">
+              <span className="rounded-[3px] bg-marca-texto px-1 font-semibold text-tinta">{tp.fundadores(VAGAS_DE_FUNDADOR)}</span>
+            </p>
+            <BotaoLink href="#pre-cadastro" variante="papel" tamanho="grande">
+              {tp.chamada}
+            </BotaoLink>
+          </div>
+          <p className="mt-4 text-xs text-musgo-300">{tp.limiteDiario}</p>
         </section>
 
         {/* Perguntas + a ficha do pré-cadastro */}

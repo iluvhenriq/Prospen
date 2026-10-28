@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { AvisoDoPlano } from "@/components/planos/aviso-do-plano";
 import { FormularioClienteIdeal } from "@/components/pontuacao/formulario-cliente-ideal";
 import { Alerta } from "@/components/ui/alerta";
 import { Botao } from "@/components/ui/botao";
@@ -8,12 +9,14 @@ import { ptBR } from "@/lib/i18n/pt-BR";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
 import { papelPode } from "@/modules/organizacoes/membros";
 import { voltarNotaGeral } from "@/modules/pontuacao/acoes";
+import { temRecurso } from "@/modules/planos/acesso";
 import { obterClienteIdeal } from "@/modules/pontuacao/cliente-ideal";
 
 export const metadata: Metadata = { title: ptBR.clienteIdeal.titulo };
 
 async function ConteudoClienteIdeal() {
   const contexto = await exigirContexto();
+  if (!(await temRecurso(contexto, "clienteIdeal"))) return <AvisoDoPlano recurso="clienteIdeal" />;
   const perfil = await obterClienteIdeal(contexto);
   const podeEditar = papelPode(contexto.papel, "definirClienteIdeal");
   const t = ptBR.clienteIdeal;

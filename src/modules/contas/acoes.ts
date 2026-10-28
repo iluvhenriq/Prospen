@@ -10,6 +10,7 @@ import {
   zerarTentativas,
 } from "@/lib/limite-tentativas";
 import { exigirUsuario } from "@/modules/organizacoes/contexto";
+import { conviteIdValido } from "@/modules/organizacoes/equipe";
 import { resolverOrganizacao } from "@/modules/organizacoes/membros";
 import { traduzirErroLogin } from "./erros";
 import { registrarAcesso } from "./registros-acesso";
@@ -30,6 +31,14 @@ import {
 function texto(dados: FormData, campo: string): string {
   const valor = dados.get(campo);
   return typeof valor === "string" ? valor : "";
+}
+
+// Quem veio de um link de convite volta para ele depois de entrar ou criar a
+// conta. Só um identificador no formato certo vira endereço (nada de levar a
+// pessoa para fora do site).
+function destinoDoConvite(dados: FormData): string | null {
+  const convite = dados.get("convite");
+  return conviteIdValido(convite) ? `/convite/${convite}` : null;
 }
 
 export async function cadastrar(
@@ -73,7 +82,7 @@ export async function cadastrar(
 
   // O cadastro já entra na conta: conta como acesso (Marco Civil, art. 15).
   await anotarAcesso(novoUsuario, ip);
-  redirect("/criar-organizacao");
+  redirect(destinoDoConvite(dados) ?? "/criar-organizacao");
 }
 
 export async function entrar(
@@ -119,7 +128,7 @@ export async function entrar(
   await anotarAcesso(usuarioId, ip);
 
   // O painel manda para a criação da empresa se a pessoa ainda não tiver uma.
-  redirect("/painel");
+  redirect(destinoDoConvite(dados) ?? "/painel");
 }
 
 // Registro de acesso exigido pelo Marco Civil. Se falhar, a pessoa entra mesmo

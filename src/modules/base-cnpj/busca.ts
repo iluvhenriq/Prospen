@@ -5,6 +5,7 @@ import { repositorioCampanhas } from "@/modules/campanhas/repositorio";
 import { repositorioLeads, type LeadComCnpj } from "@/modules/leads/repositorio";
 import { obterConfiguracao } from "@/modules/organizacoes/configuracao";
 import type { Contexto } from "@/modules/organizacoes/contexto";
+import { temRecurso } from "@/modules/planos/acesso";
 import { consumirLimiteDeBusca } from "./limite-busca";
 import { DIAS_DE_RECENTES, enderecoDaBusca, RESULTADOS_POR_PAGINA, type ParametrosBusca } from "./parametros";
 import { repositorioBaseCnpj, type Cursor, type ResultadoDaBusca } from "./repositorio";
@@ -209,9 +210,10 @@ export async function obterRadarDosLeads(contexto: Contexto): Promise<RadarDosLe
 }
 
 // Página do lead (Radar): mudanças da Receita nesta empresa e novas unidades
-// da mesma raiz que ainda não são leads. Vazio para lead sem CNPJ.
+// da mesma raiz que ainda não são leads. Vazio para lead sem CNPJ e para
+// plano sem radar.
 export async function obterSinaisDoLead(contexto: Contexto, lead: LeadComCnpj | null): Promise<SinalDoLead[]> {
-  if (!lead) return [];
+  if (!lead || !(await temRecurso(contexto, "radar"))) return [];
   const db = getDb();
   const sinais = await repositorioBaseCnpj(db).sinaisDe([lead.cnpj], [lead.cnpj.slice(0, 8)], 50);
   const unidades = sinais.filter((sinal) => sinal.tipo === "nova_unidade").map((sinal) => sinal.cnpj);

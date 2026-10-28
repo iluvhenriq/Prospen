@@ -137,6 +137,7 @@ describe("arquitetura", () => {
       criarOrganizacao: "a pessoa ainda não tem empresa; começa por exigirUsuario",
       pedirRemocaoDosDados: "LGPD: o titular não tem conta; só mexe na lista de exclusão da base pública",
       enviarPreCadastro: "pré-venda: o interessado ainda não tem conta; só grava na lista de pré-cadastro",
+      aceitarConvite: "a pessoa ainda não tem empresa; começa por exigirUsuario e o login confere o e-mail do convite",
     };
     const acoes = todos.filter((arquivo) => /^\s*["']use server["']/m.test(readFileSync(arquivo, "utf8")));
     // Garante que o teste está mesmo enxergando as ações (hoje são 6 arquivos).

@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { member, organizacaoConfig, organization } from "@/db/schema";
+import { repositorioPlano } from "@/modules/planos/repositorio";
 import {
   garantirConfiguracao,
   obterConfiguracao,
@@ -176,7 +177,9 @@ describe("papéis: dono e membro", () => {
       estranho = await cadastrarPessoa(amb, "Estranho", "estranho@outra.com.br");
       empresa = await criarEmpresa(amb, dona, "Empresa", "empresa");
       outraEmpresa = await criarEmpresa(amb, estranho, "Outra", "outra");
-      // Adiciona o colega como membro, pelo servidor (não existe tela de convite ainda).
+      // Duas pessoas na empresa: precisa de plano com 2 usuários (o padrão tem 1).
+      await repositorioPlano(amb.db, empresa).definir("medio", false);
+      // Adiciona o colega como membro, pelo servidor (o convite tem teste próprio, em planos.test.ts).
       await amb.auth.api.addMember({
         body: { userId: colega.id, role: "member", organizationId: empresa },
       });

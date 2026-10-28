@@ -10,12 +10,13 @@ import type { EstadoFormulario } from "@/modules/contas/validacao";
 
 const inicial: EstadoFormulario = {};
 
-export function FormularioCadastro() {
+export function FormularioCadastro({ convite }: { convite?: string } = {}) {
   const [estado, acao, pendente] = useActionState(cadastrar, inicial);
 
   return (
     <form action={acao} noValidate className="flex flex-col gap-4">
       {estado.mensagem ? <Alerta variante="erro">{estado.mensagem}</Alerta> : null}
+      {convite ? <input type="hidden" name="convite" value={convite} /> : null}
       <Campo
         rotulo={ptBR.acesso.campos.nome}
         name="nome"

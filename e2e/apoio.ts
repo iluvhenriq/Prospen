@@ -1,4 +1,6 @@
+import { execFileSync } from "node:child_process";
 import { expect, type Page } from "@playwright/test";
+import { urlDoBancoE2E } from "./ambiente";
 
 // Ações repetidas nos testes de navegador. Todos os dados são fictícios.
 
@@ -48,4 +50,14 @@ export async function rolaParaOLado(page: Page): Promise<boolean> {
   return page.evaluate(
     () => document.documentElement.scrollWidth > document.documentElement.clientWidth,
   );
+}
+
+// Muda o plano da empresa do dono com este e-mail, pelo mesmo script que o
+// Henrique usa depois de conferir o pagamento (scripts/plano-definir.ts).
+export function definirPlano(email: string, plano: "pequeno" | "medio" | "grande"): void {
+  execFileSync("npx", ["tsx", "scripts/plano-definir.ts", email, plano], {
+    env: { ...process.env, DATABASE_URL: urlDoBancoE2E() },
+    stdio: "pipe",
+    shell: process.platform === "win32",
+  });
 }

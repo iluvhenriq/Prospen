@@ -4,6 +4,7 @@ import { Suspense, type ReactNode } from "react";
 import { AprendizadoDoPainel } from "@/components/painel/aprendizado";
 import { NovidadesDasBuscas } from "@/components/painel/novidades-buscas";
 import { RadarDoPainel } from "@/components/painel/radar";
+import { AvisoDoPlano } from "@/components/planos/aviso-do-plano";
 import { obterNovidadesDasBuscasVigiadas, obterRadarDosLeads } from "@/modules/base-cnpj/busca";
 import { Barras } from "@/components/painel/barras";
 import { BotaoLink } from "@/components/ui/botao";
@@ -22,6 +23,8 @@ import { obterAgendaDoDia } from "@/modules/leads/consultas";
 import { formatarValor } from "@/modules/leads/valor";
 import { exigirContexto, type Contexto } from "@/modules/organizacoes/contexto";
 import { DIAS_DE_LEADS_NOVOS, obterAprendizado, obterResumo } from "@/modules/painel/resumo";
+import { obterPlano } from "@/modules/planos/acesso";
+import { planoTem, type Recurso } from "@/modules/planos/planos";
 
 export const metadata: Metadata = { title: ptBR.painel.titulo };
 
@@ -63,11 +66,13 @@ async function BlocoRadar({ contexto }: { contexto: Contexto }) {
 async function ConteudoPainel() {
   // Exige login e empresa. Quem ainda não criou a empresa vai para essa etapa.
   const contexto = await exigirContexto();
-  const [painel, agenda, aprendizado] = await Promise.all([
+  const [painel, agenda, aprendizado, { plano }] = await Promise.all([
     obterResumo(contexto),
     obterAgendaDoDia(contexto, 1),
     obterAprendizado(contexto),
+    obterPlano(contexto),
   ]);
+  const tem = (recurso: Recurso) => planoTem(plano, recurso);
   const primeiroNome = contexto.usuario.nome.split(" ")[0];
   const t = ptBR.painel;
   const ti = t.indicadores;
@@ -227,15 +232,21 @@ async function ConteudoPainel() {
           </div>
 
           {/* Carrega à parte: a primeira contagem do dia pode demorar e não segura o painel. */}
-          <Suspense fallback={<Esqueleto className="h-32 w-full" />}>
-            <BlocoNovidades contexto={contexto} />
-          </Suspense>
+          {tem("buscasVigiadas") ? (
+            <Suspense fallback={<Esqueleto className="h-32 w-full" />}>
+              <BlocoNovidades contexto={contexto} />
+            </Suspense>
+          ) : null}
 
-          <Suspense fallback={<Esqueleto className="h-32 w-full" />}>
-            <BlocoRadar contexto={contexto} />
-          </Suspense>
+          {tem("radar") ? (
+            <Suspense fallback={<Esqueleto className="h-32 w-full" />}>
+              <BlocoRadar contexto={contexto} />
+            </Suspense>
+          ) : (
+            <AvisoDoPlano recurso="radar" />
+          )}
 
-          <AprendizadoDoPainel aprendizado={aprendizado} />
+          {tem("aprendizado") ? <AprendizadoDoPainel aprendizado={aprendizado} /> : <AvisoDoPlano recurso="aprendizado" />}
 
           <p className="text-xs text-texto-suave">{ti.nota}</p>
         </>

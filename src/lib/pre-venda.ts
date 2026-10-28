@@ -9,7 +9,7 @@ export function emPreVenda(origem: Record<string, string | undefined> = process.
 }
 
 // Caminhos do app que ficam fechados na pré-venda.
-const FECHADOS = ["/painel", "/cadastrar", "/entrar", "/criar-organizacao", "/api/auth"];
+const FECHADOS = ["/painel", "/cadastrar", "/entrar", "/criar-organizacao", "/convite", "/api/auth"];
 
 export function fechadoNaPreVenda(caminho: string): boolean {
   return FECHADOS.some((prefixo) => caminho === prefixo || caminho.startsWith(`${prefixo}/`));
