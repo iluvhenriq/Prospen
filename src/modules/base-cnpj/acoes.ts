@@ -35,7 +35,7 @@ export async function adicionarDaBusca(_anterior: EstadoAdicionar, dados: FormDa
   const db = getDb();
   const daBase = await repositorioBaseCnpj(db).paraVirarLead(validado.data);
   // O limite mensal do plano vale aqui, no único caminho que salva empresas da base.
-  const { adicionados, foraDoLimite, limite } = await salvarDaBaseNoLimite(
+  const { adicionados, foraDoLimite, limite, semPagamento } = await salvarDaBaseNoLimite(
     contexto,
     daBase.map((linha) => ({
       nome: linha.nomeFantasia ?? linha.razaoSocial ?? linha.cnpj,
@@ -76,7 +76,7 @@ export async function adicionarDaBusca(_anterior: EstadoAdicionar, dados: FormDa
     sucesso: adicionados > 0 || mensagemCampanha !== "",
     mensagem: [
       t.resultado(adicionados, validado.data.length - adicionados - foraDoLimite),
-      foraDoLimite > 0 && limite !== null ? ptBR.planos.foraDoLimite(foraDoLimite, limite) : "",
+      foraDoLimite > 0 && limite !== null ? ptBR.planos.foraDoLimite(foraDoLimite, limite, semPagamento) : "",
       mensagemCampanha,
     ]
       .filter(Boolean)

@@ -18,11 +18,16 @@ test("convite por link: o plano limita a equipe e a pessoa convidada entra na em
   await expect(dono.getByText("Seu plano: Pequeno", { exact: true })).toBeVisible();
   await expect(dono.getByText("O seu plano tem 1 usuário", { exact: false })).toBeVisible();
   await expect(dono.getByLabel("E-mail da pessoa")).toHaveCount(0);
+  // Plano ainda não liberado: a conta salva só 20 empresas da base por mês.
+  await expect(dono.getByText("0 de 20 empresas salvas como lead este mês.")).toBeVisible();
+  await expect(dono.getByText("Plano ainda não liberado", { exact: false })).toBeVisible();
 
   // Médio: 2 usuários. Gera o link.
   definirPlano(emailDono, "medio");
   await dono.reload();
   await expect(dono.getByText("Seu plano: Médio", { exact: true })).toBeVisible();
+  await expect(dono.getByText("0 de 1.000 empresas salvas como lead este mês.")).toBeVisible();
+  await expect(dono.getByText("Plano ainda não liberado", { exact: false })).toHaveCount(0);
   const emailConvidada = emailUnico("equipe-convidada");
   await dono.getByLabel("E-mail da pessoa").fill(emailConvidada);
   await dono.getByRole("button", { name: "Gerar link de convite" }).click();

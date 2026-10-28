@@ -7,7 +7,7 @@ import type { LeadDaBaseCnpj } from "@/modules/leads/repositorio";
 import { obterConfiguracao } from "@/modules/organizacoes/configuracao";
 import type { Contexto } from "@/modules/organizacoes/contexto";
 import { salvarNoMes } from "./cota";
-import { mesDoDia, planoTem, REGRAS, type Recurso } from "./planos";
+import { empresasPorMesDa, mesDoDia, planoTem, type Recurso } from "./planos";
 import { repositorioPlano, type PlanoDaEmpresa } from "./repositorio";
 
 // Plano da empresa do contexto. O `cache` do React evita repetir a consulta
@@ -30,13 +30,14 @@ async function mesDaEmpresa(db: Banco, organizacaoId: string): Promise<string> {
   return mesDoDia(hojeNoFuso(configuracao.fusoHorario));
 }
 
-export type UsoDoMes = { usadas: number; limite: number | null };
+// semPagamento: o plano ainda não foi liberado e vale EMPRESAS_SEM_PAGAMENTO.
+export type UsoDoMes = { usadas: number; limite: number | null; semPagamento: boolean };
 
 export async function obterUsoDoMes(contexto: Contexto): Promise<UsoDoMes> {
   const db = getDb();
-  const [{ plano }, mes] = await Promise.all([obterPlano(contexto), mesDaEmpresa(db, contexto.organizacao.id)]);
+  const [empresa, mes] = await Promise.all([obterPlano(contexto), mesDaEmpresa(db, contexto.organizacao.id)]);
   const usadas = await repositorioPlano(db, contexto.organizacao.id).empresasSalvasNoMes(mes);
-  return { usadas, limite: REGRAS[plano].empresasPorMes };
+  return { usadas, limite: empresasPorMesDa(empresa), semPagamento: !empresa.gravado };
 }
 
 // Salva empresas da base pública como leads dentro do limite do mês. Só as
@@ -45,10 +46,11 @@ export async function obterUsoDoMes(contexto: Contexto): Promise<UsoDoMes> {
 export async function salvarDaBaseNoLimite(
   contexto: Contexto,
   lista: LeadDaBaseCnpj[],
-): Promise<{ adicionados: number; foraDoLimite: number; limite: number | null }> {
+): Promise<{ adicionados: number; foraDoLimite: number; limite: number | null; semPagamento: boolean }> {
   const db = getDb();
   const organizacaoId = contexto.organizacao.id;
-  const [{ plano }, mes] = await Promise.all([obterPlano(contexto), mesDaEmpresa(db, organizacaoId)]);
-  const resultado = await salvarNoMes(db, organizacaoId, plano, mes, lista, contexto.usuario.id);
-  return { ...resultado, limite: REGRAS[plano].empresasPorMes };
+  const [empresa, mes] = await Promise.all([obterPlano(contexto), mesDaEmpresa(db, organizacaoId)]);
+  const limite = empresasPorMesDa(empresa);
+  const resultado = await salvarNoMes(db, organizacaoId, limite, mes, lista, contexto.usuario.id);
+  return { ...resultado, limite, semPagamento: !empresa.gravado };
 }

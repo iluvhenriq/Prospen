@@ -4,7 +4,7 @@ import { Pool } from "pg";
 import * as schema from "../src/db/schema";
 import { lerEnv } from "../src/lib/env";
 import { explicarErroBanco } from "../src/lib/erros-banco";
-import { PLANOS, planoValido, REGRAS, VAGAS_DE_FUNDADOR } from "../src/modules/planos/planos";
+import { EMPRESAS_SEM_PAGAMENTO, PLANOS, planoValido, REGRAS, VAGAS_DE_FUNDADOR } from "../src/modules/planos/planos";
 import { repositorioPlano } from "../src/modules/planos/repositorio";
 import { carregarEnvLocal } from "./carregar-env";
 
@@ -39,7 +39,7 @@ async function main(): Promise<void> {
 
     const repositorio = repositorioPlano(db, empresa.id);
     const atual = await repositorio.obter();
-    console.log(`${empresa.nome}: plano ${atual.plano}${atual.gravado ? "" : " (padrão, nada gravado)"}${atual.fundador ? ", fundador" : ""}.`);
+    console.log(`${empresa.nome}: plano ${atual.plano}${atual.gravado ? "" : ` (padrão, nada gravado: ${EMPRESAS_SEM_PAGAMENTO} empresas/mês até liberar)`}${atual.fundador ? ", fundador" : ""}.`);
     if (plano === undefined) return;
 
     if (fundador && !atual.fundador) {

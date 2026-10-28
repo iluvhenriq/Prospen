@@ -927,10 +927,16 @@ export const ptBR = {
       limite === null
         ? `${quantidade(usadas, "empresa salva", "empresas salvas")} como lead este mês, sem limite mensal.`
         : `${usadas.toLocaleString("pt-BR")} de ${limite.toLocaleString("pt-BR")} empresas salvas como lead este mês.`,
-    foraDoLimite: (fora: number, limite: number) =>
-      `${quantidade(fora, "empresa ficou", "empresas ficaram")} de fora: o seu plano salva até ${limite.toLocaleString("pt-BR")} por mês. O limite volta no dia 1º.`,
-    limiteDoMesAtingido: (limite: number) =>
-      `Você já salvou ${limite.toLocaleString("pt-BR")} empresas este mês, o limite do seu plano. Volta no dia 1º.`,
+    foraDoLimite: (fora: number, limite: number, semPagamento: boolean) =>
+      semPagamento
+        ? `${quantidade(fora, "empresa ficou", "empresas ficaram")} de fora: até o plano ser liberado, a conta salva ${limite.toLocaleString("pt-BR")} por mês.`
+        : `${quantidade(fora, "empresa ficou", "empresas ficaram")} de fora: o seu plano salva até ${limite.toLocaleString("pt-BR")} por mês. O limite volta no dia 1º.`,
+    limiteDoMesAtingido: (limite: number, semPagamento: boolean) =>
+      semPagamento
+        ? `Você já salvou as ${limite.toLocaleString("pt-BR")} empresas deste mês. Para salvar mais, assine um plano: depois do pagamento ele é liberado.`
+        : `Você já salvou ${limite.toLocaleString("pt-BR")} empresas este mês, o limite do seu plano. Volta no dia 1º.`,
+    semPagamento: (limite: number) =>
+      `Plano ainda não liberado: até a confirmação do pagamento, a conta salva ${limite.toLocaleString("pt-BR")} empresas por mês.`,
     usuariosDoPlano: (membros: number, limite: number) =>
       `${membros} de ${quantidade(limite, "usuário", "usuários")} do seu plano.`,
     // Página inicial

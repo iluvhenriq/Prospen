@@ -4,6 +4,8 @@ import { repositorioEquipe } from "@/modules/organizacoes/equipe";
 import { salvarNoMes } from "@/modules/planos/cota";
 import {
   cabemNoMes,
+  EMPRESAS_SEM_PAGAMENTO,
+  empresasPorMesDa,
   menorPlanoCom,
   mesDoDia,
   PLANO_PADRAO,
@@ -46,6 +48,13 @@ function empresas(inicio: number, quantas: number): LeadDaBaseCnpj[] {
 }
 
 describe("regras dos planos", () => {
+  it("sem plano liberado, salva só EMPRESAS_SEM_PAGAMENTO por mês; liberado, vale o plano", () => {
+    expect(EMPRESAS_SEM_PAGAMENTO).toBe(20);
+    expect(empresasPorMesDa({ plano: PLANO_PADRAO, gravado: false })).toBe(20);
+    expect(empresasPorMesDa({ plano: "pequeno", gravado: true })).toBe(300);
+    expect(empresasPorMesDa({ plano: "grande", gravado: true })).toBeNull();
+  });
+
   it("bate com o que foi decidido em 28/10/2026", () => {
     expect(REGRAS.pequeno).toMatchObject({ precoCentavos: 9700, usuarios: 1, empresasPorMes: 300 });
     expect(REGRAS.medio).toMatchObject({ precoCentavos: 17700, usuarios: 2, empresasPorMes: 1000 });
@@ -111,15 +120,15 @@ describe("plano e limite mensal no banco", () => {
   });
 
   it("Pequeno: salva até 300 no mês; o que já é lead não conta; o resto fica de fora", async () => {
-    const primeiro = await salvarNoMes(ambiente.db, empresaA, "pequeno", "2026-10", empresas(0, 280), null);
+    const primeiro = await salvarNoMes(ambiente.db, empresaA, REGRAS.pequeno.empresasPorMes, "2026-10", empresas(0, 280), null);
     expect(primeiro).toEqual({ adicionados: 280, foraDoLimite: 0 });
 
     // 10 repetidas (já são leads) + 40 novas: só 20 cabem.
-    const segundo = await salvarNoMes(ambiente.db, empresaA, "pequeno", "2026-10", empresas(270, 50), null);
+    const segundo = await salvarNoMes(ambiente.db, empresaA, REGRAS.pequeno.empresasPorMes, "2026-10", empresas(270, 50), null);
     expect(segundo).toEqual({ adicionados: 20, foraDoLimite: 20 });
     expect(await repositorioPlano(ambiente.db, empresaA).empresasSalvasNoMes("2026-10")).toBe(300);
 
-    const cheio = await salvarNoMes(ambiente.db, empresaA, "pequeno", "2026-10", empresas(400, 5), null);
+    const cheio = await salvarNoMes(ambiente.db, empresaA, REGRAS.pequeno.empresasPorMes, "2026-10", empresas(400, 5), null);
     expect(cheio).toEqual({ adicionados: 0, foraDoLimite: 5 });
   });
 
@@ -127,23 +136,23 @@ describe("plano e limite mensal no banco", () => {
     const leads = repositorioLeads(ambiente.db, empresaA);
     const [umLead] = await leads.idsPorCnpj([empresas(0, 1)[0].cnpj]);
     expect(await leads.excluir(umLead)).toBe(true);
-    const depois = await salvarNoMes(ambiente.db, empresaA, "pequeno", "2026-10", empresas(0, 1), null);
+    const depois = await salvarNoMes(ambiente.db, empresaA, REGRAS.pequeno.empresasPorMes, "2026-10", empresas(0, 1), null);
     expect(depois).toEqual({ adicionados: 0, foraDoLimite: 1 });
   });
 
   it("o mês seguinte começa do zero", async () => {
-    const novembro = await salvarNoMes(ambiente.db, empresaA, "pequeno", "2026-11", empresas(500, 3), null);
+    const novembro = await salvarNoMes(ambiente.db, empresaA, REGRAS.pequeno.empresasPorMes, "2026-11", empresas(500, 3), null);
     expect(novembro).toEqual({ adicionados: 3, foraDoLimite: 0 });
   });
 
   it("o uso de uma empresa não gasta o limite da outra", async () => {
     expect(await repositorioPlano(ambiente.db, empresaB).empresasSalvasNoMes("2026-10")).toBe(0);
-    const daOutra = await salvarNoMes(ambiente.db, empresaB, "pequeno", "2026-10", empresas(0, 10), null);
+    const daOutra = await salvarNoMes(ambiente.db, empresaB, REGRAS.pequeno.empresasPorMes, "2026-10", empresas(0, 10), null);
     expect(daOutra).toEqual({ adicionados: 10, foraDoLimite: 0 });
   });
 
   it("Grande: sem limite mensal, mas o uso continua contado", async () => {
-    const grande = await salvarNoMes(ambiente.db, empresaB, "grande", "2026-12", empresas(1000, 400), null);
+    const grande = await salvarNoMes(ambiente.db, empresaB, REGRAS.grande.empresasPorMes, "2026-12", empresas(1000, 400), null);
     expect(grande).toEqual({ adicionados: 400, foraDoLimite: 0 });
     expect(await repositorioPlano(ambiente.db, empresaB).empresasSalvasNoMes("2026-12")).toBe(400);
   });

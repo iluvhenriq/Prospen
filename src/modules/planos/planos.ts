@@ -27,9 +27,19 @@ export const REGRAS: Record<Plano, RegrasDoPlano> = {
 };
 
 // Empresa sem plano gravado (acabou de criar a conta e ainda não pagou).
-// Decisão em aberto do Henrique: teste grátis ou bloqueio até o pagamento.
-// Até lá, o menor plano: nada pago sai de graça.
+// Vale o menor plano, com o limite mensal de EMPRESAS_SEM_PAGAMENTO.
 export const PLANO_PADRAO: Plano = "pequeno";
+
+// Empresas da base salvas por mês enquanto o plano não é liberado (decisão de
+// 28/10/2026). Sem confirmação de e-mail, qualquer um cria várias contas: com
+// o limite do Pequeno, cada uma levaria 300 empresas da base de graça. 20 dão
+// para conhecer o produto. Liberar o plano (`plano:definir`) tira a trava.
+export const EMPRESAS_SEM_PAGAMENTO = 20;
+
+// Limite mensal que vale para a empresa: o do plano, se liberado.
+export function empresasPorMesDa(empresa: { plano: Plano; gravado: boolean }): number | null {
+  return empresa.gravado ? REGRAS[empresa.plano].empresasPorMes : EMPRESAS_SEM_PAGAMENTO;
+}
 
 // Vagas com preço travado para sempre.
 export const VAGAS_DE_FUNDADOR = 20;

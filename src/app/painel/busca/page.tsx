@@ -88,9 +88,12 @@ async function ConteudoBusca({ searchParams }: { searchParams: PageProps<"/paine
             {t.mostrando(tela.resultados.length)}. {ptBR.pontuacao.ordemDaBusca}
           </p>
           {uso.limite !== null && uso.usadas >= uso.limite ? (
-            <Alerta variante="aviso">{ptBR.planos.limiteDoMesAtingido(uso.limite)}</Alerta>
+            <Alerta variante="aviso">{ptBR.planos.limiteDoMesAtingido(uso.limite, uso.semPagamento)}</Alerta>
           ) : (
-            <p className="text-sm text-texto-suave">{ptBR.planos.usoDoMes(uso.usadas, uso.limite)}</p>
+            <p className="text-sm text-texto-suave">
+              {ptBR.planos.usoDoMes(uso.usadas, uso.limite)}
+              {uso.semPagamento && uso.limite !== null ? ` ${ptBR.planos.semPagamento(uso.limite)}` : null}
+            </p>
           )}
           {/* A chave troca a cada página: a marcação não passa de uma página para outra. */}
           <p className="text-sm text-texto-suave">

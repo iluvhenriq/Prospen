@@ -41,6 +41,9 @@ async function ConteudoEquipe() {
           ) : null}
         </p>
         <p className="text-sm text-texto-suave">{tp.usoDoMes(tela.uso.usadas, tela.uso.limite)}</p>
+        {tela.uso.semPagamento && tela.uso.limite !== null ? (
+          <p className="text-sm text-texto-suave">{tp.semPagamento(tela.uso.limite)}</p>
+        ) : null}
         <p className="text-sm text-texto-suave">{tp.usuariosDoPlano(tela.pessoas.length, tela.usuarios)}</p>
       </div>
 
