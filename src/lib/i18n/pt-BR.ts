@@ -19,57 +19,96 @@ export const ptBR = {
   // Página de apresentação e pré-cadastro (pré-venda, 24/10/2026). Só o que o
   // produto faz de verdade: sem números inventados, depoimentos ou preço.
   preVenda: {
-    tituloDaAba: "PROSPEN: encontre empresas para vender e acompanhe cada negociação",
-    menu: { comoFunciona: "Como funciona", recursos: "Recursos", perguntas: "Perguntas", entrar: "Entrar" },
-    selo: "Pré-venda aberta",
-    titulo: "Encontre empresas para vender. Acompanhe cada negociação até fechar.",
+    tituloDaAba: "PROSPEN: saiba para quem ligar primeiro",
+    menu: { comoFunciona: "Como funciona", perguntas: "Perguntas", entrar: "Entrar" },
+    titulo: "Saiba para quem ligar primeiro.",
     subtitulo:
-      "O PROSPEN junta a busca de empresas ativas da base oficial da Receita Federal com um funil de vendas simples, feito para quem vende para outras empresas.",
+      "O PROSPEN busca empresas ativas na base oficial da Receita Federal e mostra quais valem o seu contato primeiro, com nota de 0 a 100 e o motivo de cada ponto. Depois, acompanha cada negociação até fechar.",
     chamada: "Fazer pré-cadastro",
-    chamadaApoio: "Sem custo e sem compromisso. Avisamos quando abrir.",
+    chamadaApoio: "Pré-venda aberta, sem custo e sem compromisso. Avisamos quando abrir.",
+    // Demonstração da abertura: a tela de busca com nomes ocultos. Cada linha é
+    // um perfil, não uma empresa; os pontos saem de src/modules/pontuacao/regras.ts.
+    demonstracao: {
+      rotulo: "Demonstração da busca do PROSPEN",
+      tituloLista: "Busca de empresas",
+      filtros: "SP, São Paulo, Restaurantes e similares, sem MEI",
+      ordem: "Da maior prioridade para a menor",
+      empresaOculta: "Empresa com nome oculto",
+      linha: (pontos: number, faixa: string) => `${pontos} pontos, ${faixa}`,
+      // Selo curto, para caber na linha no celular.
+      faixasCurtas: { alta: "Alta", media: "Média", baixa: "Baixa" },
+      tituloConta: "Conta da nota",
+      deCem: "de 100",
+      dica: "Clique numa empresa da lista para ver a conta da nota.",
+      legenda: "Ilustração: nomes ocultos, pontos calculados pelas regras reais do PROSPEN.",
+    },
+    // Número real da base de SP (importação de outubro de 2026).
+    tamanhoDaBase: {
+      numero: "8,8 milhões",
+      titulo: "de empresas ativas só em São Paulo.",
+      texto: "Ninguém liga para todas. O PROSPEN ordena a lista para você começar pelas que valem o contato e deixar o resto para depois.",
+      fonte: "Base pública de CNPJ da Receita Federal, outubro de 2026.",
+    },
     comoFunciona: {
-      titulo: "Como funciona",
+      titulo: "Do cadastro da Receita ao contrato assinado",
       passos: [
         {
           titulo: "Busque",
           texto: "Filtre empresas ativas por estado, cidade e atividade. As mais promissoras aparecem primeiro.",
+          itens: [
+            "Base pública de CNPJ, com telefone e e-mail do cadastro da Receita.",
+            "Pontuação de 0 a 100 com o motivo de cada ponto.",
+            "Microempreendedores ficam de fora, a menos que você queira.",
+          ],
         },
         {
           titulo: "Salve como lead",
           texto: "Marque as que interessam e elas entram na sua lista, sem duplicar. Ou importe a planilha que você já tem.",
+          itens: [
+            "Importação de CSV, conferida linha por linha antes de gravar.",
+            "Aviso quando o mesmo contato aparece em vários leads.",
+          ],
         },
         {
           titulo: "Acompanhe até fechar",
           texto: "Mova cada lead pelo funil, anote as conversas e veja quanto vendeu e por que perdeu.",
+          itens: [
+            "Funil de Novo a Ganho ou Perdido, com histórico e valor da venda.",
+            "Campanhas com custo e retorno calculados pelo próprio funil.",
+            "Painel com conversão, valor vendido e motivos de perda.",
+          ],
         },
       ],
     },
-    recursos: {
-      titulo: "O que já está pronto",
-      itens: [
+    // Comparação com a lista comprada: só o que o PROSPEN faz hoje.
+    comparacao: {
+      titulo: "O que muda em relação à planilha comprada",
+      colunas: { planilha: "Planilha comprada", prospen: "Com o PROSPEN" },
+      linhas: [
         {
-          titulo: "Busca na base pública de CNPJ",
-          texto: "Empresas ativas por estado, cidade e atividade, com telefone e e-mail do cadastro da Receita. Microempreendedores ficam de fora, a menos que você queira.",
+          tema: "De onde vêm os dados",
+          planilha: "Origem que ninguém explica",
+          prospen: "Base oficial da Receita Federal, só empresas ativas",
         },
         {
-          titulo: "Prioridade automática",
-          texto: "Uma pontuação de 0 a 100 mostra quem vale contatar primeiro: contato próprio, empresa recente, porte e mais. Com o motivo de cada ponto.",
+          tema: "Por onde começar",
+          planilha: "Todas as linhas parecem iguais",
+          prospen: "Nota de 0 a 100, com o motivo de cada ponto",
         },
         {
-          titulo: "Funil de vendas",
-          texto: "Novo, Contatado, Em conversa, Proposta, Ganho e Perdido. Com histórico, motivo da perda e valor da venda.",
+          tema: "Contatos repetidos",
+          planilha: "Você confere à mão",
+          prospen: "O mesmo CNPJ não entra duas vezes",
         },
         {
-          titulo: "Campanhas",
-          texto: "Agrupe leads numa lista de trabalho ou numa ação com custo. Contatados, ganhos e retorno saem do funil, sem digitar números.",
+          tema: "Depois do primeiro contato",
+          planilha: "Outra ferramenta, ou nenhuma",
+          prospen: "Funil, campanhas e painel no mesmo lugar",
         },
         {
-          titulo: "Importação de planilha",
-          texto: "Traga seus contatos em CSV. Você confere o resultado linha por linha antes de gravar, e o que já existe não é duplicado.",
-        },
-        {
-          titulo: "Painel de indicadores",
-          texto: "Leads por etapa, taxa de conversão, valor vendido, motivos de perda e de onde vieram os seus leads.",
+          tema: "Empresa que pede para sair",
+          planilha: "Continua na lista",
+          prospen: "Sai da busca na hora, pela página pública de remoção",
         },
       ],
     },
@@ -100,7 +139,7 @@ export const ptBR = {
         },
         {
           pergunta: "Quais estados a busca cobre?",
-          resposta: "Começamos por São Paulo. Os outros estados entram aos poucos. A Receita publica uma nova versão da base todo mês, e o PROSPEN é atualizado a partir dessas publicações.",
+          resposta: "Começamos por São Paulo: são 8,8 milhões de empresas ativas na base da Receita de outubro de 2026, das quais 56% são MEI (que ficam de fora, a menos que você queira). Os outros estados entram aos poucos. A Receita publica uma nova versão da base todo mês, e o PROSPEN é atualizado a partir dessas publicações.",
         },
         {
           pergunta: "O telefone e o e-mail são do dono da empresa?",
@@ -122,7 +161,7 @@ export const ptBR = {
       nome: "Seu nome",
       email: "E-mail",
       empresa: "Empresa (opcional)",
-      botao: "Quero ser avisado",
+      botao: "Fazer pré-cadastro",
       nomeObrigatorio: "Informe o seu nome.",
       nomeLongo: "Use no máximo 80 caracteres.",
       emailInvalido: "Confira o e-mail.",
@@ -223,6 +262,15 @@ export const ptBR = {
     // No celular, para caber o menu inteiro numa linha.
     buscaCurto: "Buscar",
     campanhas: "Campanhas",
+    // Grupo da coluna da esquerda com os atalhos do que fazer.
+    acoes: "Ações rápidas",
+  },
+  // Tema da tela (claro, escuro ou igual ao sistema), escolha de cada pessoa.
+  tema: {
+    rotulo: "Tema da tela",
+    opcoes: { claro: "Claro", escuro: "Escuro", sistema: "Sistema" },
+    atual: (tema: string) => `Tema: ${tema}`,
+    trocar: (atual: string, proximo: string) => `Trocar o tema (agora ${atual}, próximo ${proximo})`,
   },
   busca: {
     titulo: "Buscar empresas",
@@ -267,6 +315,11 @@ export const ptBR = {
     colunas: {
       marcar: (nome: string) => `Marcar ${nome}`,
       marcarTodas: "Marcar todas as empresas desta página",
+      // Cabeçalho da tabela de resultados (só aparece em tela larga).
+      nota: "Nota",
+      empresa: "Empresa",
+      atividade: "Atividade e local",
+      contato: "Contato e motivos",
     },
     jaEhLead: "Já é lead",
     mei: "MEI",
@@ -290,6 +343,8 @@ export const ptBR = {
   },
   leads: {
     titulo: "Leads",
+    // Cabeçalho da tabela de leads (só aparece em tela larga).
+    colunas: { nota: "Nota", lead: "Lead", contato: "Contato", etapa: "Etapa", origem: "Origem e etiquetas" },
     novo: "Novo lead",
     importar: "Importar planilha",
     etiquetas: "Etiquetas",
@@ -609,6 +664,7 @@ export const ptBR = {
     titulo: "Prioridade",
     faixas: { alta: "Prioridade alta", media: "Prioridade média", baixa: "Prioridade baixa" },
     pontos: (pontos: number) => `${pontos} de 100 pontos`,
+    deCem: "de 100",
     motivos: {
       telefone: "tem telefone",
       emailProprio: "e-mail próprio",

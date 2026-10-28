@@ -36,7 +36,7 @@ export function Barras({
                 <div className="h-3 min-w-0 flex-1" aria-hidden="true">
                   {linha.total > 0 ? (
                     <div
-                      className="h-3 rounded-r bg-roxo-500"
+                      className="h-3 rounded-r bg-musgo-600"
                       // Mínimo de 2% para um total pequeno não sumir ao lado de um grande.
                       style={{ width: `${Math.max(2, (linha.total / maximo) * 100)}%` }}
                     />

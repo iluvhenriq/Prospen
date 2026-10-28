@@ -41,7 +41,7 @@ export function Esqueleto({ className, ...props }: ComponentProps<"div">) {
     <div
       aria-hidden="true"
       className={cn(
-        "animate-pulse rounded-md bg-musgo-100 motion-reduce:animate-none",
+        "animate-pulse rounded-controle bg-musgo-100 motion-reduce:animate-none",
         className,
       )}
       {...props}

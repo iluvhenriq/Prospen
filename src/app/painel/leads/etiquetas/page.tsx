@@ -32,7 +32,7 @@ async function ListaDeEtiquetas() {
 
   return (
     <div className="flex flex-col gap-3">
-      <ul className="divide-y divide-borda overflow-hidden rounded-xl border border-borda bg-superficie">
+      <ul className="divide-y divide-borda overflow-hidden rounded-painel border border-borda bg-superficie">
         {etiquetas.map((etiqueta) => (
           <li
             key={etiqueta.id}
@@ -43,7 +43,7 @@ async function ListaDeEtiquetas() {
               {/* A contagem leva para a lista já filtrada por esta etiqueta. */}
               <Link
                 href={`/painel/leads?etiqueta=${etiqueta.id}`}
-                className="text-sm text-roxo-700 underline-offset-4 hover:underline"
+                className="text-sm text-musgo-700 underline-offset-4 hover:underline"
               >
                 {t.totalLeads(etiqueta.totalLeads)}
               </Link>
@@ -80,11 +80,11 @@ export default function PaginaEtiquetas() {
       <header className="flex flex-col gap-2">
         <Link
           href="/painel/leads"
-          className="text-sm font-medium text-roxo-700 underline-offset-4 hover:underline"
+          className="text-sm font-medium text-musgo-700 underline-offset-4 hover:underline"
         >
           {ptBR.leads.voltarParaLista}
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight text-musgo-800">{t.titulo}</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-texto">{t.titulo}</h1>
         <p className="text-texto-suave">{t.descricao}</p>
       </header>
 

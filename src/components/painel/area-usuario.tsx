@@ -1,26 +1,45 @@
 import { Botao } from "@/components/ui/botao";
-import { Etiqueta } from "@/components/ui/etiqueta";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { sair } from "@/modules/contas/acoes";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
 
-// Canto direito do cabeçalho: empresa, pessoa, papel e botão de sair.
+// Empresa, pessoa, papel e botão de sair. "lateral": pé da coluna da esquerda,
+// no computador. "topo": canto direito da barra, no celular.
 // Lê a sessão, então precisa ficar dentro de um <Suspense>.
-export async function AreaUsuario() {
+export async function AreaUsuario({ forma }: { forma: "lateral" | "topo" }) {
   const { usuario, organizacao, papel } = await exigirContexto();
 
-  return (
-    <div className="flex items-center gap-3">
-      <div className="hidden max-w-56 text-right text-sm leading-tight sm:block">
-        <p className="truncate font-medium text-texto">{organizacao.nome}</p>
-        <p className="truncate text-texto-suave">{usuario.nome}</p>
+  const botaoSair = (
+    <form action={sair}>
+      <Botao
+        type="submit"
+        variante="fantasma"
+        tamanho="pequeno"
+        className="text-musgo-100 ring-1 ring-inset ring-mesa-linha hover:bg-mesa-clara hover:text-white"
+      >
+        {ptBR.navegacao.sair}
+      </Botao>
+    </form>
+  );
+
+  if (forma === "topo") {
+    return (
+      <div className="flex items-center gap-3">
+        <span className="max-w-36 truncate text-sm font-medium text-musgo-100">{organizacao.nome}</span>
+        {botaoSair}
       </div>
-      <Etiqueta variante="musgo">{ptBR.papeis[papel]}</Etiqueta>
-      <form action={sair}>
-        <Botao type="submit" variante="contorno" tamanho="pequeno">
-          {ptBR.navegacao.sair}
-        </Botao>
-      </form>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3 border-t border-mesa-linha pt-4">
+      <div className="min-w-0 px-1 text-sm leading-snug">
+        <p className="truncate font-semibold text-white">{organizacao.nome}</p>
+        <p className="truncate text-musgo-200">
+          {usuario.nome}, {ptBR.papeis[papel].toLocaleLowerCase("pt-BR")}
+        </p>
+      </div>
+      {botaoSair}
     </div>
   );
 }

@@ -55,11 +55,11 @@ export function FormularioPreCadastro({ emailContato }: { emailContato: string }
       </Botao>
       <p className="text-xs text-texto-suave">
         {t.avisoInicio}{" "}
-        <a href={`mailto:${emailContato}`} className="font-medium text-roxo-700 underline underline-offset-4">
+        <a href={`mailto:${emailContato}`} className="font-medium text-musgo-700 underline hover:text-musgo-900">
           {emailContato}
         </a>
         . {t.avisoFim}{" "}
-        <Link href="/privacidade" className="font-medium text-roxo-700 underline underline-offset-4">
+        <Link href="/privacidade" className="font-medium text-musgo-700 underline hover:text-musgo-900">
           {ptBR.privacidade.link.toLowerCase()}
         </Link>
         .

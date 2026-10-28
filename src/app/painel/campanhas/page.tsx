@@ -31,12 +31,12 @@ async function ConteudoCampanhas() {
   return (
     <ul className="flex flex-col gap-3">
       {campanhas.map((campanha) => (
-        <li key={campanha.id} className="rounded-xl border border-borda bg-superficie p-4">
+        <li key={campanha.id} className="rounded-painel border border-borda bg-superficie p-4">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
               <Link
                 href={`/painel/campanhas/${campanha.id}`}
-                className="text-base font-semibold text-texto underline-offset-4 hover:text-roxo-700 hover:underline"
+                className="text-base font-semibold text-texto underline-offset-4 hover:text-musgo-700 hover:underline"
               >
                 {campanha.nome}
               </Link>
@@ -68,7 +68,7 @@ export default function PaginaCampanhas() {
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-musgo-800">{ptBR.campanhas.titulo}</h1>
+          <h1 className="text-2xl font-bold tracking-[-0.02em] text-texto">{ptBR.campanhas.titulo}</h1>
           <p className="max-w-2xl text-sm text-texto-suave">{ptBR.campanhas.descricao}</p>
         </div>
         <BotaoLink href="/painel/campanhas/nova">{ptBR.campanhas.nova}</BotaoLink>

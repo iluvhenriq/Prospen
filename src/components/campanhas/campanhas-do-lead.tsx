@@ -35,7 +35,7 @@ export function CampanhasDoLead({
             <li key={campanha.id} className="flex items-center justify-between gap-2 text-sm">
               <Link
                 href={`/painel/campanhas/${campanha.id}`}
-                className="min-w-0 truncate font-medium text-texto underline-offset-4 hover:text-roxo-700 hover:underline"
+                className="min-w-0 truncate font-medium text-texto underline-offset-4 hover:text-musgo-700 hover:underline"
               >
                 {campanha.nome}
               </Link>

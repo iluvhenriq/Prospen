@@ -12,11 +12,11 @@ export default function PaginaRemocao() {
   const t = ptBR.remocao;
   return (
     <main id="conteudo" className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-10">
-      <Link href="/" className="text-2xl font-semibold tracking-tight text-musgo-800">
+      <Link href="/" className="text-2xl font-extrabold tracking-[-0.03em] text-musgo-900">
         {ptBR.app.nome}
       </Link>
       <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-musgo-800">{t.titulo}</h1>
+        <h1 className="text-2xl font-extrabold tracking-[-0.03em] text-musgo-900">{t.titulo}</h1>
         <p className="text-texto-suave">{t.descricao}</p>
       </header>
       <section className="flex flex-col gap-2">
@@ -34,7 +34,7 @@ export default function PaginaRemocao() {
       </Cartao>
       <p className="text-xs text-texto-suave">
         {t.fonte}{" "}
-        <Link href="/privacidade" className="font-medium text-roxo-700 underline underline-offset-4">
+        <Link href="/privacidade" className="font-medium text-musgo-700 underline underline-offset-4">
           {ptBR.privacidade.link}
         </Link>
       </p>

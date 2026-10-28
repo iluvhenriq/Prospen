@@ -18,7 +18,7 @@ export function CartaoAcesso({ titulo, descricao, children, rodape }: CartaoAces
       id="conteudo"
       className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 py-10"
     >
-      <Link href="/" className="text-2xl font-semibold tracking-tight text-musgo-800">
+      <Link href="/" className="text-2xl font-extrabold tracking-[-0.03em] text-musgo-900">
         {ptBR.app.nome}
       </Link>
       <Cartao className="w-full max-w-sm">
@@ -35,4 +35,4 @@ export function CartaoAcesso({ titulo, descricao, children, rodape }: CartaoAces
 
 // Link de texto usado nos rodapés das telas de acesso.
 export const classeLinkTexto =
-  "font-medium text-roxo-700 underline-offset-4 hover:underline";
+  "font-medium text-musgo-700 underline-offset-4 hover:underline";

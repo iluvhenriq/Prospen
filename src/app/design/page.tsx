@@ -34,18 +34,10 @@ const musgo = [
   { nome: "950", classe: "bg-musgo-950" },
 ];
 
-const roxo = [
-  { nome: "50", classe: "bg-roxo-50" },
-  { nome: "100", classe: "bg-roxo-100" },
-  { nome: "200", classe: "bg-roxo-200" },
-  { nome: "300", classe: "bg-roxo-300" },
-  { nome: "400", classe: "bg-roxo-400" },
-  { nome: "500", classe: "bg-roxo-500" },
-  { nome: "600", classe: "bg-roxo-600" },
-  { nome: "700", classe: "bg-roxo-700" },
-  { nome: "800", classe: "bg-roxo-800" },
-  { nome: "900", classe: "bg-roxo-900" },
-  { nome: "950", classe: "bg-roxo-950" },
+const marcaTexto = [
+  { nome: "claro", classe: "bg-marca-texto-claro" },
+  { nome: "base", classe: "bg-marca-texto" },
+  { nome: "borda", classe: "bg-marca-texto-borda" },
 ];
 
 function Paleta({ titulo, cores }: { titulo: string; cores: typeof musgo }) {
@@ -104,10 +96,10 @@ export default function PaginaComponentes() {
 
       <Secao
         titulo="Cores"
-        descricao="Verde-musgo para estrutura, marca e sucesso. Roxo para ações e destaque."
+        descricao="Verde-musgo para estrutura, marca e ações. Marca-texto só para destaque, nunca para texto ou botão."
       >
         <Paleta titulo="Verde-musgo" cores={musgo} />
-        <Paleta titulo="Roxo" cores={roxo} />
+        <Paleta titulo="Marca-texto" cores={marcaTexto} />
       </Secao>
 
       <Secao titulo="Botões" descricao="Variantes, tamanhos e estados.">
@@ -163,10 +155,12 @@ export default function PaginaComponentes() {
       <Secao titulo="Etiquetas">
         <div className="flex flex-wrap gap-2">
           <Etiqueta>Novo</Etiqueta>
-          <Etiqueta variante="roxo">Em conversa</Etiqueta>
-          <Etiqueta variante="musgo">Ganho</Etiqueta>
+          <Etiqueta variante="andamento">Em conversa</Etiqueta>
           <Etiqueta variante="aviso">Proposta</Etiqueta>
+          <Etiqueta variante="musgo">Ganho</Etiqueta>
           <Etiqueta variante="erro">Perdido</Etiqueta>
+          <Etiqueta variante="destaque">Prioridade alta</Etiqueta>
+          <Etiqueta variante="roxo">Etiqueta roxa do usuário</Etiqueta>
         </div>
       </Secao>
 
@@ -175,7 +169,7 @@ export default function PaginaComponentes() {
         descricao="Indicador de progresso e blocos que seguram o lugar do conteúdo."
       >
         <div className="flex items-center gap-3 text-sm text-texto-suave">
-          <Spinner rotulo="Carregando" className="size-5 text-roxo-600" />
+          <Spinner rotulo="Carregando" className="size-5 text-musgo-700" />
           Buscando empresas...
         </div>
         <div className="flex flex-col gap-2">

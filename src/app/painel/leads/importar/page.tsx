@@ -45,7 +45,7 @@ async function HistoricoDeImportacoes() {
                 </p>
                 {importacao.ocorrencias.length > 0 ? (
                   <details className="text-sm">
-                    <summary className="cursor-pointer font-medium text-roxo-700">
+                    <summary className="cursor-pointer font-medium text-musgo-700">
                       {t.verProblemas}
                     </summary>
                     <ul className="mt-2 flex max-h-56 flex-col gap-1 overflow-auto text-texto-suave">
@@ -73,11 +73,11 @@ export default function PaginaImportar() {
       <header className="flex flex-col gap-2">
         <Link
           href="/painel/leads"
-          className="text-sm font-medium text-roxo-700 underline-offset-4 hover:underline"
+          className="text-sm font-medium text-musgo-700 underline-offset-4 hover:underline"
         >
           {ptBR.leads.voltarParaLista}
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight text-musgo-800">{t.titulo}</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-texto">{t.titulo}</h1>
         <p className="text-texto-suave">{t.descricao}</p>
       </header>
 

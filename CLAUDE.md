@@ -1,6 +1,6 @@
 # PROSPEN: guia para o Claude
 
-Este arquivo é lido no início de toda sessão. Mantenha-o curto e atualizado. As decisões completas estão em `docs/arquitetura.md` e o resumo de uso está em `README.md`.
+Este arquivo é lido no início de toda sessão. Mantenha-o curto e atualizado. As decisões completas estão em `docs/arquitetura.md`, o resumo de uso está em `README.md` e quem usa o produto, o diferencial e o que não pode ser inventado estão em `PRODUCT.md`.
 
 ## O que é o projeto
 
@@ -30,12 +30,13 @@ PROSPEN é uma plataforma de aquisição de leads e gestão de marketing para em
 | 6 | Pontuação dos leads por regras simples, com dados da base pública (sem Google Places, decisão de 23/10/2026) | concluída (23/10/2026): regras em `src/modules/pontuacao/regras.ts`, pontuação na base (busca ordena pelos melhores, 3 a 358 ms em SP) e no lead (selo e motivos). Testada no navegador |
 | 7 | Campanhas manuais (sem integração com anúncios) e painel de indicadores | concluída (23/10/2026), testada no navegador: motivo da perda e valor da venda, painel de indicadores (`/painel`) e campanhas (`/painel/campanhas`: lista de trabalho e ação com custo; números vêm do funil). Henrique ainda vai testar as telas |
 | 8 | Revisão final: erros, estados vazios, testes dos fluxos críticos, segurança, celular | em andamento (23/10/2026): segurança revisada, telas revisadas no computador e no celular, testes de navegador novos, limite na importação, página "remover meus dados", política de privacidade (rascunho). Falta o que depende do Henrique: domínio e provedor de e-mail (recuperação de senha e confirmação de e-mail), hospedagem, identificação completa do responsável na política. Código no GitHub (`iluvhenriq/prospen`, privado), branch `master` |
+| 9 | Nova identidade e diferenciais | em andamento (27/10/2026): identidade nova, página de pré-venda ("mesa do vendedor") e telas internas concluídas. Próximas: aprendizado com motivos de perda, aviso de recém-abertas, pontuação ajustada ao cliente ideal (detalhes no `README.md`) |
 
-Fora do MVP, de propósito: Google Ads, Meta Ads, formulários de captação, automação, inteligência artificial, cobrança e planos. Não implemente antes da hora.
+Fora do MVP, de propósito: Google Ads, Meta Ads, formulários de captação, automação, inteligência artificial, cobrança e planos. Não implemente antes da hora. Exceção decidida em 27/10/2026: um primeiro assistente de inteligência artificial entra logo depois de a pré-venda ser validada (não antes).
 
 ## Stack
 
-TypeScript, Next.js (App Router, versão 16), PostgreSQL, Drizzle ORM, Better Auth, Zod, Tailwind CSS, Vitest. Componentes visuais próprios em `src/components/ui` (sem shadcn). Identidade: verde-musgo e roxo, só tema claro.
+TypeScript, Next.js (App Router, versão 16), PostgreSQL, Drizzle ORM, Better Auth, Zod, Tailwind CSS, Vitest. Componentes visuais próprios em `src/components/ui` (sem shadcn). Identidade: verde-musgo e marca-texto amarelo (só destaque), fonte Schibsted Grotesk. Tema claro por padrão e escuro como opção de cada pessoa (variáveis em `globals.css`, `<html data-escuro>`): use as cores com papel (`acao`, `tinta`, `texto`, `superficie`), nunca `text-white` sobre verde. Sem roxo na interface (detalhes e o que evitar em `docs/arquitetura.md`, seção 7.1).
 
 ## Comandos (PowerShell, na pasta do projeto)
 
@@ -89,8 +90,8 @@ Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `np
 - Acentos quebrados na saída dos scripts ("concluÃ­do") no Windows PowerShell 5.1: é só a exibição. Corrige com `[Console]::OutputEncoding = [Text.Encoding]::UTF8` (pode ir no perfil do PowerShell).
 - PostgreSQL local com memória ajustada por `ALTER SYSTEM` (veja `docs/arquitetura.md`). Reiniciar o serviço exige administrador; o Claude não consegue.
 - O comando `tar` do Git Bash é outro programa e quebra caminhos com "C:". Rode os testes da importação da base pelo PowerShell.
-- Fontes vêm do pacote `geist`, não do Google Fonts.
-- `npm run dev` recarregando a página sem parar logo depois de um build: pare o servidor e apague `.nextdev` (reiniciar sozinho não resolve).
+- A fonte vem do pacote `@fontsource-variable/schibsted-grotesk` (via `next/font/local`), não do Google Fonts.
+- `npm run dev` recarregando a página sem parar logo depois de um build, ou mudança no `globals.css` que não aparece (o CSS servido fica misturado com a versão antiga): pare o servidor e apague `.next\dev` (reiniciar sozinho não resolve).
 - Toda ação do servidor nova precisa começar por `exigirPermissao`, senão `tests/arquitetura.test.ts` falha. Ação pública entra na lista `PUBLICAS` desse teste, com motivo.
 - O PGlite em modo servidor só aceita várias conexões com `maxConnections` maior que 1. Isso é só do ambiente de teste, não do produto.
 

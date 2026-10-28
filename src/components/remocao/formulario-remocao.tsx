@@ -37,7 +37,7 @@ export function FormularioRemocao() {
             type="checkbox"
             name="confirmacao"
             value="sim"
-            className="mt-0.5 size-4 shrink-0 accent-roxo-600"
+            className="mt-0.5 size-4 shrink-0 accent-musgo-700"
             aria-invalid={estado.erros?.confirmacao ? true : undefined}
             aria-describedby={estado.erros?.confirmacao ? "remocao-confirmacao-erro" : undefined}
           />

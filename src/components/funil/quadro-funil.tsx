@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { textoDoLead } from "@/components/leads/nome-do-lead";
 import { formatarData } from "@/lib/formato";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import type { ColunaDoQuadro } from "@/modules/leads/repositorio";
@@ -26,11 +27,11 @@ export function QuadroFunil({
           {colunas.map((coluna) => (
             <li
               key={coluna.etapa}
-              className="flex snap-start flex-col gap-3 rounded-xl border border-borda bg-musgo-50 p-3"
+              className="flex snap-start flex-col gap-3 rounded-painel bg-musgo-100/60 p-2.5"
             >
-              <h2 className="flex items-center justify-between gap-2">
+              <h2 className="flex items-center justify-between gap-2 border-b-2 border-texto px-1 pb-2 pt-1">
                 <SeloEtapa etapa={coluna.etapa} />
-                <span className="text-xs text-texto-suave">{t.totalColuna(coluna.total)}</span>
+                <span className="numeros text-xs font-semibold text-texto-suave">{t.totalColuna(coluna.total)}</span>
               </h2>
 
               {coluna.leads.length === 0 ? (
@@ -40,17 +41,17 @@ export function QuadroFunil({
                   {coluna.leads.map((lead) => (
                     <li
                       key={lead.id}
-                      className="flex flex-col gap-2 rounded-lg border border-borda bg-superficie p-3 shadow-sm"
+                      className="flex flex-col gap-2 rounded-controle border border-borda bg-superficie p-3"
                     >
                       <div className="min-w-0">
                         <Link
                           href={`/painel/leads/${lead.id}`}
-                          className="block truncate text-sm font-medium text-texto underline-offset-4 hover:text-roxo-700 hover:underline"
+                          className="block truncate text-sm font-semibold text-texto hover:text-musgo-700 hover:underline"
                         >
-                          {lead.nome}
+                          {textoDoLead(lead.nome, lead.origem)}
                         </Link>
-                        {lead.empresa ? (
-                          <p className="truncate text-xs text-texto-suave">{lead.empresa}</p>
+                        {lead.empresa && lead.empresa !== lead.nome ? (
+                          <p className="truncate text-xs text-texto-suave">{textoDoLead(lead.empresa, lead.origem)}</p>
                         ) : null}
                         <p className="mt-1 text-xs text-texto-suave">
                           {t.desde(formatarData(lead.etapaAtualizadaEm, fusoHorario))}
@@ -73,6 +74,7 @@ export function QuadroFunil({
                         etapaAtual={lead.etapa}
                         rotulo={t.moverRotulo(lead.nome)}
                         rotuloBotao={t.mover}
+                        compacto
                       />
                     </li>
                   ))}
@@ -82,7 +84,7 @@ export function QuadroFunil({
               {coluna.total > coluna.leads.length ? (
                 <Link
                   href={`/painel/leads?etapa=${coluna.etapa}`}
-                  className="mt-auto px-1 text-sm font-medium text-roxo-700 underline-offset-4 hover:underline"
+                  className="mt-auto px-1 text-sm font-medium text-musgo-700 underline-offset-4 hover:underline"
                 >
                   {t.verTodos(coluna.total)}
                 </Link>

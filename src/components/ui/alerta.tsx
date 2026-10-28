@@ -2,10 +2,10 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/cn";
 
-const variantes = cva("rounded-lg border p-4 text-sm", {
+const variantes = cva("rounded-painel border p-4 text-sm", {
   variants: {
     variante: {
-      info: "border-roxo-200 bg-roxo-50 text-roxo-900",
+      info: "border-borda bg-superficie text-texto",
       sucesso: "border-musgo-200 bg-musgo-50 text-musgo-900",
       aviso: "border-aviso-borda bg-aviso-fundo text-aviso",
       erro: "border-erro-borda bg-erro-fundo text-erro",

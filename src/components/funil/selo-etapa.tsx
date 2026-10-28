@@ -2,12 +2,12 @@ import { Etiqueta } from "@/components/ui/etiqueta";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import type { EtapaFunil } from "@/modules/leads/tipos";
 
-// Cor de cada etapa: neutra no começo, roxo enquanto a venda anda,
-// amarelo na proposta, verde no ganho e vermelho na perda.
+// Cor de cada etapa: neutra no começo, verde-claro enquanto a venda anda,
+// amarelo na proposta, verde cheio no ganho e vermelho na perda.
 const VARIANTE = {
   novo: "neutra",
-  contatado: "roxo",
-  em_conversa: "roxo",
+  contatado: "andamento",
+  em_conversa: "andamento",
   proposta: "aviso",
   ganho: "musgo",
   perdido: "erro",

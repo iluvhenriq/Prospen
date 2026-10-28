@@ -105,7 +105,7 @@ export default function PaginaBusca(props: PageProps<"/painel/busca">) {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-musgo-800">{ptBR.busca.titulo}</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-texto">{ptBR.busca.titulo}</h1>
         <p className="max-w-2xl text-sm text-texto-suave">{ptBR.busca.descricao}</p>
       </header>
       <Suspense fallback={<CarregandoBusca />}>

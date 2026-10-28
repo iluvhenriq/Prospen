@@ -34,7 +34,7 @@ export function NotasLead({
             return (
               <li
                 key={nota.id}
-                className="rounded-lg border border-borda bg-fundo px-4 py-3"
+                className="rounded-controle border border-borda bg-fundo px-4 py-3"
               >
                 {/* whitespace-pre-wrap preserva as quebras de linha da nota. */}
                 <p className="whitespace-pre-wrap break-words text-sm text-texto">

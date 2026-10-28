@@ -5,16 +5,18 @@ import { cn } from "@/lib/cn";
 import { Spinner } from "./carregando";
 
 export const variantes = cva(
-  "inline-flex items-center justify-center gap-2 rounded-lg font-medium whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+  "inline-flex items-center justify-center gap-2 rounded-controle font-semibold whitespace-nowrap transition-colors active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60 disabled:active:translate-y-0",
   {
     variants: {
       variante: {
-        primario: "bg-roxo-600 text-white hover:bg-roxo-700",
-        secundario: "bg-musgo-700 text-white hover:bg-musgo-800",
+        primario: "bg-acao text-acao-texto hover:bg-acao-forte",
+        secundario: "bg-musgo-200 text-musgo-950 hover:bg-musgo-300",
+        // Sobre a mesa verde-escura da página de apresentação.
+        papel: "bg-papel text-musgo-950 shadow-[0_1px_1px_rgb(0_0_0/0.3),0_6px_14px_-6px_rgb(0_0_0/0.5)] hover:bg-white",
         contorno:
           "border border-borda-campo bg-superficie text-texto hover:bg-musgo-50",
         fantasma: "text-texto hover:bg-musgo-100",
-        perigo: "bg-erro text-white hover:bg-erro-escuro",
+        perigo: "bg-erro text-erro-contraste hover:bg-erro-escuro",
       },
       tamanho: {
         pequeno: "h-8 px-3 text-sm",

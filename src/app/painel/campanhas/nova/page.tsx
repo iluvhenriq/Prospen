@@ -21,10 +21,10 @@ export default function PaginaNovaCampanha() {
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <Link href="/painel/campanhas" className="text-sm font-medium text-roxo-700 underline-offset-4 hover:underline">
+        <Link href="/painel/campanhas" className="text-sm font-medium text-musgo-700 underline-offset-4 hover:underline">
           {ptBR.campanhas.voltar}
         </Link>
-        <h1 className="text-2xl font-semibold tracking-tight text-musgo-800">{ptBR.campanhas.nova}</h1>
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-texto">{ptBR.campanhas.nova}</h1>
         <p className="text-texto-suave">{ptBR.campanhas.descricao}</p>
       </header>
       <Cartao>

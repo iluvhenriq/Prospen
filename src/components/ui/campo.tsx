@@ -6,8 +6,8 @@ export function Entrada({ className, ...props }: ComponentProps<"input">) {
     <input
       className={cn(
         // 16px no celular: abaixo disso o iPhone aproxima a tela ao tocar no campo.
-        "h-10 w-full rounded-lg border border-borda-campo bg-superficie px-3 text-base text-texto placeholder:text-placeholder sm:text-sm",
-        "focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-roxo-500",
+        "h-10 w-full rounded-controle border border-borda-campo bg-superficie px-3 text-base text-texto placeholder:text-placeholder sm:text-sm",
+        "focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-musgo-700",
         "disabled:cursor-not-allowed disabled:bg-musgo-50 disabled:text-texto-suave",
         "aria-[invalid=true]:border-erro",
         className,

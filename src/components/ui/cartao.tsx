@@ -5,7 +5,7 @@ export function Cartao({ className, ...props }: ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-borda bg-superficie shadow-sm",
+        "rounded-painel border border-borda bg-superficie",
         className,
       )}
       {...props}

@@ -62,7 +62,7 @@ export default function PaginaFunil() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-musgo-800">
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-texto">
           {ptBR.funil.titulo}
         </h1>
         <p className="max-w-2xl text-sm text-texto-suave">{ptBR.funil.descricao}</p>

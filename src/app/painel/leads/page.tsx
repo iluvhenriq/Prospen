@@ -88,7 +88,7 @@ export default function PaginaLeads(props: PageProps<"/painel/leads">) {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight text-musgo-800">
+        <h1 className="text-2xl font-bold tracking-[-0.02em] text-texto">
           {ptBR.leads.titulo}
         </h1>
         <div className="flex flex-wrap gap-2">

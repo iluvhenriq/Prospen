@@ -13,6 +13,7 @@ export function FormularioEtapa({
   rotulo,
   rotuloVisivel = false,
   rotuloBotao,
+  compacto = false,
   className,
 }: {
   leadId: string;
@@ -21,6 +22,8 @@ export function FormularioEtapa({
   // No quadro o rótulo fica só para leitores de tela, para não poluir o cartão.
   rotuloVisivel?: boolean;
   rotuloBotao: string;
+  // No quadro: lista e botão menores, na mesma linha, para o lead aparecer mais que o controle.
+  compacto?: boolean;
   className?: string;
 }) {
   const idCampo = `etapa-${leadId}`;
@@ -40,12 +43,12 @@ export function FormularioEtapa({
       >
         {rotulo}
       </label>
-      <div className="flex flex-wrap gap-2">
+      <div className={cn("flex gap-2", compacto ? "flex-nowrap" : "flex-wrap")}>
         <Selecao
           id={idCampo}
           name="etapa"
           defaultValue={etapaAtual}
-          className="min-w-0 flex-1 basis-32"
+          className={cn("min-w-0 flex-1", compacto ? "h-8 basis-0 px-2 sm:text-xs" : "basis-32")}
         >
           {ETAPAS_FUNIL.map((etapa) => (
             <option key={etapa} value={etapa}>
@@ -53,7 +56,9 @@ export function FormularioEtapa({
             </option>
           ))}
         </Selecao>
-        <BotaoEnviar variante="secundario">{rotuloBotao}</BotaoEnviar>
+        <BotaoEnviar variante="secundario" tamanho={compacto ? "pequeno" : "medio"}>
+          {rotuloBotao}
+        </BotaoEnviar>
       </div>
     </form>
   );

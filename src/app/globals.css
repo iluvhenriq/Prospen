@@ -1,45 +1,54 @@
 @import "tailwindcss";
 
 /*
-  Identidade visual da PROSPEN.
-  Verde-musgo: estrutura, marca e sucesso.
-  Roxo: ações principais e destaque.
+  Identidade visual da PROSPEN: "a lista marcada". O vendedor com a lista
+  impressa e um marca-texto, separando quem vale contatar primeiro.
+  Verde-musgo: estrutura, marca e ações (botões, links, foco).
+  Marca-texto: só destaque (o total da pontuação, o que está selecionado).
+  Nunca é cor de texto e nunca é fundo de botão.
   Todas as combinações de texto e fundo usadas nos componentes passam de
   4,5:1 de contraste (bordas de campo e foco, de 3:1).
-  Por enquanto só existe o tema claro.
+  Tema claro por padrão; o escuro está mais abaixo (:root[data-escuro]).
 */
 @theme {
-  --color-musgo-50: #f5f7ef;
-  --color-musgo-100: #e8edda;
-  --color-musgo-200: #d2dbb7;
+  --color-musgo-50: #f2f5ea;
+  --color-musgo-100: #e4ead3;
+  --color-musgo-200: #cdd8b1;
   --color-musgo-300: #b3c28b;
   --color-musgo-400: #93a766;
   --color-musgo-500: #758b4a;
   --color-musgo-600: #5a6e38;
   --color-musgo-700: #475730;
   --color-musgo-800: #3a4729;
-  --color-musgo-900: #313b25;
+  --color-musgo-900: #2c3521;
   --color-musgo-950: #1a2012;
 
-  --color-roxo-50: #f5f2ff;
-  --color-roxo-100: #ebe5ff;
-  --color-roxo-200: #d9ceff;
-  --color-roxo-300: #bfaeff;
-  --color-roxo-400: #a38af5;
-  --color-roxo-500: #8765e8;
-  --color-roxo-600: #6d46d1;
-  --color-roxo-700: #5a37b0;
-  --color-roxo-800: #4a2f8f;
-  --color-roxo-900: #3d2874;
-  --color-roxo-950: #241547;
+  --color-marca-texto: #f2da5e;
+  --color-marca-texto-claro: #faefb4;
+  --color-marca-texto-borda: #d9bd2f;
 
-  --color-fundo: #fafaf6;
+  /* Página de apresentação: a mesa do vendedor e os papéis sobre ela. */
+  --color-mesa: #27311f;
+  --color-mesa-clara: #34402a;
+  --color-mesa-linha: #4a5838;
+  --color-papel: #f7f7f0;
+  --color-papel-velho: #e6e6dc;
+
+  /* Cores com papel fixo, que mudam junto no tema escuro (veja abaixo). */
+  --color-acao: #3a4729;
+  --color-acao-forte: #1a2012;
+  --color-acao-texto: #ffffff;
+  /* Tinta: texto sobre o marca-texto. Escura nos dois temas. */
+  --color-tinta: #1b2014;
+  --color-erro-contraste: #ffffff;
+
+  --color-fundo: #f3f4ee;
   --color-superficie: #ffffff;
-  --color-borda: #dfe2d6;
-  --color-borda-campo: #858c78;
-  --color-texto: #1c2016;
-  --color-texto-suave: #565d4b;
-  --color-placeholder: #6b7260;
+  --color-borda: #dcdfd2;
+  --color-borda-campo: #80876f;
+  --color-texto: #1b2014;
+  --color-texto-suave: #545b48;
+  --color-placeholder: #697060;
 
   --color-erro: #b42318;
   --color-erro-escuro: #912018;
@@ -48,26 +57,220 @@
   --color-aviso: #93370d;
   --color-aviso-fundo: #fffaeb;
   --color-aviso-borda: #fedf89;
+
+  /* Cantos com hierarquia: controle < painel. Nada de um raio só para tudo. */
+  --radius-controle: 6px;
+  --radius-painel: 10px;
 }
 
 @theme inline {
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  --font-sans: var(--font-schibsted), ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {
   html {
     color-scheme: light;
+    scrollbar-color: var(--color-musgo-300) transparent;
   }
 
   body {
     background-color: var(--color-fundo);
     color: var(--color-texto);
     font-family: var(--font-sans);
+    caret-color: var(--color-musgo-700);
+  }
+
+  ::selection {
+    background-color: var(--color-marca-texto);
+    color: var(--color-tinta);
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-roxo-500);
+    outline: 2px solid var(--color-musgo-700);
     outline-offset: 2px;
+  }
+
+  a {
+    text-underline-offset: 0.2em;
+    text-decoration-thickness: 1px;
+  }
+
+  /* Números de pontuação, valores e contagens alinham em coluna. */
+  .numeros {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/*
+  Tema escuro (opção do usuário, 27/10/2026). O script em src/app/layout.tsx
+  marca <html data-escuro> antes de pintar a tela, conforme a escolha guardada
+  (claro, escuro ou igual ao sistema). Só as variáveis mudam: as classes das
+  telas continuam as mesmas. A escala do musgo se inverte (o 50 vira o fundo
+  mais escuro, o 900 vira o texto mais claro).
+*/
+:root[data-escuro] {
+  color-scheme: dark;
+  --color-musgo-50: #1f281a;
+  --color-musgo-100: #27321f;
+  --color-musgo-200: #344229;
+  --color-musgo-300: #4b5c39;
+  --color-musgo-400: #6b7f4b;
+  --color-musgo-500: #8ba262;
+  --color-musgo-600: #a3b87b;
+  --color-musgo-700: #b9cb93;
+  --color-musgo-800: #cddaaa;
+  --color-musgo-900: #dde6c5;
+  --color-musgo-950: #eef3e3;
+
+  --color-marca-texto-claro: #3d3714;
+
+  --color-acao: #b3c58a;
+  --color-acao-forte: #cad8a8;
+  --color-acao-texto: #141911;
+  --color-erro-contraste: #1b0b09;
+
+  --color-fundo: #131810;
+  --color-superficie: #1b2217;
+  --color-borda: #2e3927;
+  --color-borda-campo: #6b7860;
+  --color-texto: #e8ecdf;
+  --color-texto-suave: #a9b39a;
+  --color-placeholder: #868f79;
+
+  --color-erro: #f97066;
+  --color-erro-escuro: #fda29b;
+  --color-erro-fundo: #2a1513;
+  --color-erro-borda: #5c2621;
+  --color-aviso: #fdb022;
+  --color-aviso-fundo: #2a2010;
+  --color-aviso-borda: #5c4511;
+}
+
+/*
+  A mesa e os papéis da página de apresentação (e a coluna do app) já são
+  superfícies fixas, desenhadas com as cores do tema claro: dentro delas as
+  variáveis voltam aos valores claros. Mantenha igual ao @theme lá em cima.
+*/
+:root[data-escuro] :is(.mesa, .mesa-lisa, .papel) {
+  color-scheme: light;
+  --color-musgo-50: #f2f5ea;
+  --color-musgo-100: #e4ead3;
+  --color-musgo-200: #cdd8b1;
+  --color-musgo-300: #b3c28b;
+  --color-musgo-400: #93a766;
+  --color-musgo-500: #758b4a;
+  --color-musgo-600: #5a6e38;
+  --color-musgo-700: #475730;
+  --color-musgo-800: #3a4729;
+  --color-musgo-900: #2c3521;
+  --color-musgo-950: #1a2012;
+  --color-acao: #3a4729;
+  --color-acao-forte: #1a2012;
+  --color-acao-texto: #ffffff;
+  --color-fundo: #f3f4ee;
+  --color-superficie: #ffffff;
+  --color-borda: #dcdfd2;
+  --color-borda-campo: #80876f;
+  --color-texto: #1b2014;
+  --color-texto-suave: #545b48;
+  --color-placeholder: #697060;
+  --color-erro: #b42318;
+  --color-erro-escuro: #912018;
+  --color-erro-fundo: #fef3f2;
+  --color-erro-borda: #fecdca;
+  --color-erro-contraste: #ffffff;
+}
+
+/* A coluna do app no escuro: um tom abaixo do fundo, para não brilhar mais que o conteúdo. */
+:root[data-escuro] .mesa-lisa {
+  background-color: #0f130c;
+}
+
+/*
+  Página de apresentação: "a mesa do vendedor".
+  .mesa    forro verde-musgo com textura fina e luz vinda de cima.
+  .papel   folha sobre a mesa, com sombra de papel de verdade.
+  .risco   traço de marca-texto (multiplica a cor: a tarja aparece por baixo).
+*/
+@layer components {
+  .mesa {
+    background-color: var(--color-mesa);
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .28 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+      radial-gradient(120% 70% at 50% 0%, rgb(255 255 240 / 0.07), transparent 70%);
+    color: var(--color-musgo-50);
+  }
+
+  /* A mesma cor, sem textura: moldura do app, que precisa ser discreta. */
+  .mesa-lisa {
+    background-color: var(--color-mesa);
+    color: var(--color-musgo-50);
+  }
+
+  .papel {
+    background-color: var(--color-papel);
+    color: var(--color-texto);
+    box-shadow:
+      0 1px 1px rgb(0 0 0 / 0.25),
+      0 10px 22px -8px rgb(0 0 0 / 0.45),
+      0 34px 60px -24px rgb(0 0 0 / 0.55);
+  }
+
+  .risco {
+    background-color: var(--color-marca-texto);
+    mix-blend-mode: multiply;
+    border-radius: 3px 9px 4px 12px / 9px 4px 12px 3px;
+    transform-origin: left center;
+  }
+
+  /* Na mesa o foco usa o marca-texto (o verde sumiria); dentro de um papel, volta ao verde. */
+  .mesa :focus-visible,
+  .mesa-lisa :focus-visible {
+    outline-color: var(--color-marca-texto);
+  }
+
+  .papel :focus-visible {
+    outline-color: var(--color-musgo-700);
+  }
+}
+
+/*
+  Movimento da página de apresentação, um só momento ao abrir: o marca-texto
+  risca as empresas de prioridade alta, uma de cada vez ("--ordem" no
+  elemento). Ao clicar noutra empresa, a conta dela se abre de cima para baixo.
+  Com movimento reduzido, tudo aparece pronto.
+*/
+@keyframes riscar {
+  from {
+    transform: scaleX(0) rotate(-0.6deg);
+  }
+  to {
+    transform: scaleX(1) rotate(-0.6deg);
+  }
+}
+
+@keyframes revelar {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.risco {
+  transform: rotate(-0.6deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .risco-animado {
+    animation: riscar 520ms cubic-bezier(0.65, 0, 0.35, 1) both;
+    animation-delay: calc(700ms + var(--ordem, 0) * 380ms);
+  }
+
+  .revelar {
+    animation: revelar 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 }

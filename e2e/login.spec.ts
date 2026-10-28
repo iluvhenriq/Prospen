@@ -29,6 +29,21 @@ test("cadastro, criação da empresa, saída e nova entrada", async ({ page }) =
   await page.getByRole("button", { name: "Entrar" }).click();
   await page.waitForURL("**/painel");
   await expect(page.getByText("Empresa Login").first()).toBeVisible();
+
+  // Tema da tela (fica aqui para não criar mais uma conta: o servidor limita
+  // cadastros). Começa claro, muda na hora, continua depois de recarregar (o
+  // script do <head> aplica antes de pintar) e volta ao claro.
+  const raiz = page.locator("html");
+  const tema = page.getByRole("group", { name: "Tema da tela" });
+  await expect(raiz).not.toHaveAttribute("data-escuro");
+  await expect(tema.getByRole("button", { name: "Claro" })).toHaveAttribute("aria-pressed", "true");
+  await tema.getByRole("button", { name: "Escuro" }).click();
+  await expect(raiz).toHaveAttribute("data-escuro", "");
+  await page.reload();
+  await expect(raiz).toHaveAttribute("data-escuro", "");
+  await expect(tema.getByRole("button", { name: "Escuro" })).toHaveAttribute("aria-pressed", "true");
+  await tema.getByRole("button", { name: "Claro" }).click();
+  await expect(raiz).not.toHaveAttribute("data-escuro");
 });
 
 // Limite de 8 falhas por e-mail a cada 15 minutos (src/modules/contas/limites.ts).

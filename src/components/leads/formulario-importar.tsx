@@ -128,7 +128,7 @@ export function FormularioImportar() {
                 type="file"
                 accept=".csv,text/csv,text/plain"
                 onChange={aoEscolherArquivo}
-                className="h-auto py-2 file:mr-3 file:rounded-md file:border-0 file:bg-musgo-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-musgo-800"
+                className="h-auto py-2 file:mr-3 file:rounded-controle file:border-0 file:bg-musgo-100 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-musgo-800"
                 aria-describedby="ajuda-arquivo-csv"
               />
               <p id="ajuda-arquivo-csv" className="text-sm text-texto-suave">
@@ -199,8 +199,8 @@ function Numero({
   destaque?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-borda bg-fundo px-4 py-3">
-      <p className={destaque ? "text-2xl font-semibold text-roxo-700" : "text-2xl font-semibold text-texto"}>
+    <div className="rounded-controle border border-borda bg-fundo px-4 py-3">
+      <p className={destaque ? "text-2xl font-semibold text-musgo-700" : "text-2xl font-semibold text-texto"}>
         {valor.toLocaleString("pt-BR")}
       </p>
       <p className="text-sm text-texto-suave">{rotulo}</p>
@@ -278,7 +278,7 @@ function ResultadoDaConferencia({
         {analise.ocorrencias.length > 0 ? (
           <div>
             <h3 className="mb-2 text-sm font-semibold text-texto">{t.ocorrenciasTitulo}</h3>
-            <div className="max-h-80 overflow-auto rounded-lg border border-borda">
+            <div className="max-h-80 overflow-auto rounded-controle border border-borda">
               <table className="w-full min-w-[32rem] text-left text-sm">
                 <thead className="sticky top-0 bg-musgo-50 text-texto-suave">
                   <tr>
@@ -310,7 +310,7 @@ function ResultadoDaConferencia({
 
         {depoisDeImportar ? (
           <p className="text-sm text-texto-suave">
-            <Link href="/painel/leads" className="font-medium text-roxo-700 underline-offset-4 hover:underline">
+            <Link href="/painel/leads" className="font-medium text-musgo-700 underline-offset-4 hover:underline">
               {t.verLeads}
             </Link>
           </p>

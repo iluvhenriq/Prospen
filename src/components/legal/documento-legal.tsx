@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { RESPONSAVEL } from "@/lib/responsavel";
 
-export const classeLinkLegal = "font-medium text-roxo-700 underline underline-offset-4 hover:text-roxo-600";
+export const classeLinkLegal = "font-medium text-musgo-700 underline underline-offset-4 hover:text-musgo-900";
 
 type Secao = { titulo: string; paragrafos: readonly string[] };
 
@@ -25,11 +25,11 @@ export function DocumentoLegal({
 }) {
   return (
     <main id="conteudo" className="mx-auto flex w-full max-w-2xl flex-col gap-8 px-4 py-10">
-      <Link href="/" className="text-2xl font-semibold tracking-tight text-musgo-800">
+      <Link href="/" className="text-2xl font-extrabold tracking-[-0.03em] text-musgo-900">
         {ptBR.app.nome}
       </Link>
       <header className="flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight text-musgo-800">{titulo}</h1>
+        <h1 className="text-2xl font-extrabold tracking-[-0.03em] text-musgo-900">{titulo}</h1>
         <p className="text-sm text-texto-suave">{atualizadaEm}</p>
         <p className="text-texto">{introducao}</p>
       </header>
@@ -63,9 +63,10 @@ export function DocumentoLegal({
   );
 }
 
-export function EmailDePrivacidade() {
+// className troca a cor do link quando o fundo é escuro (rodapé da apresentação).
+export function EmailDePrivacidade({ className }: { className?: string } = {}) {
   return (
-    <a href={`mailto:${RESPONSAVEL.emailPrivacidade}`} className={classeLinkLegal}>
+    <a href={`mailto:${RESPONSAVEL.emailPrivacidade}`} className={className ?? classeLinkLegal}>
       {RESPONSAVEL.emailPrivacidade}
     </a>
   );

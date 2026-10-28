@@ -42,6 +42,20 @@ export type Motivo =
 
 const MOTIVO_DO_PORTE: Record<string, Motivo> = { "01": "porteMicro", "03": "portePequena", "05": "porteDemais" };
 
+// Quanto cada motivo soma (ou tira). Serve para mostrar a conta da nota.
+export const VALOR_DO_MOTIVO: Record<Motivo, number> = {
+  telefone: PESOS.telefone,
+  emailProprio: PESOS.emailProprio,
+  emailContador: PESOS.emailContador,
+  empresaNova: PESOS.empresaNova,
+  empresaRecente: PESOS.empresaRecente,
+  porteMicro: PESOS.porte["01"],
+  portePequena: PESOS.porte["03"],
+  porteDemais: PESOS.porte["05"],
+  matriz: PESOS.matriz,
+  mei: PESOS.mei,
+};
+
 export type Faixa = "alta" | "media" | "baixa";
 
 export type DadosParaPontuar = {

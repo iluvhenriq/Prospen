@@ -19,7 +19,7 @@ export function EstadoVazio({
   return (
     <div
       className={cn(
-        "flex flex-col items-center gap-2 rounded-xl border border-dashed border-borda-campo px-6 py-12 text-center",
+        "flex flex-col items-center gap-2 rounded-painel border border-dashed border-borda-campo px-6 py-12 text-center",
         className,
       )}
       {...props}

@@ -93,7 +93,7 @@ export function FiltrosBusca({
             name="mei"
             value="1"
             defaultChecked={parametros.incluirMei}
-            className="size-4 accent-roxo-600"
+            className="size-4 accent-musgo-700"
           />
           {t.incluirMei}
         </label>

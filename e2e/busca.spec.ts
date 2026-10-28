@@ -45,25 +45,26 @@ test("busca por atividade sem MEI, adiciona como lead sem duplicar e respeita o 
   await page.getByRole("searchbox", { name: "Atividade" }).fill("padaria");
   await page.getByRole("button", { name: "Buscar" }).click();
 
-  // MEI fica de fora por padrão; a oficina não é da atividade.
-  await expect(page.getByText("PADARIA TESTE E2E", { exact: true })).toBeVisible();
+  // MEI fica de fora por padrão; a oficina não é da atividade. O nome da Receita
+  // (caixa alta) aparece sem caixa alta na tela.
+  await expect(page.getByText("Padaria Teste E2E", { exact: true })).toBeVisible();
   await expect(page.getByText("PAES DO MEI E2E")).toHaveCount(0);
-  await expect(page.getByText("OFICINA TESTE E2E", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Oficina Teste E2E", { exact: true })).toHaveCount(0);
 
-  await page.getByLabel("Marcar PADARIA TESTE E2E").check();
+  await page.getByLabel("Marcar Padaria Teste E2E").check();
   await page.getByRole("button", { name: /Adicionar marcadas como leads \(1\)/ }).click();
   await expect(page.getByText("1 lead adicionado.")).toBeVisible();
   await expect(page.getByText("Já é lead")).toBeVisible();
-  await expect(page.getByLabel("Marcar PADARIA TESTE E2E")).toBeDisabled();
+  await expect(page.getByLabel("Marcar Padaria Teste E2E")).toBeDisabled();
 
   // Com MEI marcado, ele aparece com o selo.
   await page.getByLabel("Incluir MEI").check();
   await page.getByRole("button", { name: "Buscar" }).click();
-  await expect(page.getByText("PAES DO MEI E2E", { exact: true })).toBeVisible();
+  await expect(page.getByText("Paes do MEI E2E", { exact: true })).toBeVisible();
 
   await page.goto("/painel/leads?origem=busca_cnpj");
   await expect(page.getByText("1 lead", { exact: true })).toBeVisible();
-  await expect(page.getByText("PADARIA TESTE E2E", { exact: true })).toBeVisible();
+  await expect(page.getByText("Padaria Teste E2E", { exact: true })).toBeVisible();
 
   // Pedido público "remover meus dados", sem login (outra janela, sem cookie).
   // Fica neste teste porque a rodada já usa os 10 cadastros por hora do servidor.

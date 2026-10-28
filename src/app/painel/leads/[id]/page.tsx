@@ -9,7 +9,8 @@ import { HistoricoEtapas } from "@/components/funil/historico-etapas";
 import { SeloEtapa } from "@/components/funil/selo-etapa";
 import { EtiquetasLead } from "@/components/leads/etiquetas-lead";
 import { FormularioLead } from "@/components/leads/formulario-lead";
-import { SeloPontuacao, textoDosMotivos } from "@/components/pontuacao/selo-pontuacao";
+import { textoDoLead } from "@/components/leads/nome-do-lead";
+import { ContaDaNota, NotaPontuacao } from "@/components/pontuacao/selo-pontuacao";
 import { NotasLead } from "@/components/leads/notas-lead";
 import { Alerta } from "@/components/ui/alerta";
 import { Botao } from "@/components/ui/botao";
@@ -54,12 +55,12 @@ async function ConteudoDoLead({
       <header className="flex flex-col gap-1">
         <Link
           href="/painel/leads"
-          className="text-sm font-medium text-roxo-700 underline-offset-4 hover:underline"
+          className="text-sm font-medium text-musgo-700 underline-offset-4 hover:underline"
         >
           {t.voltarParaLista}
         </Link>
-        <h1 className="break-words text-2xl font-semibold tracking-tight text-musgo-800">
-          {lead.nome}
+        <h1 className="break-words text-2xl font-bold tracking-[-0.02em] text-texto">
+          {textoDoLead(lead.nome, lead.origem)}
         </h1>
         <p className="text-sm text-texto-suave">
           {t.origens[lead.origem]}
@@ -99,7 +100,7 @@ async function ConteudoDoLead({
           </Cartao>
 
           {/* <details> funciona sem JavaScript e pede uma segunda decisão antes de excluir. */}
-          <details className="rounded-xl border border-erro-borda bg-erro-fundo p-4">
+          <details className="rounded-painel border border-erro-borda bg-erro-fundo p-4">
             <summary className="cursor-pointer text-sm font-medium text-erro">
               {t.detalhe.excluirTitulo}
             </summary>
@@ -117,15 +118,12 @@ async function ConteudoDoLead({
 
         <div className="flex flex-col gap-6">
           <Cartao>
-            <CartaoCabecalho>
+            <CartaoCabecalho className="flex-row items-start justify-between gap-4">
               <CartaoTitulo>{ptBR.pontuacao.titulo}</CartaoTitulo>
-              <CartaoDescricao>{ptBR.pontuacao.pontos(pontuacao.pontos)}</CartaoDescricao>
+              <NotaPontuacao {...pontuacao} />
             </CartaoCabecalho>
             <CartaoConteudo className="flex flex-col gap-2 text-sm text-texto-suave">
-              <div>
-                <SeloPontuacao {...pontuacao} />
-              </div>
-              <p>{textoDosMotivos(pontuacao.motivos)}</p>
+              <ContaDaNota pontos={pontuacao.pontos} motivos={pontuacao.motivos} />
               {lead.cnpj ? null : <p className="text-xs">{ptBR.pontuacao.semDadosDaReceita}</p>}
             </CartaoConteudo>
           </Cartao>

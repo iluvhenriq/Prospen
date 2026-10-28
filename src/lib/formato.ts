@@ -20,6 +20,30 @@ export function formatarDataIso(valor: string | null): string | null {
   return `${dia}/${mes}/${ano}`;
 }
 
+// Palavras que ficam minúsculas no meio do nome e siglas que ficam como são.
+const CONECTIVOS = new Set(["de", "da", "do", "das", "dos", "e", "em", "para", "com", "a", "o"]);
+const SIGLAS = new Set(["ME", "EPP", "MEI", "S/A", "SA", "S.A.", "S.A", "CIA", "LTDA.", "II", "III", "IV"]);
+const SIGLAS_EM_MINUSCULA: Record<string, string> = { LTDA: "Ltda", "LTDA.": "Ltda.", CIA: "Cia", EIRELI: "Eireli" };
+
+// Nome para a tela: a base da Receita grava tudo em caixa alta ("PADARIA DO
+// JOAO LTDA"), que fica pesado de ler numa lista. Só muda a exibição; o dado
+// gravado continua igual. Nome que já tem minúsculas é do usuário: fica como está.
+export function nomeParaExibir(nome: string): string {
+  if (/\p{Ll}/u.test(nome)) return nome;
+  return nome
+    .split(/(\s+)/)
+    .map((parte, indice) => {
+      if (/^\s+$/.test(parte) || parte === "") return parte;
+      if (SIGLAS_EM_MINUSCULA[parte]) return SIGLAS_EM_MINUSCULA[parte];
+      if (SIGLAS.has(parte) || /\d/.test(parte)) return parte;
+      const minuscula = parte.toLocaleLowerCase("pt-BR");
+      if (indice > 0 && CONECTIVOS.has(minuscula)) return minuscula;
+      // Primeira letra de cada pedaço separado por hífen ou barra ("AUTO-PECAS" vira "Auto-Pecas").
+      return minuscula.replace(/(^|[-/'(])(\p{L})/gu, (_, antes: string, letra: string) => antes + letra.toLocaleUpperCase("pt-BR"));
+    })
+    .join("");
+}
+
 export function formatarData(data: Date, fuso: string = FUSO_PADRAO): string {
   return formatador(fuso, { dateStyle: "short" }).format(data);
 }

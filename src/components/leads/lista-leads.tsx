@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SeloEtapa } from "@/components/funil/selo-etapa";
-import { SeloPontuacao } from "@/components/pontuacao/selo-pontuacao";
+import { textoDoLead } from "@/components/leads/nome-do-lead";
+import { NotaPontuacao } from "@/components/pontuacao/selo-pontuacao";
 import { Botao, BotaoLink } from "@/components/ui/botao";
 import { Campo } from "@/components/ui/campo";
 import { Selecao } from "@/components/ui/campo-texto";
@@ -100,6 +101,9 @@ export function FiltrosLeads({
   );
 }
 
+// Colunas da tabela de leads em tela larga: nota, lead, contato, etapa e origem.
+const GRADE_LEADS = "lg:grid-cols-[6.5rem_minmax(0,1.3fr)_minmax(0,1.2fr)_7.5rem_minmax(0,1fr)] lg:gap-5";
+
 export function ListaLeads({
   leads,
   etiquetasPorLead,
@@ -107,42 +111,55 @@ export function ListaLeads({
   leads: Lead[];
   etiquetasPorLead: Map<string, EtiquetaDoLead[]>;
 }) {
+  const c = ptBR.leads.colunas;
   return (
-    <ul className="divide-y divide-borda overflow-hidden rounded-xl border border-borda bg-superficie">
-      {leads.map((lead) => {
-        const etiquetas = etiquetasPorLead.get(lead.id) ?? [];
-        const telefone = formatarTelefone(lead.telefone, lead.pais);
-        const contato = [lead.email, telefone].filter(Boolean).join("  ·  ");
-        return (
-          <li key={lead.id}>
-            <Link
-              href={`/painel/leads/${lead.id}`}
-              className="flex flex-col gap-2 px-4 py-3 transition-colors hover:bg-musgo-50 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
-            >
-              <div className="min-w-0 sm:flex-1">
-                <p className="truncate font-medium text-texto">{lead.nome}</p>
-                {lead.empresa ? (
-                  <p className="truncate text-sm text-texto-suave">{lead.empresa}</p>
-                ) : null}
-              </div>
-              {contato ? (
-                <p className="min-w-0 truncate text-sm text-texto-suave sm:flex-1">{contato}</p>
-              ) : null}
-              <div className="flex flex-wrap items-center gap-1.5 sm:max-w-64 sm:justify-end">
-                <SeloPontuacao {...pontuar(lead)} />
-                <SeloEtapa etapa={lead.etapa} />
-                <Etiqueta>{ptBR.leads.origens[lead.origem]}</Etiqueta>
-                {etiquetas.map((etiqueta) => (
-                  <Etiqueta key={etiqueta.id} variante={etiqueta.cor}>
-                    {etiqueta.nome}
-                  </Etiqueta>
-                ))}
-              </div>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
+    <div className="overflow-hidden rounded-painel border border-borda bg-superficie">
+      {/* Cabeçalho só para quem enxerga as colunas; cada linha já é um link completo. */}
+      <div aria-hidden="true" className={cn(GRADE_LEADS, "hidden border-b-2 border-texto px-4 py-2.5 text-xs font-bold text-texto-suave lg:grid")}>
+        <span>{c.nota}</span>
+        <span>{c.lead}</span>
+        <span>{c.contato}</span>
+        <span>{c.etapa}</span>
+        <span>{c.origem}</span>
+      </div>
+      <ul className="divide-y divide-borda">
+        {leads.map((lead) => {
+          const etiquetas = etiquetasPorLead.get(lead.id) ?? [];
+          const telefone = formatarTelefone(lead.telefone, lead.pais);
+          return (
+            <li key={lead.id}>
+              <Link
+                href={`/painel/leads/${lead.id}`}
+                className={cn(GRADE_LEADS, "flex flex-col gap-1.5 px-4 py-3 transition-colors hover:bg-musgo-50 lg:grid lg:items-center")}
+              >
+                <NotaPontuacao {...pontuar(lead)} />
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-texto">{textoDoLead(lead.nome, lead.origem)}</p>
+                  {lead.empresa && lead.empresa !== lead.nome ? (
+                    <p className="truncate text-sm text-texto-suave">{textoDoLead(lead.empresa, lead.origem)}</p>
+                  ) : null}
+                </div>
+                <div className="min-w-0 text-sm text-texto-suave">
+                  {lead.email ? <p className="truncate">{lead.email}</p> : null}
+                  {telefone ? <p className="numeros truncate">{telefone}</p> : null}
+                </div>
+                <div>
+                  <SeloEtapa etapa={lead.etapa} />
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Etiqueta>{ptBR.leads.origens[lead.origem]}</Etiqueta>
+                  {etiquetas.map((etiqueta) => (
+                    <Etiqueta key={etiqueta.id} variante={etiqueta.cor}>
+                      {etiqueta.nome}
+                    </Etiqueta>
+                  ))}
+                </div>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 

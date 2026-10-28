@@ -40,12 +40,12 @@ async function ConteudoDaCampanha({ params }: { params: PageProps<"/painel/campa
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <Link href="/painel/campanhas" className="text-sm font-medium text-roxo-700 underline-offset-4 hover:underline">
+        <Link href="/painel/campanhas" className="text-sm font-medium text-musgo-700 underline-offset-4 hover:underline">
           {t.voltar}
         </Link>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="break-words text-2xl font-semibold tracking-tight text-musgo-800">{campanha.nome}</h1>
+            <h1 className="break-words text-2xl font-bold tracking-[-0.02em] text-texto">{campanha.nome}</h1>
             <p className="text-sm text-texto-suave">
               {t.periodo(formatarDataIso(campanha.inicio), formatarDataIso(campanha.fim))}
             </p>
@@ -91,7 +91,7 @@ async function ConteudoDaCampanha({ params }: { params: PageProps<"/painel/campa
                     <div className="min-w-0 flex-1">
                       <Link
                         href={`/painel/leads/${lead.id}`}
-                        className="block truncate text-sm font-medium text-texto underline-offset-4 hover:text-roxo-700 hover:underline"
+                        className="block truncate text-sm font-medium text-texto underline-offset-4 hover:text-musgo-700 hover:underline"
                       >
                         {lead.nome}
                       </Link>
@@ -125,7 +125,7 @@ async function ConteudoDaCampanha({ params }: { params: PageProps<"/painel/campa
           </Cartao>
 
           {/* <details> funciona sem JavaScript e não ocupa espaço enquanto fechado. */}
-          <details className="rounded-xl border border-borda bg-superficie p-4">
+          <details className="rounded-painel border border-borda bg-superficie p-4">
             <summary className="cursor-pointer text-sm font-medium text-texto">{t.editar}</summary>
             <div className="mt-4">
               <FormularioCampanha
@@ -138,7 +138,7 @@ async function ConteudoDaCampanha({ params }: { params: PageProps<"/painel/campa
           </details>
 
           {papelPode(contexto.papel, "excluirCampanha") ? (
-            <details className="rounded-xl border border-erro-borda bg-erro-fundo p-4">
+            <details className="rounded-painel border border-erro-borda bg-erro-fundo p-4">
               <summary className="cursor-pointer text-sm font-medium text-erro">{t.excluirTitulo}</summary>
               <div className="mt-3 flex flex-col gap-3">
                 <p className="text-sm text-erro">{t.excluirAviso}</p>
