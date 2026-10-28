@@ -2,7 +2,7 @@ import { Botao, BotaoLink } from "@/components/ui/botao";
 import { Campo } from "@/components/ui/campo";
 import { Selecao } from "@/components/ui/campo-texto";
 import { ptBR } from "@/lib/i18n/pt-BR";
-import type { ParametrosBusca } from "@/modules/base-cnpj/parametros";
+import { DIAS_DE_RECENTES, type ParametrosBusca } from "@/modules/base-cnpj/parametros";
 
 // Filtros da busca. Formulário comum de navegação (GET): funciona sem
 // JavaScript e deixa o endereço compartilhável. A lista de cidades só aparece
@@ -86,18 +86,33 @@ export function FiltrosBusca({
         maxLength={20}
         className="sm:col-span-2 lg:col-span-2"
       />
-      <div className="flex flex-col gap-0.5 sm:col-span-2 lg:col-span-2 lg:self-start lg:pt-7">
-        <label className="flex items-center gap-2 text-sm font-medium text-texto">
-          <input
-            type="checkbox"
-            name="mei"
-            value="1"
-            defaultChecked={parametros.incluirMei}
-            className="size-4 accent-musgo-700"
-          />
-          {t.incluirMei}
-        </label>
-        <p className="text-xs text-texto-suave">{t.incluirMeiAjuda}</p>
+      <div className="flex flex-col gap-3 sm:col-span-2 lg:col-span-2 lg:self-start lg:pt-7">
+        <div className="flex flex-col gap-0.5">
+          <label className="flex items-center gap-2 text-sm font-medium text-texto">
+            <input
+              type="checkbox"
+              name="mei"
+              value="1"
+              defaultChecked={parametros.incluirMei}
+              className="size-4 accent-musgo-700"
+            />
+            {t.incluirMei}
+          </label>
+          <p className="text-xs text-texto-suave">{t.incluirMeiAjuda}</p>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <label className="flex items-center gap-2 text-sm font-medium text-texto">
+            <input
+              type="checkbox"
+              name="recentes"
+              value="1"
+              defaultChecked={parametros.recentes}
+              className="size-4 accent-musgo-700"
+            />
+            {ptBR.busca.recentes(DIAS_DE_RECENTES)}
+          </label>
+          <p className="text-xs text-texto-suave">{ptBR.busca.recentesAjuda}</p>
+        </div>
       </div>
     </form>
   );

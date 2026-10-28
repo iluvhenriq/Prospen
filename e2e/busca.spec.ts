@@ -62,6 +62,15 @@ test("busca por atividade sem MEI, adiciona como lead sem duplicar e respeita o 
   await page.getByRole("button", { name: "Buscar" }).click();
   await expect(page.getByText("Paes do MEI E2E", { exact: true })).toBeVisible();
 
+  // Vigiar a busca (etapa 9e): aparece no painel e dá para parar de vigiar.
+  await page.getByRole("button", { name: "Vigiar esta busca" }).click();
+  await expect(page.getByText("Busca vigiada. As empresas novas aparecem no painel.")).toBeVisible();
+  await page.goto("/painel");
+  const novidades = page.locator("section").filter({ hasText: "Empresas novas nas suas buscas" });
+  await expect(novidades.getByText("padaria, em", { exact: false })).toBeVisible();
+  await novidades.getByRole("button", { name: /Parar de vigiar/ }).click();
+  await expect(novidades.getByText("Vigie uma busca", { exact: false })).toBeVisible();
+
   await page.goto("/painel/leads?origem=busca_cnpj");
   await expect(page.getByText("1 lead", { exact: true })).toBeVisible();
   await expect(page.getByText("Padaria Teste E2E", { exact: true })).toBeVisible();

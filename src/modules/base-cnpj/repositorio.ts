@@ -1,4 +1,4 @@
-import { and, asc, count, eq, getTableColumns, inArray, sql, type SQL } from "drizzle-orm";
+import { and, asc, count, eq, getTableColumns, gte, inArray, sql, type SQL } from "drizzle-orm";
 import { pgTable } from "drizzle-orm/pg-core";
 import {
   baseCnpjCargas,
@@ -242,6 +242,9 @@ export function repositorioBaseCnpj(db: Banco) {
         if (filtros.semMei) {
           condicoes.push(sql`${baseCnpjEmpresas.naturezaJuridica} is distinct from ${NATUREZA_MEI}`);
         }
+        if (filtros.abertasDesde) {
+          condicoes.push(gte(baseCnpjEstabelecimentos.dataInicioAtividade, filtros.abertasDesde));
+        }
         if (depoisDe) {
           condicoes.push(
             sql`(${baseCnpjEstabelecimentos.pontuacao} < ${depoisDe.pontos} or (${baseCnpjEstabelecimentos.pontuacao} = ${depoisDe.pontos} and ${baseCnpjEstabelecimentos.cnpj} > ${depoisDe.cnpj}))`,
@@ -277,6 +280,32 @@ export function repositorioBaseCnpj(db: Banco) {
         )
         .limit(Math.min(Math.max(limite, 1), 100));
       return linhas.map((linha) => ({ ...linha, mei: linha.naturezaJuridica === NATUREZA_MEI }));
+    },
+
+    // CNPJs das empresas abertas desde uma data que casam com os filtros (sem os
+    // excluídos), até o limite. Serve para contar as novas de uma busca vigiada:
+    // quem chama tira as que já são leads e mostra "limite ou mais" se encher.
+    async cnpjsAbertosDesde(
+      filtros: Omit<FiltrosDaBusca, "cnpj" | "abertasDesde">,
+      desde: string,
+      limite: number,
+    ): Promise<string[]> {
+      if (filtros.atividades && filtros.atividades.length === 0) return [];
+      const condicoes: SQL[] = [
+        eq(baseCnpjEstabelecimentos.uf, filtros.uf),
+        gte(baseCnpjEstabelecimentos.dataInicioAtividade, desde),
+        sql`not exists (select 1 from ${baseCnpjExclusoes} where ${baseCnpjExclusoes.cnpj} = ${baseCnpjEstabelecimentos.cnpj})`,
+      ];
+      if (filtros.municipio) condicoes.push(eq(baseCnpjEstabelecimentos.municipioCodigo, filtros.municipio));
+      if (filtros.atividades) condicoes.push(inArray(baseCnpjEstabelecimentos.cnaePrincipal, filtros.atividades));
+      if (filtros.semMei) condicoes.push(sql`${baseCnpjEmpresas.naturezaJuridica} is distinct from ${NATUREZA_MEI}`);
+      const linhas = await db
+        .select({ cnpj: baseCnpjEstabelecimentos.cnpj })
+        .from(baseCnpjEstabelecimentos)
+        .leftJoin(baseCnpjEmpresas, eq(baseCnpjEmpresas.cnpjBasico, baseCnpjEstabelecimentos.cnpjBasico))
+        .where(and(...condicoes))
+        .limit(Math.min(Math.max(limite, 1), 2000));
+      return linhas.map((linha) => linha.cnpj);
     },
 
     // Dados para virar lead, lidos de novo do banco: o navegador só manda os
@@ -325,6 +354,8 @@ export type FiltrosDaBusca = {
   // Códigos de atividade. Lista vazia = nenhuma atividade achada, sem resultado.
   atividades?: string[];
   semMei: boolean;
+  // Só empresas abertas a partir desta data (AAAA-MM-DD): as recém-abertas.
+  abertasDesde?: string;
 };
 
 export type ResultadoDaBusca = {

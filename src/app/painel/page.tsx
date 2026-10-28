@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 import { AprendizadoDoPainel } from "@/components/painel/aprendizado";
+import { NovidadesDasBuscas } from "@/components/painel/novidades-buscas";
+import { obterNovidadesDasBuscasVigiadas } from "@/modules/base-cnpj/busca";
 import { Barras } from "@/components/painel/barras";
 import { BotaoLink } from "@/components/ui/botao";
 import { Esqueleto } from "@/components/ui/carregando";
@@ -17,7 +19,7 @@ import { cn } from "@/lib/cn";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { obterAgendaDoDia } from "@/modules/leads/consultas";
 import { formatarValor } from "@/modules/leads/valor";
-import { exigirContexto } from "@/modules/organizacoes/contexto";
+import { exigirContexto, type Contexto } from "@/modules/organizacoes/contexto";
 import { DIAS_DE_LEADS_NOVOS, obterAprendizado, obterResumo } from "@/modules/painel/resumo";
 
 export const metadata: Metadata = { title: ptBR.painel.titulo };
@@ -48,6 +50,10 @@ function TituloParte({ titulo, descricao, atalho }: { titulo: string; descricao?
 }
 
 const classeAtalho = "text-sm font-semibold text-musgo-700 underline hover:text-musgo-900";
+
+async function BlocoNovidades({ contexto }: { contexto: Contexto }) {
+  return <NovidadesDasBuscas buscas={await obterNovidadesDasBuscasVigiadas(contexto)} />;
+}
 
 async function ConteudoPainel() {
   // Exige login e empresa. Quem ainda não criou a empresa vai para essa etapa.
@@ -214,6 +220,11 @@ async function ConteudoPainel() {
               </div>
             </div>
           </div>
+
+          {/* Carrega à parte: a primeira contagem do dia pode demorar e não segura o painel. */}
+          <Suspense fallback={<Esqueleto className="h-32 w-full" />}>
+            <BlocoNovidades contexto={contexto} />
+          </Suspense>
 
           <AprendizadoDoPainel aprendizado={aprendizado} />
 

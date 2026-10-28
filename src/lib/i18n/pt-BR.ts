@@ -252,6 +252,20 @@ export const ptBR = {
       tabela: { item: "Item", quantidade: "Quantidade" },
       nota: "Os números consideram a etapa atual de cada lead, em todo o período.",
     },
+    // Empresas novas nas buscas vigiadas (etapa 9e).
+    novidades: {
+      titulo: "Empresas novas nas suas buscas",
+      descricao: (dias: number) => `Abertas nos últimos ${dias} dias, que ainda não são seus leads. Atualiza a cada nova base da Receita.`,
+      descricaoDaBusca: (atividade: string, local: string) => (atividade ? `${atividade}, em ${local}` : `Todas as atividades, em ${local}`),
+      novas: (total: number, maisQue: boolean) =>
+        maisQue ? `${total} ou mais` : total === 1 ? "1 nova" : total === 0 ? "nenhuma nova" : `${total} novas`,
+      ver: "Ver empresas",
+      parar: "Parar de vigiar",
+      paraRotulo: (descricao: string) => `Parar de vigiar ${descricao}`,
+      estadoFora: "Estado fora da base carregada",
+      vazio: "Vigie uma busca (botão na tela Buscar empresas) e o painel avisa quando abrirem empresas novas nela.",
+      buscar: "Buscar empresas",
+    },
     // O que os negócios encerrados ensinam (etapa 9d). Sem conclusão com pouco dado.
     aprendizado: {
       titulo: "O que os seus resultados ensinam",
@@ -410,6 +424,20 @@ export const ptBR = {
       contato: "Contato e motivos",
     },
     jaEhLead: "Já é lead",
+    // Filtro das recém-abertas e buscas vigiadas (etapa 9e).
+    recentes: (dias: number) => `Só abertas nos últimos ${dias} dias`,
+    recentesAjuda: "Empresa nova ainda está montando os fornecedores: é a hora de chegar.",
+    vigiar: {
+      botao: "Vigiar esta busca",
+      explicacao: "O painel avisa quando abrirem empresas novas com estes filtros.",
+      vigiando: "Você vigia esta busca. As empresas novas aparecem no painel.",
+      parar: "Parar de vigiar",
+      feito: "Busca vigiada. As empresas novas aparecem no painel.",
+      repetida: "Esta busca já é vigiada.",
+      limite: (maximo: number) => `Você já vigia ${maximo} buscas, o máximo. Pare de vigiar uma no painel para vigiar outra.`,
+      precisaFoco: "Escolha uma cidade ou uma atividade para vigiar.",
+      falhou: "Não foi possível vigiar agora. Tente de novo.",
+    },
     mei: "MEI",
     semContato: "Sem telefone nem e-mail",
     abertaEm: (ano: string) => `Aberta em ${ano}`,

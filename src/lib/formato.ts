@@ -60,6 +60,11 @@ function fusoOuPadrao(fuso: string): string {
   }
 }
 
+// Data AAAA-MM-DD N dias antes. Sem fuso: é data do calendário.
+export function diasAntes(data: string, dias: number): string {
+  return new Date(Date.parse(`${data}T00:00:00Z`) - dias * 86_400_000).toISOString().slice(0, 10);
+}
+
 // Dias entre duas datas AAAA-MM-DD (b menos a). Sem fuso: são datas do calendário.
 export function diasEntre(a: string, b: string): number {
   return Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);

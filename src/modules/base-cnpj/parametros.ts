@@ -7,6 +7,10 @@ import type { Cursor } from "./repositorio";
 // digitável por qualquer pessoa: valor estranho é descartado, nunca causa erro.
 
 export const RESULTADOS_POR_PAGINA = 50;
+// "Recém-abertas": empresas abertas nos últimos N dias (filtro da busca e
+// buscas vigiadas). A base da Receita sai uma vez por mês, então 90 dias
+// cobrem as três últimas publicações.
+export const DIAS_DE_RECENTES = 90;
 const MAXIMO_DA_ATIVIDADE = 80;
 const MAXIMO_DO_CNPJ = 20;
 
@@ -16,6 +20,8 @@ export type ParametrosBusca = {
   atividade: string;
   // "Sem MEI" vem ligado. Só sai com ?mei=1.
   incluirMei: boolean;
+  // Só as abertas nos últimos DIAS_DE_RECENTES dias (?recentes=1).
+  recentes: boolean;
   // Último da página anterior (paginação sem "offset"). No endereço: "45-CNPJ".
   depoisDe?: Cursor;
   // CNPJ digitado como foi digitado (para mostrar de volta) e, se válido,
@@ -39,6 +45,7 @@ export function lerParametrosBusca(entrada: ParametrosDeUrl): ParametrosBusca {
     municipio: /^\d{1,7}$/.test(municipio) ? municipio : undefined,
     atividade: (primeiro(entrada.atividade) ?? "").trim().slice(0, MAXIMO_DA_ATIVIDADE),
     incluirMei: primeiro(entrada.mei) === "1",
+    recentes: primeiro(entrada.recentes) === "1",
     depoisDe,
     cnpjDigitado,
     cnpj: cnpj && cnpjValido(cnpj) ? cnpj : undefined,
@@ -59,6 +66,7 @@ export function enderecoDaBusca(parametros: ParametrosBusca, depoisDe?: Cursor):
   if (parametros.municipio) consulta.set("cidade", parametros.municipio);
   if (parametros.atividade) consulta.set("atividade", parametros.atividade);
   if (parametros.incluirMei) consulta.set("mei", "1");
+  if (parametros.recentes) consulta.set("recentes", "1");
   if (parametros.cnpjDigitado) consulta.set("cnpj", parametros.cnpjDigitado);
   if (depoisDe) consulta.set("depois", `${depoisDe.pontos}-${depoisDe.cnpj}`);
   const texto = consulta.toString();

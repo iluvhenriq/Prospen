@@ -10,5 +10,6 @@ export * from "./importacoes";
 export * from "./organizacao-config";
 export * from "./base-cnpj";
 export * from "./campanhas";
+export * from "./buscas-vigiadas";
 export * from "./registros-acesso";
 export * from "./pre-cadastros";

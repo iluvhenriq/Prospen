@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { FiltrosBusca } from "@/components/busca/filtros-busca";
 import { ResultadosBusca } from "@/components/busca/resultados-busca";
+import { VigiarBusca } from "@/components/busca/vigiar-busca";
 import { Alerta } from "@/components/ui/alerta";
 import { BotaoLink } from "@/components/ui/botao";
 import { Esqueleto } from "@/components/ui/carregando";
@@ -29,6 +30,16 @@ async function ConteudoBusca({ searchParams }: { searchParams: PageProps<"/paine
   return (
     <div className="flex flex-col gap-5">
       <FiltrosBusca parametros={parametros} estados={tela.estados} municipios={tela.municipios} />
+
+      {tela.vigia.pode && parametros.uf ? (
+        <VigiarBusca
+          uf={parametros.uf}
+          cidade={parametros.municipio ?? ""}
+          atividade={parametros.atividade}
+          incluirMei={parametros.incluirMei}
+          vigiadaId={tela.vigia.id}
+        />
+      ) : null}
 
       {tela.atividades && tela.atividades.length > 0 ? (
         <div className="text-sm text-texto-suave">

@@ -12,6 +12,7 @@ import { ehUuid } from "@/modules/leads/validacao-textos";
 import { exigirPermissao } from "@/modules/organizacoes/contexto";
 import { RESULTADOS_POR_PAGINA } from "./parametros";
 import { repositorioBaseCnpj } from "./repositorio";
+import { MAXIMO_DE_BUSCAS_VIGIADAS, repositorioBuscasVigiadas } from "./repositorio-buscas-vigiadas";
 
 export type EstadoAdicionar = { mensagem?: string; sucesso?: boolean };
 
@@ -73,4 +74,67 @@ export async function adicionarDaBusca(_anterior: EstadoAdicionar, dados: FormDa
     sucesso: adicionados > 0 || mensagemCampanha !== "",
     mensagem: [t.resultado(adicionados, validado.data.length - adicionados), mensagemCampanha].filter(Boolean).join(" "),
   };
+}
+
+// ----------------------------------------------------------------------------
+// Buscas vigiadas (etapa 9e)
+// ----------------------------------------------------------------------------
+
+export type EstadoVigiar = { mensagem?: string; sucesso?: boolean };
+
+const filtrosParaVigiar = z
+  .object({
+    uf: z.string().trim().toUpperCase().regex(/^[A-Z]{2}$/),
+    cidade: z.string().trim().regex(/^\d{0,7}$/),
+    atividade: z.string().trim().max(80),
+    mei: z.enum(["", "1"]),
+  })
+  .refine((filtros) => filtros.cidade !== "" || filtros.atividade !== "");
+
+// Vigia a busca com os filtros do formulário (os mesmos da tela). A cidade é
+// conferida contra a base: código que não é do estado é recusado.
+export async function vigiarBusca(_anterior: EstadoVigiar, dados: FormData): Promise<EstadoVigiar> {
+  const contexto = await exigirPermissao("trabalharComLeads");
+  const t = ptBR.busca.vigiar;
+  const lido = (campo: string) => {
+    const valor = dados.get(campo);
+    return typeof valor === "string" ? valor : "";
+  };
+  const validado = filtrosParaVigiar.safeParse({
+    uf: lido("uf"),
+    cidade: lido("cidade"),
+    atividade: lido("atividade"),
+    mei: lido("mei"),
+  });
+  if (!validado.success) return { mensagem: t.precisaFoco };
+
+  const db = getDb();
+  const { uf, cidade, atividade, mei } = validado.data;
+  let municipioNome: string | null = null;
+  if (cidade) {
+    const municipio = (await repositorioBaseCnpj(db).municipiosDoEstado(uf)).find((m) => m.codigo === cidade);
+    if (!municipio) return { mensagem: t.falhou };
+    municipioNome = municipio.nome;
+  }
+
+  const resultado = await repositorioBuscasVigiadas(db, contexto.organizacao.id).vigiar(
+    { uf, municipioCodigo: cidade, municipioNome, atividade, incluirMei: mei === "1" },
+    contexto.usuario.id,
+  );
+  if (!resultado.ok) {
+    return { mensagem: resultado.motivo === "limite" ? t.limite(MAXIMO_DE_BUSCAS_VIGIADAS) : t.repetida };
+  }
+
+  revalidatePath("/painel/busca");
+  revalidatePath("/painel");
+  return { sucesso: true, mensagem: t.feito };
+}
+
+export async function pararDeVigiar(dados: FormData): Promise<void> {
+  const contexto = await exigirPermissao("trabalharComLeads");
+  const id = dados.get("id");
+  if (typeof id !== "string" || !ehUuid(id)) return;
+  await repositorioBuscasVigiadas(getDb(), contexto.organizacao.id).excluir(id);
+  revalidatePath("/painel/busca");
+  revalidatePath("/painel");
 }

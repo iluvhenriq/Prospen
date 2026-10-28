@@ -30,7 +30,6 @@ Sucesso é o vendedor gastar o tempo dele conversando com as empresas certas, n�
 O diferencial é a junção, não um recurso isolado: achar a empresa, saber quem vale contatar primeiro (com o motivo de cada ponto), trabalhar só com dados oficiais e limpos, e acompanhar a venda até o fim, sem trocar de ferramenta. As alternativas (Econodata, Speedio, CNPJ.biz, lista comprada em planilha) costumam entregar a lista e parar aí, ou usar dados de origem duvidosa.
 
 **Próximos diferenciais, em construção a partir de 27/10/2026** (só anunciar quando estiverem prontos):
-- aviso de empresas recém-abertas na região e atividade do cliente, a cada nova base da Receita;
 - pontuação ajustada ao cliente ideal de cada empresa.
 
 **Planos futuros, ainda não construídos** (nunca anunciar como recurso pronto):
@@ -46,7 +45,7 @@ O diferencial é a junção, não um recurso isolado: achar a empresa, saber que
 
 ## Capabilities and Constraints
 
-**Pronto:** login e empresas com papéis; leads com notas, etiquetas e importação de CSV (até 2 MB e 5.000 linhas); contato em um clique (WhatsApp para celular, ligar, e-mail); registro de cada tentativa de contato com próxima ação e a tela "Hoje"; aprendizado com os resultados no painel (taxa de fechamento por prioridade e por origem, motivo de perda por porte, insistência), só a partir de 5 casos por grupo; funil com histórico, valor da venda e motivo da perda; busca na base pública (hoje só São Paulo carregado localmente) por estado, cidade, atividade e CNPJ exato, sem MEI por padrão; pontuação de 0 a 100 com motivos; campanhas manuais; painel de indicadores; página "remover meus dados"; política de privacidade (rascunho).
+**Pronto:** login e empresas com papéis; leads com notas, etiquetas e importação de CSV (até 2 MB e 5.000 linhas); contato em um clique (WhatsApp para celular, ligar, e-mail); registro de cada tentativa de contato com próxima ação e a tela "Hoje"; aprendizado com os resultados no painel (taxa de fechamento por prioridade e por origem, motivo de perda por porte, insistência), só a partir de 5 casos por grupo; filtro de empresas abertas nos últimos 90 dias e buscas vigiadas, com as novas no painel; funil com histórico, valor da venda e motivo da perda; busca na base pública (hoje só São Paulo carregado localmente) por estado, cidade, atividade e CNPJ exato, sem MEI por padrão; pontuação de 0 a 100 com motivos; campanhas manuais; painel de indicadores; página "remover meus dados"; política de privacidade (rascunho).
 
 **Fora do produto, de propósito, por enquanto:** Google Ads, Meta Ads, formulários de captação, automação, inteligência artificial, cobrança e planos.
 

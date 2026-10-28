@@ -30,14 +30,28 @@ describe("arquitetura", () => {
     "importacoes",
     "campanhas",
     "campanhaLeads",
+    "buscasVigiadas",
   ];
-  const ARQUIVOS_DE_TABELA = ["leads", "etiquetas", "notas", "contatos", "historico-etapas", "importacoes", "campanhas"];
+  const ARQUIVOS_DE_TABELA = [
+    "leads",
+    "etiquetas",
+    "notas",
+    "contatos",
+    "historico-etapas",
+    "importacoes",
+    "campanhas",
+    "buscas-vigiadas",
+  ];
 
-  it("só os repositórios e a pasta do banco usam as tabelas de leads, etiquetas, notas, histórico, importações e campanhas", () => {
+  it("só os repositórios e a pasta do banco usam as tabelas de leads, etiquetas, notas, histórico, importações, campanhas e buscas vigiadas", () => {
     // O repositório de campanhas lê os leads para contar os resultados de cada
-    // campanha; só ele, e não a pasta inteira de campanhas.
+    // campanha; só ele, e não a pasta inteira de campanhas. As buscas vigiadas
+    // têm o repositório delas na pasta da base pública.
     const permitido = (f: string) =>
-      f.startsWith("src/modules/leads/") || f === "src/modules/campanhas/repositorio.ts" || f.startsWith("src/db/");
+      f.startsWith("src/modules/leads/") ||
+      f === "src/modules/campanhas/repositorio.ts" ||
+      f === "src/modules/base-cnpj/repositorio-buscas-vigiadas.ts" ||
+      f.startsWith("src/db/");
 
     const infratores = todos.filter((arquivo) => {
       const nome = caminho(arquivo);
