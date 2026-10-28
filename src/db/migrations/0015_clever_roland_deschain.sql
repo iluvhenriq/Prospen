@@ -1,0 +1,4 @@
+ALTER TABLE "pre_cadastros" ADD COLUMN "segmento" text;--> statement-breakpoint
+ALTER TABLE "pre_cadastros" ADD COLUMN "interesses" text[] DEFAULT '{}'::text[] NOT NULL;--> statement-breakpoint
+ALTER TABLE "pre_cadastros" ADD CONSTRAINT "pre_cadastros_segmento_valido" CHECK ("pre_cadastros"."segmento" is null or "pre_cadastros"."segmento" in ('agencia', 'contabilidade', 'fornecedor', 'servicos', 'representante', 'outro'));--> statement-breakpoint
+ALTER TABLE "pre_cadastros" ADD CONSTRAINT "pre_cadastros_interesses_validos" CHECK ("pre_cadastros"."interesses" <@ array['sinais', 'necessidades', 'mapa', 'perfil', 'dossie']::text[]);

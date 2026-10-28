@@ -28,6 +28,10 @@ test("pré-cadastro pela página inicial, com erro claro e sucesso", async ({ pa
   await page.getByLabel("Seu nome").fill("Pessoa Interessada");
   await page.getByLabel("E-mail").fill(emailUnico("pre-cadastro"));
   await page.getByLabel("Empresa (opcional)").fill("Empresa Interessada");
+  // Perguntas opcionais: não estão prontas e o formulário diz isso.
+  await expect(page.getByText("Nada desta lista está pronto.")).toBeVisible();
+  await page.getByLabel("O que a sua empresa vende? (opcional)").selectOption({ label: "Contabilidade" });
+  await page.getByLabel(/Avisos de oportunidade/).check();
   await page.getByRole("button", { name: "Fazer pré-cadastro" }).click();
   await expect(page.getByText("Pronto, você está na lista.")).toBeVisible();
 

@@ -1,5 +1,5 @@
 import { asc, count, eq } from "drizzle-orm";
-import { preCadastros, type PreCadastro } from "@/db/schema";
+import { preCadastros, type InteressePreCadastro, type PreCadastro, type SegmentoPreCadastro } from "@/db/schema";
 import type { Banco } from "@/db/tipos";
 
 // ÚNICO lugar que mexe na tabela de pré-cadastros.
@@ -7,7 +7,13 @@ import type { Banco } from "@/db/tipos";
 export function repositorioPreCadastros(db: Banco) {
   return {
     // Grava; se o e-mail já estava, não faz nada. Devolve se entrou agora.
-    async registrar(dados: { nome: string; email: string; empresa: string | null }): Promise<boolean> {
+    async registrar(dados: {
+      nome: string;
+      email: string;
+      empresa: string | null;
+      segmento?: SegmentoPreCadastro | null;
+      interesses?: InteressePreCadastro[];
+    }): Promise<boolean> {
       const linhas = await db
         .insert(preCadastros)
         .values({ ...dados, email: dados.email.toLowerCase() })

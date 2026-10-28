@@ -161,6 +161,27 @@ export const ptBR = {
       nome: "Seu nome",
       email: "E-mail",
       empresa: "Empresa (opcional)",
+      // Perguntas opcionais (27/10/2026). Mesma ordem das listas do banco
+      // (src/db/schema/pre-cadastros.ts); um teste confere.
+      segmento: "O que a sua empresa vende? (opcional)",
+      segmentoNenhum: "Prefiro não dizer",
+      segmentos: {
+        agencia: "Marketing, sites ou publicidade (agência)",
+        contabilidade: "Contabilidade",
+        fornecedor: "Produtos para outras empresas (fornecedor ou indústria)",
+        servicos: "Serviços para outras empresas",
+        representante: "Representação comercial",
+        outro: "Outra coisa",
+      },
+      interessesTitulo: "O que mais ajudaria a sua venda? (opcional)",
+      interessesAviso: "Ainda estamos decidindo o que construir. Nada desta lista está pronto.",
+      interesses: {
+        sinais: "Avisos de oportunidade: empresa que abriu nova unidade, mudou de endereço ou de atividade",
+        necessidades: "Empresas que precisam do que eu vendo, com a evidência (ex.: site fora do ar)",
+        mapa: "Mapa do mercado: onde há empresas do meu segmento que ainda não prospectei",
+        perfil: "Achar empresas parecidas com os meus melhores clientes",
+        dossie: "Resumo pronto de cada empresa antes da ligação",
+      },
       botao: "Fazer pré-cadastro",
       nomeObrigatorio: "Informe o seu nome.",
       nomeLongo: "Use no máximo 80 caracteres.",
@@ -171,7 +192,7 @@ export const ptBR = {
       pronto: "Pronto, você está na lista. Vamos avisar por e-mail quando o PROSPEN abrir.",
       // "Usamos seus dados só para ... Para sair da lista, escreva para EMAIL. Veja a POLÍTICA."
       avisoInicio:
-        "Usamos o seu nome e e-mail só para avisar sobre a abertura e as condições da pré-venda. Para sair da lista, escreva para",
+        "Usamos o seu nome e e-mail só para avisar sobre a abertura e as condições da pré-venda, e as respostas opcionais só para decidir o que construir. Para sair da lista, escreva para",
       avisoFim: "Veja a",
     },
     rodape: {
@@ -923,6 +944,7 @@ export const ptBR = {
         titulo: "Pré-cadastro da pré-venda",
         paragrafos: [
           "Quem faz o pré-cadastro na página inicial nos informa o nome, o e-mail e, se quiser, o nome da empresa. Usamos esses dados só para avisar sobre a abertura do PROSPEN e enviar as condições da pré-venda. Base legal: procedimentos preliminares a um contrato, a pedido da própria pessoa (art. 7º, V).",
+          "O formulário também tem duas perguntas opcionais: o que a empresa vende e quais recursos mais ajudariam. Usamos essas respostas só para decidir o que construir, olhando o total de respostas, e nunca para outra finalidade.",
           "Guardamos o pré-cadastro até 12 meses depois da abertura ou até a pessoa pedir para sair da lista, pelo e-mail de privacidade, o que vier primeiro.",
         ],
       },

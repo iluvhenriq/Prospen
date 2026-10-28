@@ -5,6 +5,7 @@ import { useActionState } from "react";
 import { Alerta } from "@/components/ui/alerta";
 import { Botao } from "@/components/ui/botao";
 import { Campo } from "@/components/ui/campo";
+import { CampoSelecao } from "@/components/ui/campo-texto";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { enviarPreCadastro, type EstadoPreCadastro } from "@/modules/pre-cadastro/acoes";
 
@@ -50,6 +51,24 @@ export function FormularioPreCadastro({ emailContato }: { emailContato: string }
         defaultValue={estado.valores?.empresa}
         erro={estado.erros?.empresa}
       />
+      <CampoSelecao rotulo={t.segmento} name="segmento" defaultValue="">
+        <option value="">{t.segmentoNenhum}</option>
+        {Object.entries(t.segmentos).map(([valor, rotulo]) => (
+          <option key={valor} value={valor}>
+            {rotulo}
+          </option>
+        ))}
+      </CampoSelecao>
+      <fieldset className="flex flex-col gap-2">
+        <legend className="text-sm font-medium text-texto">{t.interessesTitulo}</legend>
+        <p className="text-xs text-texto-suave">{t.interessesAviso}</p>
+        {Object.entries(t.interesses).map(([valor, rotulo]) => (
+          <label key={valor} className="flex items-start gap-2.5 text-sm text-texto">
+            <input type="checkbox" name="interesses" value={valor} className="mt-0.5 size-4 shrink-0 accent-musgo-700" />
+            {rotulo}
+          </label>
+        ))}
+      </fieldset>
       <Botao type="submit" carregando={pendente} tamanho="grande" className="w-full">
         {t.botao}
       </Botao>

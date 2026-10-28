@@ -25,7 +25,14 @@ function texto(dados: FormData, campo: string): string {
 export async function enviarPreCadastro(_anterior: EstadoPreCadastro, dados: FormData): Promise<EstadoPreCadastro> {
   const valores = { nome: texto(dados, "nome"), email: texto(dados, "email"), empresa: texto(dados, "empresa") };
   try {
-    const resultado = await registrarPreCadastro(getDb(), valores, ipDaRequisicao(await headers()));
+    const respostas = {
+      segmento: texto(dados, "segmento"),
+      interesses: dados
+        .getAll("interesses")
+        .filter((valor): valor is string => typeof valor === "string")
+        .slice(0, 10),
+    };
+    const resultado = await registrarPreCadastro(getDb(), valores, ipDaRequisicao(await headers()), Date.now(), respostas);
     if (!resultado.ok) return { erros: resultado.erros, mensagem: resultado.mensagem, valores };
     return { sucesso: true };
   } catch (erro) {
