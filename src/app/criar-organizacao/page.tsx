@@ -47,6 +47,9 @@ export default function PaginaCriarOrganizacao() {
       <Suspense fallback={<CarregandoOrganizacao />}>
         <ConteudoOrganizacao />
       </Suspense>
+      {/* Quem foi convidado e chegou aqui sem o link criaria uma empresa à parte
+          e não entraria mais na equipe (cada conta participa de uma empresa só). */}
+      <p className="text-xs text-texto-suave">{ptBR.acesso.organizacao.temConvite}</p>
     </CartaoAcesso>
   );
 }

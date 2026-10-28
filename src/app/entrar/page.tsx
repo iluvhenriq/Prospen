@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { CartaoAcesso, classeLinkTexto } from "@/components/conta/cartao-acesso";
+import { CartaoAcesso, conviteDoEndereco, LinkDaTelaIrma } from "@/components/conta/cartao-acesso";
 import { FormularioEntrar } from "@/components/conta/formulario-entrar";
 import { Esqueleto } from "@/components/ui/carregando";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { obterSessao } from "@/modules/organizacoes/contexto";
-import { conviteIdValido } from "@/modules/organizacoes/equipe";
 
 export const metadata: Metadata = { title: ptBR.acesso.entrar.titulo };
 
@@ -15,20 +13,15 @@ export const metadata: Metadata = { title: ptBR.acesso.entrar.titulo };
 // fica dentro de <Suspense>, então o formulário aparece sem esperar por ela.
 type Busca = PageProps<"/entrar">["searchParams"];
 
-async function lerConvite(searchParams: Busca): Promise<string | undefined> {
-  const { convite } = await searchParams;
-  return conviteIdValido(convite) ? convite : undefined;
-}
-
 // Quem veio de um link de convite volta para ele.
 async function RedirecionarSeLogado({ searchParams }: { searchParams: Busca }) {
-  const convite = await lerConvite(searchParams);
+  const convite = await conviteDoEndereco(searchParams);
   if (await obterSessao()) redirect(convite ? `/convite/${convite}` : "/painel");
   return null;
 }
 
 async function FormularioComConvite({ searchParams }: { searchParams: Busca }) {
-  return <FormularioEntrar convite={await lerConvite(searchParams)} />;
+  return <FormularioEntrar convite={await conviteDoEndereco(searchParams)} />;
 }
 
 export default function PaginaEntrar(props: PageProps<"/entrar">) {
@@ -39,9 +32,9 @@ export default function PaginaEntrar(props: PageProps<"/entrar">) {
       rodape={
         <>
           {ptBR.acesso.entrar.semConta}{" "}
-          <Link href="/cadastrar" className={classeLinkTexto}>
+          <LinkDaTelaIrma href="/cadastrar" searchParams={props.searchParams}>
             {ptBR.acesso.entrar.linkCadastro}
-          </Link>
+          </LinkDaTelaIrma>
         </>
       }
     >

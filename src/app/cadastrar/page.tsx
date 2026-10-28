@@ -2,31 +2,25 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { CartaoAcesso, classeLinkTexto } from "@/components/conta/cartao-acesso";
+import { CartaoAcesso, classeLinkTexto, conviteDoEndereco, LinkDaTelaIrma } from "@/components/conta/cartao-acesso";
 import { FormularioCadastro } from "@/components/conta/formulario-cadastro";
 import { Esqueleto } from "@/components/ui/carregando";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { obterSessao } from "@/modules/organizacoes/contexto";
-import { conviteIdValido } from "@/modules/organizacoes/equipe";
 
 export const metadata: Metadata = { title: ptBR.acesso.cadastro.titulo };
 
 type Busca = PageProps<"/cadastrar">["searchParams"];
 
-async function lerConvite(searchParams: Busca): Promise<string | undefined> {
-  const { convite } = await searchParams;
-  return conviteIdValido(convite) ? convite : undefined;
-}
-
 // Quem veio de um link de convite volta para ele.
 async function RedirecionarSeLogado({ searchParams }: { searchParams: Busca }) {
-  const convite = await lerConvite(searchParams);
+  const convite = await conviteDoEndereco(searchParams);
   if (await obterSessao()) redirect(convite ? `/convite/${convite}` : "/painel");
   return null;
 }
 
 async function FormularioComConvite({ searchParams }: { searchParams: Busca }) {
-  return <FormularioCadastro convite={await lerConvite(searchParams)} />;
+  return <FormularioCadastro convite={await conviteDoEndereco(searchParams)} />;
 }
 
 export default function PaginaCadastro(props: PageProps<"/cadastrar">) {
@@ -37,9 +31,9 @@ export default function PaginaCadastro(props: PageProps<"/cadastrar">) {
       rodape={
         <>
           {ptBR.acesso.cadastro.temConta}{" "}
-          <Link href="/entrar" className={classeLinkTexto}>
+          <LinkDaTelaIrma href="/entrar" searchParams={props.searchParams}>
             {ptBR.acesso.cadastro.linkEntrar}
-          </Link>
+          </LinkDaTelaIrma>
         </>
       }
     >

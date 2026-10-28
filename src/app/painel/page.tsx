@@ -66,13 +66,14 @@ async function BlocoRadar({ contexto }: { contexto: Contexto }) {
 async function ConteudoPainel() {
   // Exige login e empresa. Quem ainda não criou a empresa vai para essa etapa.
   const contexto = await exigirContexto();
-  const [painel, agenda, aprendizado, { plano }] = await Promise.all([
+  const { plano } = await obterPlano(contexto);
+  const tem = (recurso: Recurso) => planoTem(plano, recurso);
+  const [painel, agenda, aprendizado] = await Promise.all([
     obterResumo(contexto),
     obterAgendaDoDia(contexto, 1),
-    obterAprendizado(contexto),
-    obterPlano(contexto),
+    // Lê até 5.000 negócios encerrados: só no plano que mostra o aprendizado.
+    tem("aprendizado") ? obterAprendizado(contexto) : null,
   ]);
-  const tem = (recurso: Recurso) => planoTem(plano, recurso);
   const primeiroNome = contexto.usuario.nome.split(" ")[0];
   const t = ptBR.painel;
   const ti = t.indicadores;
@@ -246,7 +247,7 @@ async function ConteudoPainel() {
             <AvisoDoPlano recurso="radar" />
           )}
 
-          {tem("aprendizado") ? <AprendizadoDoPainel aprendizado={aprendizado} /> : <AvisoDoPlano recurso="aprendizado" />}
+          {aprendizado ? <AprendizadoDoPainel aprendizado={aprendizado} /> : <AvisoDoPlano recurso="aprendizado" />}
 
           <p className="text-xs text-texto-suave">{ti.nota}</p>
         </>

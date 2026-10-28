@@ -12,7 +12,7 @@ Para o responsável pelo PROSPEN. Rascunho de 23/10/2026. Todos os pedidos chega
 |---|---|---|
 | Acesso, confirmação ou portabilidade dos dados da conta | Usuário | `npm run conta:exportar -- email > dados.json` e responda com o arquivo, só para o e-mail da conta |
 | Correção | Usuário | Nome e e-mail: hoje só pelo banco (não há tela). Responda o que foi corrigido |
-| Exclusão da conta | Usuário | `npm run conta:excluir -- email --confirmar`. Apaga a pessoa e as empresas em que ela era a única integrante. Responda com o resumo que o comando mostra e explique que os registros de acesso ficam 6 meses (Marco Civil) |
+| Exclusão da conta | Usuário | `npm run conta:excluir -- email --confirmar`. Apaga a pessoa e as empresas em que ela era a única integrante. Se ela era a única dona de uma empresa que continua (tem outras pessoas), quem tem o papel mais alto (e, no mesmo papel, está há mais tempo) vira dono; o comando mostra quem, e essa pessoa deve ser avisada. Responda com o resumo que o comando mostra e explique que os registros de acesso ficam 6 meses (Marco Civil) |
 | Tirar a empresa da busca | Responsável pela empresa | Indique a página `/remover-meus-dados` ou rode `npm run cnpj:excluir -- CNPJ` |
 | Explicação ou revisão da pontuação (art. 20) | Empresa da base | Explique os critérios de `src/modules/pontuacao/regras.ts` (estão na política). A pontuação só ordena a busca; se pedir para não aparecer, use a remoção |
 | Dados que um cliente do PROSPEN guardou como lead | Pessoa contatada por um cliente | O cliente é o controlador. Diga com qual empresa cliente falar e avise essa empresa do pedido (dever de operador, termos seção 4). Não apague dado do cliente sem instrução dele |

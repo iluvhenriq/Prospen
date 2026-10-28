@@ -1,6 +1,7 @@
 import { and, asc, count, eq, inArray, ne } from "drizzle-orm";
 import { member, organization, registrosAcesso, user } from "@/db/schema";
 import type { Banco } from "@/db/tipos";
+import { ORDEM_DOS_PAPEIS, papelMaisAlto } from "@/modules/organizacoes/membros";
 
 // Pedidos de titulares sobre a PRÓPRIA conta (LGPD, art. 18), atendidos pelo
 // responsável com os comandos `npm run conta:exportar` e `npm run conta:excluir`.
@@ -47,11 +48,21 @@ export async function exportarDadosDaConta(db: Banco, email: string): Promise<Da
 
 export type ResultadoExclusao =
   | { ok: false; motivo: "nao_encontrado" }
-  | { ok: true; empresasApagadas: string[]; empresasMantidas: string[] };
+  | {
+      ok: true;
+      empresasApagadas: string[];
+      empresasMantidas: string[];
+      // Empresas mantidas em que a pessoa era a única dona: quem assumiu.
+      novosDonos: { empresa: string; email: string }[];
+    };
 
 // Eliminação: apaga a pessoa (sessões, senha e vínculos vão junto, pelo banco)
 // e as empresas em que ela era a ÚNICA integrante, com todos os dados delas.
 // Empresa com outras pessoas continua: os dados são dela, não de quem saiu.
+// Empresa que continua precisa de um dono: sem ele, ninguém gerencia a equipe
+// e o plano (achado pelo e-mail do dono) não pode ser trocado. Se a pessoa era
+// a única dona, assume quem tem o papel mais alto e, entre esses, quem está há
+// mais tempo na empresa.
 // Os registros de acesso ficam até o fim dos 6 meses (Marco Civil, art. 15).
 export async function excluirConta(db: Banco, email: string): Promise<ResultadoExclusao> {
   const pessoa = await acharUsuario(db, email);
@@ -75,16 +86,34 @@ export async function excluirConta(db: Banco, email: string): Promise<ResultadoE
     const compartilhadas = new Set(outrosIntegrantes.filter((linha) => linha.total > 0).map((linha) => linha.organizacaoId));
 
     const apagar = minhas.filter((empresa) => !compartilhadas.has(empresa.id));
+    const manter = minhas.filter((empresa) => compartilhadas.has(empresa.id));
     if (apagar.length > 0) {
       // Leads, notas, etiquetas, funil, campanhas e importações vão junto (cascata).
       await tx.delete(organization).where(inArray(organization.id, apagar.map((empresa) => empresa.id)));
+    }
+
+    const novosDonos: { empresa: string; email: string }[] = [];
+    const posicao = (papel: string) => ORDEM_DOS_PAPEIS.indexOf(papelMaisAlto(papel));
+    for (const empresa of manter) {
+      const restantes = await tx
+        .select({ id: member.id, papel: member.role, email: user.email })
+        .from(member)
+        .innerJoin(user, eq(user.id, member.userId))
+        .where(and(eq(member.organizationId, empresa.id), ne(member.userId, pessoa.id)))
+        .orderBy(asc(member.createdAt), asc(member.id));
+      // A ordenação é estável: no mesmo papel, continua valendo o mais antigo.
+      const [sucessor] = restantes.sort((a, b) => posicao(a.papel) - posicao(b.papel));
+      if (!sucessor || papelMaisAlto(sucessor.papel) === "owner") continue;
+      await tx.update(member).set({ role: "owner" }).where(eq(member.id, sucessor.id));
+      novosDonos.push({ empresa: empresa.nome, email: sucessor.email });
     }
     await tx.delete(user).where(eq(user.id, pessoa.id));
 
     return {
       ok: true,
       empresasApagadas: apagar.map((empresa) => empresa.nome),
-      empresasMantidas: minhas.filter((empresa) => compartilhadas.has(empresa.id)).map((empresa) => empresa.nome),
+      empresasMantidas: manter.map((empresa) => empresa.nome),
+      novosDonos,
     };
   });
 }

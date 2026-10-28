@@ -30,13 +30,25 @@ test("convite por link: o plano limita a equipe e a pessoa convidada entra na em
   const caminho = (await dono.locator("code").first().textContent())?.trim() ?? "";
   expect(caminho).toMatch(/^\/convite\/[A-Za-z0-9_-]+$/);
 
-  // A convidada abre o link sem conta, cria a conta e volta para o convite.
+  // A convidada abre o link sem conta. Vai primeiro para "Já tenho conta" e
+  // troca para "Criar conta" pelo rodapé: o convite precisa ir junto, senão ela
+  // cai na criação de empresa e não entra mais na equipe.
+  const conviteId = caminho.split("/").pop() ?? "";
   await convidada.goto(caminho);
   await expect(convidada.getByText("Você recebeu um convite para a equipe da empresa Empresa Equipe.")).toBeVisible();
-  await convidada.getByRole("link", { name: "Criar conta" }).click();
-  await convidada.getByLabel("Seu nome").fill("Convidada Equipe");
-  await convidada.getByLabel("E-mail").fill(emailConvidada);
-  await convidada.getByLabel("Senha").fill(SENHA);
+  await convidada.getByRole("link", { name: "Já tenho conta" }).click();
+  await convidada.waitForURL(`**/entrar?convite=${conviteId}`);
+  const paraCadastro = convidada.getByRole("link", { name: "Criar conta" });
+  await expect(paraCadastro).toHaveAttribute("href", `/cadastrar?convite=${conviteId}`);
+  await paraCadastro.click();
+  await convidada.waitForURL(`**/cadastrar?convite=${conviteId}`);
+  await expect(convidada.getByRole("link", { name: "Entrar" })).toHaveAttribute("href", `/entrar?convite=${conviteId}`);
+  // O Next mantém as últimas páginas no documento, escondidas (Cache Components):
+  // os campos da tela de entrada continuam lá. Só os visíveis contam.
+  const campo = (rotulo: string) => convidada.getByLabel(rotulo).filter({ visible: true });
+  await campo("Seu nome").fill("Convidada Equipe");
+  await campo("E-mail").fill(emailConvidada);
+  await campo("Senha").fill(SENHA);
   await convidada.getByRole("button", { name: "Criar conta" }).click();
   await convidada.waitForURL(`**${caminho}`);
   await convidada.getByRole("button", { name: "Aceitar e entrar" }).click();

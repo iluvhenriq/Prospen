@@ -16,6 +16,23 @@ async function usuariosDoPlano(db: Banco, organizacaoId: string): Promise<number
 export const TAMANHO_MINIMO_SENHA = 8;
 export const TAMANHO_MAXIMO_SENHA = 128;
 
+// Caminhos do login (depois de /api/auth) que respondem por HTTP. Hoje nenhum:
+// entrar, criar conta, sair, empresa e convites passam pelas ações do servidor,
+// que chamam o login direto e aplicam os limites de tentativas, o registro de
+// acesso (Marco Civil) e as regras do produto (uma empresa por conta, convite
+// só com o link). Com a rota aberta, tudo isso podia ser pulado: o Better Auth
+// deixa testar 3 senhas a cada 10 segundos por endereço, contra 8 por e-mail a
+// cada 15 minutos nas telas. Quando houver provedor de e-mail, os links de
+// confirmação e de nova senha entram aqui (ex.: "/verify-email").
+export const CAMINHOS_HTTP_LIBERADOS: readonly string[] = [];
+
+export function caminhoHttpLiberado(caminho: string, liberados: readonly string[] = CAMINHOS_HTTP_LIBERADOS): boolean {
+  const prefixo = "/api/auth";
+  if (!caminho.startsWith(`${prefixo}/`)) return false;
+  const resto = caminho.slice(prefixo.length);
+  return liberados.some((liberado) => resto === liberado || resto.startsWith(`${liberado}/`));
+}
+
 type Opcoes = {
   secret: string;
   baseURL: string;

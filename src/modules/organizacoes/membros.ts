@@ -10,7 +10,8 @@ export type OrganizacaoDoUsuario = {
   papel: Papel;
 };
 
-const ORDEM: Papel[] = ["owner", "admin", "member"];
+// Do mais poderoso ao menos.
+export const ORDEM_DOS_PAPEIS: readonly Papel[] = ["owner", "admin", "member"];
 
 // Quem pode o quê. Cada ação diz o papel MÍNIMO exigido; papéis acima também podem.
 // "Dono" e "membro" são os papéis do produto. O "admin" existe no login e fica
@@ -37,7 +38,7 @@ export const PAPEL_MINIMO = {
 export type Acao = keyof typeof PAPEL_MINIMO;
 
 export function papelPode(papel: Papel, acao: Acao): boolean {
-  return ORDEM.indexOf(papel) <= ORDEM.indexOf(PAPEL_MINIMO[acao]);
+  return ORDEM_DOS_PAPEIS.indexOf(papel) <= ORDEM_DOS_PAPEIS.indexOf(PAPEL_MINIMO[acao]);
 }
 
 export class ErroSemPermissao extends Error {
@@ -51,7 +52,7 @@ export class ErroSemPermissao extends Error {
 // Vale o mais alto. Qualquer valor desconhecido vira "member" (o menos poderoso).
 export function papelMaisAlto(texto: string | null | undefined): Papel {
   const papeis = (texto ?? "").split(",").map((parte) => parte.trim());
-  return ORDEM.find((papel) => papeis.includes(papel)) ?? "member";
+  return ORDEM_DOS_PAPEIS.find((papel) => papeis.includes(papel)) ?? "member";
 }
 
 // Descobre a qual empresa a pessoa pertence, SEMPRE pela tabela de membros.

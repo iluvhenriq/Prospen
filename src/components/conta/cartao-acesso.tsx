@@ -1,7 +1,8 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Cartao, CartaoConteudo, CartaoDescricao, CartaoCabecalho } from "@/components/ui/cartao";
 import { ptBR } from "@/lib/i18n/pt-BR";
+import { conviteIdValido } from "@/modules/organizacoes/equipe";
 
 type CartaoAcessoProps = {
   titulo: string;
@@ -36,3 +37,39 @@ export function CartaoAcesso({ titulo, descricao, children, rodape }: CartaoAces
 // Link de texto usado nos rodapés das telas de acesso.
 export const classeLinkTexto =
   "font-medium text-musgo-700 underline-offset-4 hover:underline";
+
+type BuscaDaPagina = Promise<Record<string, string | string[] | undefined>>;
+
+// Convite que veio no endereço (?convite=...), só se tiver o formato certo.
+export async function conviteDoEndereco(searchParams: BuscaDaPagina): Promise<string | undefined> {
+  const { convite } = await searchParams;
+  return conviteIdValido(convite) ? convite : undefined;
+}
+
+async function LinkComConvite({ href, searchParams, children }: { href: string; searchParams: BuscaDaPagina; children: ReactNode }) {
+  const convite = await conviteDoEndereco(searchParams);
+  return (
+    <Link href={convite ? `${href}?convite=${convite}` : href} className={classeLinkTexto}>
+      {children}
+    </Link>
+  );
+}
+
+// Link para a tela irmã que leva o convite junto. Sem isso, quem trocava de
+// "Criar conta" para "Entrar" (ou o contrário) perdia o convite, caía na
+// criação de empresa e, se criasse uma, não conseguia mais entrar na equipe.
+export function LinkDaTelaIrma({ href, searchParams, children }: { href: string; searchParams: BuscaDaPagina; children: ReactNode }) {
+  return (
+    <Suspense
+      fallback={
+        <Link href={href} className={classeLinkTexto}>
+          {children}
+        </Link>
+      }
+    >
+      <LinkComConvite href={href} searchParams={searchParams}>
+        {children}
+      </LinkComConvite>
+    </Suspense>
+  );
+}

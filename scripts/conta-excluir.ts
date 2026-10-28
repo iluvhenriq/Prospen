@@ -8,6 +8,8 @@ import { carregarEnvLocal } from "./carregar-env";
 
 // Pedido do titular (LGPD, art. 18, VI): apaga a conta e as empresas em que a
 // pessoa era a única integrante, com todos os dados delas. NÃO TEM VOLTA.
+// Empresa que continua (tem outras pessoas) e ficaria sem dono ganha um novo
+// dono: quem tem o papel mais alto e, no mesmo papel, está há mais tempo nela.
 // Confira a identidade de quem pediu antes. Sem --confirmar, não apaga nada.
 //   npm run conta:excluir -- pessoa@empresa.com.br --confirmar
 async function main(): Promise<void> {
@@ -29,6 +31,9 @@ async function main(): Promise<void> {
     console.log("Conta apagada.");
     console.log(`Empresas apagadas com todos os dados: ${resultado.empresasApagadas.join(", ") || "nenhuma"}.`);
     console.log(`Empresas mantidas (têm outras pessoas): ${resultado.empresasMantidas.join(", ") || "nenhuma"}.`);
+    for (const { empresa, email: novoDono } of resultado.novosDonos) {
+      console.log(`Novo dono de ${empresa}: ${novoDono} (a conta apagada era a única dona). Avise essa pessoa.`);
+    }
     console.log("Os registros de acesso ficam até completar 6 meses (Marco Civil) e somem sozinhos.");
   } finally {
     await pool.end();

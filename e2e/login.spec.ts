@@ -73,6 +73,12 @@ test("limite de tentativas de login por e-mail", async ({ page }) => {
   await expect(page.getByText("Muitas tentativas. Tente de novo em 15 minutos.")).toBeVisible();
   await expect(page).toHaveURL(/\/entrar/);
 
+  // E não há atalho: a rota HTTP do login, que não passa por esta trava, não responde.
+  const direto = await page.request.post("/api/auth/sign-in/email", {
+    data: { email, password: "senha-errada-10" },
+  });
+  expect(direto.status()).toBe(404);
+
   // O bloqueio é daquele e-mail, não de todo mundo.
   await tentar(emailUnico("outro"), "senha-errada-1");
   await expect(page.getByText("E-mail ou senha incorretos.")).toBeVisible();

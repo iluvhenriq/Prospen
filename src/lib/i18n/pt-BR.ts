@@ -235,6 +235,7 @@ export const ptBR = {
       botao: "Continuar",
       saudacao: (nome: string) => `Olá, ${nome}.`,
       exemplo: "Ex.: Barbearia Central",
+      temConvite: "Recebeu um convite para a equipe de uma empresa? Não crie outra: abra o link do convite.",
     },
     limiteTentativas: (minutos: number) =>
       `Muitas tentativas. Tente de novo em ${minutos} ${minutos === 1 ? "minuto" : "minutos"}.`,

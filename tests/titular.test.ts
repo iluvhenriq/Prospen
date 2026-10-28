@@ -55,7 +55,13 @@ describe("pedidos do titular sobre a conta", () => {
 
   it("exclui a pessoa e a empresa só dela; mantém a compartilhada e não toca nas outras", async () => {
     const resultado = await excluirConta(amb.db, "ana@empresa-a.com.br");
-    expect(resultado).toEqual({ ok: true, empresasApagadas: ["Agência A"], empresasMantidas: ["Agência C"] });
+    // A Carla continua dona da Agência C: ninguém precisa assumir.
+    expect(resultado).toEqual({
+      ok: true,
+      empresasApagadas: ["Agência A"],
+      empresasMantidas: ["Agência C"],
+      novosDonos: [],
+    });
 
     expect(await amb.db.select().from(user).where(eq(user.id, ana.id))).toEqual([]);
     expect(await amb.db.select().from(organization).where(eq(organization.id, empresaAna))).toEqual([]);
@@ -72,5 +78,57 @@ describe("pedidos do titular sobre a conta", () => {
 
   it("e-mail desconhecido não apaga nada", async () => {
     expect(await excluirConta(amb.db, "ninguem@exemplo.com.br")).toEqual({ ok: false, motivo: "nao_encontrado" });
+  });
+
+  // Desde a equipe por convite (28/10/2026), a empresa pode ter outras pessoas.
+  // Sem dono, ninguém mais gerencia a equipe nem o plano.
+  async function entrarNaEmpresa(empresa: string, pessoa: PessoaDeTeste, papel: string, criadoEm: Date) {
+    await amb.db.insert(member).values({
+      id: `membro-${pessoa.id}`,
+      organizationId: empresa,
+      userId: pessoa.id,
+      role: papel,
+      createdAt: criadoEm,
+    });
+  }
+
+  // Cada pessoa destes casos participa de uma empresa só.
+  async function papelDe(pessoa: PessoaDeTeste): Promise<string | undefined> {
+    const [linha] = await amb.db.select({ papel: member.role }).from(member).where(eq(member.userId, pessoa.id));
+    return linha?.papel;
+  }
+
+  it("a única dona sai: quem tem o papel mais alto assume, mesmo chegando depois", async () => {
+    const dani = await cadastrarPessoa(amb, "Dani Rocha", "dani@empresa-d.com.br");
+    const eva = await cadastrarPessoa(amb, "Eva Melo", "eva@empresa-d.com.br");
+    const fabio = await cadastrarPessoa(amb, "Fábio Reis", "fabio@empresa-d.com.br");
+    const empresaDani = await criarEmpresa(amb, dani, "Agência D", "agencia-d");
+    await entrarNaEmpresa(empresaDani, eva, "member", new Date("2026-10-01T10:00:00Z"));
+    await entrarNaEmpresa(empresaDani, fabio, "admin", new Date("2026-10-20T10:00:00Z"));
+
+    const resultado = await excluirConta(amb.db, "dani@empresa-d.com.br");
+    expect(resultado).toEqual({
+      ok: true,
+      empresasApagadas: [],
+      empresasMantidas: ["Agência D"],
+      novosDonos: [{ empresa: "Agência D", email: "fabio@empresa-d.com.br" }],
+    });
+    expect(await papelDe(fabio)).toBe("owner");
+    expect(await papelDe(eva)).toBe("member");
+  });
+
+  it("no mesmo papel, assume quem está há mais tempo na empresa", async () => {
+    const gil = await cadastrarPessoa(amb, "Gil Prado", "gil@empresa-g.com.br");
+    const hugo = await cadastrarPessoa(amb, "Hugo Sá", "hugo@empresa-g.com.br");
+    const iara = await cadastrarPessoa(amb, "Iara Luz", "iara@empresa-g.com.br");
+    const empresaGil = await criarEmpresa(amb, gil, "Agência G", "agencia-g");
+    // A Iara entra no banco primeiro, mas com data mais recente que a do Hugo.
+    await entrarNaEmpresa(empresaGil, iara, "member", new Date("2026-10-25T10:00:00Z"));
+    await entrarNaEmpresa(empresaGil, hugo, "member", new Date("2026-10-05T10:00:00Z"));
+
+    const resultado = await excluirConta(amb.db, "gil@empresa-g.com.br");
+    expect(resultado).toMatchObject({ ok: true, novosDonos: [{ empresa: "Agência G", email: "hugo@empresa-g.com.br" }] });
+    expect(await papelDe(hugo)).toBe("owner");
+    expect(await papelDe(iara)).toBe("member");
   });
 });

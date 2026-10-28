@@ -314,11 +314,10 @@ export function repositorioBaseCnpj(db: Banco) {
         .limit(limite);
     },
 
-    // Página de resultados, ordenada pelo CNPJ. A próxima página começa depois
-    // do último CNPJ mostrado (sem "offset", que fica lento lá pelo fim, e sem
-    // contagem total, que leva segundos em estados grandes).
     // Página de resultados, da maior pontuação para a menor (desempate pelo
-    // CNPJ). A próxima página começa depois do último mostrado.
+    // CNPJ). A próxima página começa depois do último mostrado (sem "offset",
+    // que fica lento lá pelo fim, e sem contagem total, que leva segundos em
+    // estados grandes).
     async buscar(filtros: FiltrosDaBusca, depoisDe: Cursor | null, limite: number): Promise<ResultadoDaBusca[]> {
       if (filtros.atividades && filtros.atividades.length === 0) return [];
       const condicoes: SQL[] = [
