@@ -1,6 +1,7 @@
 import "server-only";
 import { getDb } from "@/db/client";
 import type { Etiqueta, Importacao, Lead } from "@/db/schema";
+import { hojeNoFuso } from "@/lib/formato";
 import type { Contexto } from "@/modules/organizacoes/contexto";
 import { obterConfiguracao } from "@/modules/organizacoes/configuracao";
 import {
@@ -9,6 +10,7 @@ import {
   temFiltroAtivo,
   type ParametrosLista,
 } from "./parametros";
+import { repositorioContatos, type ContatoComAutor, type ResumoDeContatos } from "./repositorio-contatos";
 import { repositorioEtiquetas, type EtiquetaComTotal } from "./repositorio-etiquetas";
 import { repositorioHistorico, type RegistroEtapaComAutor } from "./repositorio-historico";
 import { repositorioImportacoes } from "./repositorio-importacoes";
@@ -22,6 +24,9 @@ import { ehUuid } from "./validacao-textos";
 export type ListaDeLeads = {
   leads: Lead[];
   etiquetasPorLead: Map<string, Etiqueta[]>;
+  contatosPorLead: Map<string, ResumoDeContatos>;
+  fusoHorario: string;
+  hoje: string;
   etiquetas: EtiquetaComTotal[];
   total: number;
   pagina: number;
@@ -50,11 +55,19 @@ export async function obterListaDeLeads(
     limite: TAMANHO_DA_PAGINA,
     deslocamento: (pagina - 1) * TAMANHO_DA_PAGINA,
   });
-  const etiquetasPorLead = await etiquetas.dosLeads(itens.map((lead) => lead.id));
+  const ids = itens.map((lead) => lead.id);
+  const [etiquetasPorLead, contatosPorLead, configuracao] = await Promise.all([
+    etiquetas.dosLeads(ids),
+    repositorioContatos(db, contexto.organizacao.id).resumo(ids),
+    obterConfiguracao(db, contexto.organizacao.id),
+  ]);
 
   return {
     leads: itens,
     etiquetasPorLead,
+    contatosPorLead,
+    fusoHorario: configuracao.fusoHorario,
+    hoje: hojeNoFuso(configuracao.fusoHorario),
     etiquetas: todasEtiquetas,
     total,
     pagina,
@@ -69,7 +82,10 @@ export type DetalheDoLead = {
   etiquetasDisponiveis: Etiqueta[];
   notas: NotaComAutor[];
   historico: RegistroEtapaComAutor[];
+  contatos: ContatoComAutor[];
   fusoHorario: string;
+  // Data de hoje no fuso da empresa (AAAA-MM-DD), para a próxima ação.
+  hoje: string;
   // Moeda da empresa, para o valor da venda.
   moeda: string;
   // Quantos outros leads da empresa usam o mesmo e-mail e o mesmo telefone.
@@ -87,13 +103,14 @@ export async function obterDetalheDoLead(
   if (!lead) return null;
 
   const repositorioDeEtiquetas = repositorioEtiquetas(db, contexto.organizacao.id);
-  const [porLead, todas, notas, historico, configuracao, compartilhado] = await Promise.all([
+  const [porLead, todas, notas, historico, configuracao, compartilhado, contatos] = await Promise.all([
     repositorioDeEtiquetas.dosLeads([id]),
     repositorioDeEtiquetas.listar(),
     repositorioNotas(db, contexto.organizacao.id).listar(id),
     repositorioHistorico(db, contexto.organizacao.id).doLead(id),
     obterConfiguracao(db, contexto.organizacao.id),
     repositorioLeads(db, contexto.organizacao.id).contatoCompartilhado(lead),
+    repositorioContatos(db, contexto.organizacao.id).listar(id),
   ]);
 
   const etiquetas = porLead.get(id) ?? [];
@@ -104,10 +121,33 @@ export async function obterDetalheDoLead(
     etiquetasDisponiveis: todas.filter((etiqueta) => !usadas.has(etiqueta.id)),
     notas,
     historico,
+    contatos,
     fusoHorario: configuracao.fusoHorario,
+    hoje: hojeNoFuso(configuracao.fusoHorario),
     moeda: configuracao.moeda,
     compartilhado,
   };
+}
+
+// Quantos leads cada vez na tela "Hoje".
+export const LEADS_NA_AGENDA = 100;
+
+export type AgendaDoDia = {
+  leads: Lead[];
+  total: number;
+  hoje: string;
+  contatosPorLead: Map<string, ResumoDeContatos>;
+  fusoHorario: string;
+};
+
+// Tela "Hoje": leads com próxima ação até hoje, no fuso da empresa.
+export async function obterAgendaDoDia(contexto: Contexto, limite = LEADS_NA_AGENDA): Promise<AgendaDoDia> {
+  const db = getDb();
+  const configuracao = await obterConfiguracao(db, contexto.organizacao.id);
+  const hoje = hojeNoFuso(configuracao.fusoHorario);
+  const agenda = await repositorioLeads(db, contexto.organizacao.id).agenda(hoje, limite);
+  const contatosPorLead = await repositorioContatos(db, contexto.organizacao.id).resumo(agenda.leads.map((lead) => lead.id));
+  return { ...agenda, hoje, contatosPorLead, fusoHorario: configuracao.fusoHorario };
 }
 
 // Quantos leads cada coluna do quadro mostra. O resto fica na lista, filtrada pela etapa.

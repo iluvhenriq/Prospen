@@ -256,6 +256,7 @@ export const ptBR = {
   menu: {
     principal: "Menu principal",
     painel: "Painel",
+    hoje: "Hoje",
     leads: "Leads",
     funil: "Funil",
     busca: "Buscar empresas",
@@ -264,6 +265,70 @@ export const ptBR = {
     campanhas: "Campanhas",
     // Grupo da coluna da esquerda com os atalhos do que fazer.
     acoes: "Ações rápidas",
+  },
+  // Registro de contatos e próxima ação (27/10/2026).
+  contatos: {
+    titulo: "Contatos",
+    descricao: "Registre cada tentativa. Quem está em Novo passa para Contatado.",
+    canal: "Por onde",
+    canais: { ligacao: "Ligação", whatsapp: "WhatsApp", email: "E-mail", visita: "Visita" },
+    resultado: "O que aconteceu",
+    resultados: {
+      conversou: "Conversou",
+      nao_atendeu: "Não atendeu",
+      pediu_retorno: "Pediu retorno",
+      pediu_proposta: "Pediu proposta",
+      sem_interesse: "Sem interesse",
+      contato_errado: "Contato errado",
+    },
+    proximaOpcional: "Próxima ação (opcional)",
+    registrar: "Registrar contato",
+    registrado: "Contato registrado.",
+    registradoEMovido: "Contato registrado. O lead passou para Contatado.",
+    historico: "Tentativas",
+    vazio: "Nenhum contato registrado ainda.",
+    linha: (canal: string, resultado: string) => `${canal}: ${resultado.toLocaleLowerCase("pt-BR")}`,
+    por: (nome: string) => `por ${nome}`,
+    tentativas: (total: number) => (total === 1 ? "1 tentativa" : `${total} tentativas`),
+    ultima: (data: string) => `última em ${data}`,
+    // Próxima ação
+    proxima: "Próxima ação",
+    proximaDescricao: "O que fazer com este lead e quando. Aparece na tela Hoje.",
+    proximaData: "Quando",
+    proximaTexto: "O que fazer",
+    proximaTextoExemplo: "Ex.: ligar para falar com o dono",
+    proximaSemData: "Nenhuma próxima ação marcada.",
+    salvarProxima: "Salvar próxima ação",
+    removerProxima: "Remover",
+    proximaSalva: "Próxima ação salva.",
+    proximaRemovida: "Próxima ação removida.",
+    proximaEm: (data: string) => `Próxima ação: ${data}`,
+    proximaCurta: (data: string) => `Próx.: ${data}`,
+  },
+  // Tela "Hoje": quem contatar no dia, atrasados primeiro.
+  hoje: {
+    titulo: "Hoje",
+    descricao: "Leads com próxima ação até hoje. Os atrasados vêm primeiro.",
+    atrasados: "Atrasados",
+    doDia: "Para hoje",
+    atrasadoHa: (dias: number) => (dias === 1 ? "atrasado há 1 dia" : `atrasado há ${dias} dias`),
+    total: (total: number) => (total === 1 ? "1 lead" : `${total} leads`),
+    mostrandoParte: (mostrados: number, total: number) => `Mostrando os ${mostrados} primeiros de ${total}.`,
+    vazioTitulo: "Nada marcado para hoje",
+    vazioDescricao: "Marque a próxima ação na página de cada lead, ou ao registrar um contato, e ela aparece aqui no dia certo.",
+    verLeads: "Ver leads",
+    // Ao lado do número em destaque, no painel.
+    paraContatar: (total: number) => (total === 1 ? "lead para contatar hoje" : "leads para contatar hoje"),
+    abrir: "Abrir a lista de hoje",
+  },
+  // Botões de contato em um clique (WhatsApp só aparece para celular).
+  contato: {
+    whatsapp: "WhatsApp",
+    ligar: "Ligar",
+    email: "E-mail",
+    whatsappDe: (nome: string) => `Abrir conversa no WhatsApp com ${nome}`,
+    ligarPara: (nome: string) => `Ligar para ${nome}`,
+    emailPara: (nome: string) => `Escrever e-mail para ${nome}`,
   },
   // Tema da tela (claro, escuro ou igual ao sistema), escolha de cada pessoa.
   tema: {
@@ -728,6 +793,13 @@ export const ptBR = {
       dataInvalida: "Informe uma data válida.",
       fimAntesDoInicio: "O fim não pode ser antes do início.",
       custoInvalido: "Informe um valor como 500,00.",
+    },
+    contato: {
+      canalInvalido: "Escolha por onde foi o contato.",
+      resultadoInvalido: "Escolha o que aconteceu.",
+      dataInvalida: "Informe uma data válida.",
+      textoSemData: "Escolha a data da próxima ação.",
+      textoLongo: (maximo: number) => `Use no máximo ${maximo} caracteres.`,
     },
     conta: {
       informeEmail: "Informe seu e-mail.",

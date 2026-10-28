@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BotoesContato } from "@/components/leads/botoes-contato";
 import { textoDoLead } from "@/components/leads/nome-do-lead";
 import { formatarData } from "@/lib/formato";
 import { ptBR } from "@/lib/i18n/pt-BR";
@@ -69,6 +70,13 @@ export function QuadroFunil({
                           </p>
                         ) : null}
                       </div>
+                      <BotoesContato
+                        nome={textoDoLead(lead.nome, lead.origem)}
+                        telefone={lead.telefone}
+                        email={lead.email}
+                        pais={lead.pais}
+                        compacto
+                      />
                       <FormularioEtapa
                         leadId={lead.id}
                         etapaAtual={lead.etapa}

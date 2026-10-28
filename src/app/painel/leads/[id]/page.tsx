@@ -9,6 +9,10 @@ import { HistoricoEtapas } from "@/components/funil/historico-etapas";
 import { SeloEtapa } from "@/components/funil/selo-etapa";
 import { EtiquetasLead } from "@/components/leads/etiquetas-lead";
 import { FormularioLead } from "@/components/leads/formulario-lead";
+import { BotoesContato } from "@/components/leads/botoes-contato";
+import { HistoricoContatos } from "@/components/leads/historico-contatos";
+import { ProximaAcao } from "@/components/leads/proxima-acao";
+import { RegistroContato } from "@/components/leads/registro-contato";
 import { textoDoLead } from "@/components/leads/nome-do-lead";
 import { ContaDaNota, NotaPontuacao } from "@/components/pontuacao/selo-pontuacao";
 import { NotasLead } from "@/components/leads/notas-lead";
@@ -68,10 +72,29 @@ async function ConteudoDoLead({
           {t.detalhe.criadoEm(formatarDataHora(lead.criadoEm, detalhe.fusoHorario))}
           {lead.cnpj ? `, ${t.detalhe.cnpj(formatarCnpj(lead.cnpj))}` : null}
         </p>
+        <BotoesContato
+          nome={textoDoLead(lead.nome, lead.origem)}
+          telefone={lead.telefone}
+          email={lead.email}
+          pais={lead.pais}
+          className="mt-3"
+        />
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
         <div className="flex flex-col gap-6">
+          {/* O que o vendedor mais faz aqui: registrar o contato. Vem primeiro. */}
+          <Cartao>
+            <CartaoCabecalho>
+              <CartaoTitulo>{ptBR.contatos.titulo}</CartaoTitulo>
+              <CartaoDescricao>{ptBR.contatos.descricao}</CartaoDescricao>
+            </CartaoCabecalho>
+            <CartaoConteudo className="flex flex-col gap-6">
+              <RegistroContato leadId={lead.id} hoje={detalhe.hoje} />
+              <HistoricoContatos contatos={detalhe.contatos} fusoHorario={detalhe.fusoHorario} />
+            </CartaoConteudo>
+          </Cartao>
+
           <Cartao>
             <CartaoCabecalho>
               <CartaoTitulo>{t.detalhe.dados}</CartaoTitulo>
@@ -117,6 +140,16 @@ async function ConteudoDoLead({
         </div>
 
         <div className="flex flex-col gap-6">
+          <Cartao>
+            <CartaoCabecalho>
+              <CartaoTitulo>{ptBR.contatos.proxima}</CartaoTitulo>
+              <CartaoDescricao>{ptBR.contatos.proximaDescricao}</CartaoDescricao>
+            </CartaoCabecalho>
+            <CartaoConteudo>
+              <ProximaAcao leadId={lead.id} em={lead.proximaAcaoEm} texto={lead.proximaAcao} hoje={detalhe.hoje} />
+            </CartaoConteudo>
+          </Cartao>
+
           <Cartao>
             <CartaoCabecalho className="flex-row items-start justify-between gap-4">
               <CartaoTitulo>{ptBR.pontuacao.titulo}</CartaoTitulo>

@@ -47,7 +47,7 @@ O diferencial é a junção, não um recurso isolado: achar a empresa, saber que
 
 ## Capabilities and Constraints
 
-**Pronto:** login e empresas com papéis; leads com notas, etiquetas e importação de CSV (até 2 MB e 5.000 linhas); funil com histórico, valor da venda e motivo da perda; busca na base pública (hoje só São Paulo carregado localmente) por estado, cidade, atividade e CNPJ exato, sem MEI por padrão; pontuação de 0 a 100 com motivos; campanhas manuais; painel de indicadores; página "remover meus dados"; política de privacidade (rascunho).
+**Pronto:** login e empresas com papéis; leads com notas, etiquetas e importação de CSV (até 2 MB e 5.000 linhas); contato em um clique (WhatsApp para celular, ligar, e-mail); registro de cada tentativa de contato com próxima ação e a tela "Hoje"; funil com histórico, valor da venda e motivo da perda; busca na base pública (hoje só São Paulo carregado localmente) por estado, cidade, atividade e CNPJ exato, sem MEI por padrão; pontuação de 0 a 100 com motivos; campanhas manuais; painel de indicadores; página "remover meus dados"; política de privacidade (rascunho).
 
 **Fora do produto, de propósito, por enquanto:** Google Ads, Meta Ads, formulários de captação, automação, inteligência artificial, cobrança e planos.
 

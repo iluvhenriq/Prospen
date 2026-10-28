@@ -92,6 +92,13 @@
       "when": 1792811168841,
       "tag": "0012_pre_cadastros",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1793150246004,
+      "tag": "0013_soft_micromacro",
+      "breakpoints": true
     }
   ]
 }

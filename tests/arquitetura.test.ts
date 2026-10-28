@@ -25,12 +25,13 @@ describe("arquitetura", () => {
     "etiquetas",
     "leadEtiquetas",
     "notas",
+    "contatos",
     "historicoEtapas",
     "importacoes",
     "campanhas",
     "campanhaLeads",
   ];
-  const ARQUIVOS_DE_TABELA = ["leads", "etiquetas", "notas", "historico-etapas", "importacoes", "campanhas"];
+  const ARQUIVOS_DE_TABELA = ["leads", "etiquetas", "notas", "contatos", "historico-etapas", "importacoes", "campanhas"];
 
   it("só os repositórios e a pasta do banco usam as tabelas de leads, etiquetas, notas, histórico, importações e campanhas", () => {
     // O repositório de campanhas lê os leads para contar os resultados de cada

@@ -8,6 +8,7 @@ import { ICONES } from "./icones";
 
 const itens: { href: string; rotulo: string; curto?: string; exato: boolean; icone: keyof typeof ICONES }[] = [
   { href: "/painel", rotulo: ptBR.menu.painel, exato: true, icone: "painel" },
+  { href: "/painel/hoje", rotulo: ptBR.menu.hoje, exato: false, icone: "hoje" },
   { href: "/painel/leads", rotulo: ptBR.menu.leads, exato: false, icone: "leads" },
   { href: "/painel/funil", rotulo: ptBR.menu.funil, exato: false, icone: "funil" },
   { href: "/painel/campanhas", rotulo: ptBR.menu.campanhas, exato: false, icone: "campanhas" },

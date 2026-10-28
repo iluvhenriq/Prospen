@@ -14,6 +14,7 @@ import {
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { cn } from "@/lib/cn";
 import { ptBR } from "@/lib/i18n/pt-BR";
+import { obterAgendaDoDia } from "@/modules/leads/consultas";
 import { formatarValor } from "@/modules/leads/valor";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
 import { DIAS_DE_LEADS_NOVOS, obterResumo } from "@/modules/painel/resumo";
@@ -50,7 +51,7 @@ const classeAtalho = "text-sm font-semibold text-musgo-700 underline hover:text-
 async function ConteudoPainel() {
   // Exige login e empresa. Quem ainda não criou a empresa vai para essa etapa.
   const contexto = await exigirContexto();
-  const painel = await obterResumo(contexto);
+  const [painel, agenda] = await Promise.all([obterResumo(contexto), obterAgendaDoDia(contexto, 1)]);
   const primeiroNome = contexto.usuario.nome.split(" ")[0];
   const t = ptBR.painel;
   const ti = t.indicadores;
@@ -66,6 +67,20 @@ async function ConteudoPainel() {
         </div>
         {painel.total > 0 ? <BotaoLink href="/painel/busca">{ptBR.busca.titulo}</BotaoLink> : null}
       </header>
+
+      {/* O primeiro passo do dia: quem contatar hoje. */}
+      {agenda.total > 0 ? (
+        <Link
+          href="/painel/hoje"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-painel border border-borda bg-superficie px-5 py-4 transition-colors hover:bg-musgo-50"
+        >
+          <span className="flex items-center gap-3">
+            <span className="numeros rounded-[3px] bg-marca-texto px-1.5 text-lg font-bold text-tinta">{agenda.total}</span>
+            <span className="font-semibold text-texto">{ptBR.hoje.paraContatar(agenda.total)}</span>
+          </span>
+          <span className="text-sm font-semibold text-musgo-700 underline">{ptBR.hoje.abrir}</span>
+        </Link>
+      ) : null}
 
       {painel.total === 0 ? (
         <Cartao>

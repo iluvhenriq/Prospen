@@ -24,8 +24,10 @@ import {
   type DuplicadoEncontrado,
 } from "./repositorio";
 import { repositorioEtiquetas } from "./repositorio-etiquetas";
+import { repositorioContatos } from "./repositorio-contatos";
 import { repositorioNotas } from "./repositorio-notas";
 import { validarLead, type CampoLead } from "./validacao";
+import { validarContato, validarProximaAcao, type CampoContato } from "./validacao-contato";
 import { lerValorEmCentavos } from "./valor";
 import {
   corValida,
@@ -288,6 +290,95 @@ export async function excluirNota(dados: FormData): Promise<void> {
 
   await repositorio.excluir(notaId);
   revalidatePath("/painel/leads/[id]", "page");
+}
+
+// ----------------------------------------------------------------------------
+// Contatos e próxima ação (27/10/2026)
+// ----------------------------------------------------------------------------
+
+function camposDoContato(dados: FormData): Record<CampoContato, string> {
+  return {
+    canal: texto(dados, "canal"),
+    resultado: texto(dados, "resultado"),
+    proximaAcaoEm: texto(dados, "proximaAcaoEm"),
+    proximaAcao: texto(dados, "proximaAcao"),
+  };
+}
+
+function revalidarAgenda() {
+  revalidatePath("/painel/leads/[id]", "page");
+  revalidatePath("/painel/hoje");
+  revalidatePath("/painel/leads");
+}
+
+// Registra uma tentativa de contato. Quem estava em "Novo" passa para
+// "Contatado" (menos quando o contato estava errado). A próxima ação que estava
+// marcada é dada como feita: fica a nova, se informada, ou nenhuma.
+export async function registrarContato(_anterior: EstadoAcao, dados: FormData): Promise<EstadoAcao> {
+  const contexto = await exigirPermissao("trabalharComLeads");
+  const leadId = texto(dados, "leadId");
+  const valores = camposDoContato(dados);
+  if (!ehUuid(leadId)) return { mensagem: ptBR.leads.formulario.falhou, valores };
+
+  const resultado = validarContato(valores);
+  if (!resultado.ok) return { erros: resultado.erros, valores };
+  const { canal, resultado: oQueAconteceu, proxima } = resultado.dados;
+
+  const db = getDb();
+  const leads = repositorioLeads(db, contexto.organizacao.id);
+  let movido = false;
+  try {
+    const contato = await repositorioContatos(db, contexto.organizacao.id).registrar(
+      leadId,
+      canal,
+      oQueAconteceu,
+      contexto.usuario.id,
+    );
+    if (!contato) return { mensagem: ptBR.leads.formulario.falhou, valores };
+
+    const lead = await leads.buscar(leadId);
+    if (lead?.etapa === "novo" && oQueAconteceu !== "contato_errado") {
+      movido = Boolean((await leads.mudarEtapa(leadId, "contatado", contexto.usuario.id))?.mudou);
+    }
+    await leads.definirProximaAcao(leadId, proxima.em, proxima.texto);
+  } catch (erro) {
+    console.error("Falha ao registrar o contato:", erro instanceof Error ? erro.message : erro);
+    return { mensagem: ptBR.leads.formulario.falhou, valores };
+  }
+
+  revalidarAgenda();
+  if (movido) revalidarFunil();
+  return { sucesso: true, mensagem: movido ? ptBR.contatos.registradoEMovido : ptBR.contatos.registrado };
+}
+
+// Marca, muda ou apaga (data vazia) a próxima ação de um lead.
+export async function salvarProximaAcao(_anterior: EstadoAcao, dados: FormData): Promise<EstadoAcao> {
+  const contexto = await exigirPermissao("trabalharComLeads");
+  const leadId = texto(dados, "leadId");
+  // O botão "Remover" manda remover=1: aí os campos não importam.
+  const remover = texto(dados, "remover") === "1";
+  const valores = remover
+    ? { proximaAcaoEm: "", proximaAcao: "" }
+    : { proximaAcaoEm: texto(dados, "proximaAcaoEm"), proximaAcao: texto(dados, "proximaAcao") };
+  if (!ehUuid(leadId)) return { mensagem: ptBR.leads.formulario.falhou, valores };
+
+  const resultado = validarProximaAcao(valores);
+  if (!resultado.ok) return { erros: resultado.erros, valores };
+
+  try {
+    const lead = await repositorioLeads(getDb(), contexto.organizacao.id).definirProximaAcao(
+      leadId,
+      resultado.dados.em,
+      resultado.dados.texto,
+    );
+    if (!lead) return { mensagem: ptBR.leads.formulario.falhou, valores };
+  } catch (erro) {
+    console.error("Falha ao salvar a próxima ação:", erro instanceof Error ? erro.message : erro);
+    return { mensagem: ptBR.leads.formulario.falhou, valores };
+  }
+
+  revalidarAgenda();
+  return { sucesso: true, mensagem: resultado.dados.em ? ptBR.contatos.proximaSalva : ptBR.contatos.proximaRemovida };
 }
 
 // ----------------------------------------------------------------------------

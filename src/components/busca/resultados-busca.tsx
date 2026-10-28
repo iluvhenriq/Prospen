@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { BotoesContato } from "@/components/leads/botoes-contato";
 import { NotaPontuacao, textoDosMotivos } from "@/components/pontuacao/selo-pontuacao";
 import { Alerta } from "@/components/ui/alerta";
 import { Botao, BotaoLink } from "@/components/ui/botao";
@@ -169,6 +170,13 @@ export function ResultadosBusca({
                 {telefone ? <p className="numeros truncate text-texto">{telefone}</p> : null}
                 {linha.email ? <p className="truncate text-texto">{linha.email}</p> : null}
                 {!telefone && !linha.email ? <p>{t.semContato}</p> : null}
+                <BotoesContato
+                  nome={nomeParaExibir(nome)}
+                  telefone={linha.telefone}
+                  email={linha.email}
+                  compacto
+                  className="my-1.5"
+                />
                 <p className="text-xs">{textoDosMotivos(pontuacao.motivos)}</p>
               </div>
             </li>

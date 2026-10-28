@@ -59,6 +59,41 @@ test("move o lead entre etapas, guarda o histórico e filtra a lista", async ({ 
   await page.getByRole("button", { name: "Filtrar" }).click();
   await expect(page).toHaveURL(/etapa=novo/);
   await expect(page.getByText("Nenhum lead encontrado")).toBeVisible();
+
+  // Contato em um clique e registro da tentativa (27/10/2026). Fica neste teste
+  // para não criar outra conta: o servidor limita cadastros.
+  const contatoId = await cadastrarLead(page, { nome: "Lead do Contato", telefone: "(11) 98888-7777" });
+  await expect(page.getByRole("link", { name: "Abrir conversa no WhatsApp com Lead do Contato" })).toHaveAttribute(
+    "href",
+    "https://wa.me/5511988887777",
+  );
+  await expect(page.getByRole("link", { name: "Ligar para Lead do Contato" })).toHaveAttribute("href", "tel:+5511988887777");
+
+  // Registrar "pediu retorno" com próxima ação para hoje: sai de Novo para
+  // Contatado e entra na tela "Hoje".
+  const hoje = (await page.locator("input[name=proximaAcaoEm]").first().getAttribute("min")) ?? "";
+  // As opções são rádios escondidos atrás de botões desenhados: marca pelo rádio.
+  await page.getByRole("radio", { name: "WhatsApp" }).check({ force: true });
+  await page.getByRole("radio", { name: "Pediu retorno" }).check({ force: true });
+  await page.locator("input[name=proximaAcaoEm]").first().fill(hoje);
+  await page.locator("input[name=proximaAcao]").first().fill("Mandar a apresentação");
+  await page.getByRole("button", { name: "Registrar contato" }).click();
+  await expect(page.getByText("Contato registrado. O lead passou para Contatado.")).toBeVisible();
+  await expect(page.getByText("WhatsApp: pediu retorno")).toBeVisible();
+  await expect(page.getByLabel("Mudar para")).toHaveValue("contatado");
+
+  await page.goto("/painel/hoje");
+  await expect(page.getByRole("link", { name: "Lead do Contato", exact: true })).toBeVisible();
+  await expect(page.getByText("Mandar a apresentação")).toBeVisible();
+  await page.goto("/painel");
+  await expect(page.getByText("lead para contatar hoje")).toBeVisible();
+
+  // Remover a próxima ação tira o lead da tela "Hoje".
+  await page.goto(`/painel/leads/${contatoId}`);
+  await page.getByRole("button", { name: "Remover" }).click();
+  await expect(page.getByText("Próxima ação removida.")).toBeVisible();
+  await page.goto("/painel/hoje");
+  await expect(page.getByText("Nada marcado para hoje")).toBeVisible();
 });
 
 test("coluna cheia mostra 30 cartões e leva à lista filtrada", async ({ page }) => {

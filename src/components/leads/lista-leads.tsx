@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SeloEtapa } from "@/components/funil/selo-etapa";
+import { BotoesContato } from "@/components/leads/botoes-contato";
 import { textoDoLead } from "@/components/leads/nome-do-lead";
 import { NotaPontuacao } from "@/components/pontuacao/selo-pontuacao";
 import { Botao, BotaoLink } from "@/components/ui/botao";
@@ -7,12 +8,14 @@ import { Campo } from "@/components/ui/campo";
 import { Selecao } from "@/components/ui/campo-texto";
 import { Etiqueta } from "@/components/ui/etiqueta";
 import { cn } from "@/lib/cn";
+import { formatarData, formatarDataIso } from "@/lib/formato";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import {
   enderecoDaLista,
   type ParametrosLista,
 } from "@/modules/leads/parametros";
 import { formatarTelefone } from "@/modules/leads/normalizacao";
+import type { ResumoDeContatos } from "@/modules/leads/repositorio-contatos";
 import { pontuar } from "@/modules/pontuacao/regras";
 import {
   ETAPAS_FUNIL,
@@ -107,14 +110,21 @@ const GRADE_LEADS = "lg:grid-cols-[6.5rem_minmax(0,1.3fr)_minmax(0,1.2fr)_7.5rem
 export function ListaLeads({
   leads,
   etiquetasPorLead,
+  contatosPorLead,
+  fusoHorario,
+  hoje,
 }: {
   leads: Lead[];
   etiquetasPorLead: Map<string, EtiquetaDoLead[]>;
+  contatosPorLead: Map<string, ResumoDeContatos>;
+  fusoHorario: string;
+  hoje: string;
 }) {
+  const ct = ptBR.contatos;
   const c = ptBR.leads.colunas;
   return (
     <div className="overflow-hidden rounded-painel border border-borda bg-superficie">
-      {/* Cabeçalho só para quem enxerga as colunas; cada linha já é um link completo. */}
+      {/* Cabeçalho só para quem enxerga as colunas; cada linha já tem o nome como link. */}
       <div aria-hidden="true" className={cn(GRADE_LEADS, "hidden border-b-2 border-texto px-4 py-2.5 text-xs font-bold text-texto-suave lg:grid")}>
         <span>{c.nota}</span>
         <span>{c.lead}</span>
@@ -125,26 +135,52 @@ export function ListaLeads({
       <ul className="divide-y divide-borda">
         {leads.map((lead) => {
           const etiquetas = etiquetasPorLead.get(lead.id) ?? [];
+          const resumo = contatosPorLead.get(lead.id);
           const telefone = formatarTelefone(lead.telefone, lead.pais);
           return (
-            <li key={lead.id}>
-              <Link
-                href={`/painel/leads/${lead.id}`}
-                className={cn(GRADE_LEADS, "flex flex-col gap-1.5 px-4 py-3 transition-colors hover:bg-musgo-50 lg:grid lg:items-center")}
-              >
+            <li
+              key={lead.id}
+              className={cn(GRADE_LEADS, "relative flex flex-col gap-1.5 px-4 py-3 transition-colors hover:bg-musgo-50 lg:grid lg:items-center")}
+            >
                 <NotaPontuacao {...pontuar(lead)} />
                 <div className="min-w-0">
-                  <p className="truncate font-semibold text-texto">{textoDoLead(lead.nome, lead.origem)}</p>
+                  {/* O link é o nome, mas cobre a linha inteira (::after); os botões de contato ficam por cima dele. */}
+                  <Link
+                    href={`/painel/leads/${lead.id}`}
+                    className="block truncate font-semibold text-texto after:absolute after:inset-0 hover:underline"
+                  >
+                    {textoDoLead(lead.nome, lead.origem)}
+                  </Link>
                   {lead.empresa && lead.empresa !== lead.nome ? (
                     <p className="truncate text-sm text-texto-suave">{textoDoLead(lead.empresa, lead.origem)}</p>
                   ) : null}
                 </div>
-                <div className="min-w-0 text-sm text-texto-suave">
-                  {lead.email ? <p className="truncate">{lead.email}</p> : null}
-                  {telefone ? <p className="numeros truncate">{telefone}</p> : null}
+                <div className="flex min-w-0 items-center gap-3 text-sm text-texto-suave">
+                  <div className="min-w-0 flex-1">
+                    {lead.email ? <p className="truncate">{lead.email}</p> : null}
+                    {telefone ? <p className="numeros truncate">{telefone}</p> : null}
+                    {resumo ? (
+                      <p className="truncate text-xs">
+                        {ct.tentativas(resumo.tentativas)}, {ct.ultima(formatarData(resumo.ultimo, fusoHorario))}
+                      </p>
+                    ) : null}
+                  </div>
+                  <BotoesContato
+                    nome={textoDoLead(lead.nome, lead.origem)}
+                    telefone={lead.telefone}
+                    email={null}
+                    pais={lead.pais}
+                    compacto
+                    className="relative z-10 shrink-0 flex-nowrap"
+                  />
                 </div>
-                <div>
+                <div className="flex flex-col items-start gap-1">
                   <SeloEtapa etapa={lead.etapa} />
+                  {lead.proximaAcaoEm ? (
+                    <span className={cn("text-xs", lead.proximaAcaoEm < hoje ? "font-semibold text-erro" : "text-texto-suave")}>
+                      {ct.proximaCurta(formatarDataIso(lead.proximaAcaoEm) ?? lead.proximaAcaoEm)}
+                    </span>
+                  ) : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
                   <Etiqueta>{ptBR.leads.origens[lead.origem]}</Etiqueta>
@@ -154,7 +190,6 @@ export function ListaLeads({
                     </Etiqueta>
                   ))}
                 </div>
-              </Link>
             </li>
           );
         })}

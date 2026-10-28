@@ -1,5 +1,6 @@
 import {
   and,
+  asc,
   count,
   desc,
   eq,
@@ -8,6 +9,7 @@ import {
   inArray,
   isNotNull,
   isNull,
+  lte,
   ne,
   or,
   sql,
@@ -493,6 +495,33 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
         });
         return { lead, mudou: true };
       });
+    },
+
+    // Próxima ação do lead: data (AAAA-MM-DD) e, opcional, o que fazer. Data
+    // nula apaga a próxima ação. Nulo: o lead não existe nesta empresa.
+    async definirProximaAcao(id: string, em: string | null, texto: string | null): Promise<Lead | null> {
+      const [lead] = await db
+        .update(leads)
+        .set({ proximaAcaoEm: em, proximaAcao: em ? texto?.trim() || null : null })
+        .where(and(daOrganizacao, eq(leads.id, id)))
+        .returning();
+      return lead ?? null;
+    },
+
+    // Tela "Hoje": leads com próxima ação até a data informada (atrasados
+    // primeiro, depois os do dia), e quantos são no total.
+    async agenda(ate: string, limite = 100): Promise<{ leads: Lead[]; total: number }> {
+      const filtro = and(daOrganizacao, isNotNull(leads.proximaAcaoEm), lte(leads.proximaAcaoEm, ate));
+      const [linhas, [{ total }]] = await Promise.all([
+        db
+          .select()
+          .from(leads)
+          .where(filtro)
+          .orderBy(asc(leads.proximaAcaoEm), asc(leads.nome), asc(leads.id))
+          .limit(Math.min(Math.max(limite, 1), 500)),
+        db.select({ total: count() }).from(leads).where(filtro),
+      ]);
+      return { leads: linhas, total };
     },
 
     // Colunas do quadro do funil, na ordem das etapas. Cada coluna traz o total

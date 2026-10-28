@@ -89,6 +89,10 @@ export const leads = pgTable(
     motivoPerda: text("motivo_perda").$type<MotivoPerda>(),
     valorVendaCentavos: bigint("valor_venda_centavos", { mode: "number" }),
     moedaVenda: text("moeda_venda"),
+    // Próxima ação (27/10/2026): o que fazer com o lead e em que dia. Alimenta
+    // a tela "Hoje". O texto é opcional; sem data, não há próxima ação.
+    proximaAcaoEm: date("proxima_acao_em"),
+    proximaAcao: text("proxima_acao"),
     criadoPorId: text("criado_por_id").references(() => user.id, {
       onDelete: "set null",
     }),
@@ -146,6 +150,14 @@ export const leads = pgTable(
       sql`${tabela.valorVendaCentavos} is null or (${tabela.etapa} = 'ganho' and ${tabela.valorVendaCentavos} >= 0 and ${tabela.moedaVenda} ~ '^[A-Z]{3}$')`,
     ),
     check("leads_nome_nao_vazio", sql`char_length(btrim(${tabela.nome})) > 0`),
+    check(
+      "leads_proxima_acao_valida",
+      sql`${tabela.proximaAcao} is null or (${tabela.proximaAcaoEm} is not null and char_length(btrim(${tabela.proximaAcao})) between 1 and 200)`,
+    ),
+    // Tela "Hoje": leads com próxima ação até uma data, da mais antiga para a mais nova.
+    index("leads_organizacao_proxima_acao_idx")
+      .on(tabela.organizacaoId, tabela.proximaAcaoEm)
+      .where(sql`${tabela.proximaAcaoEm} is not null`),
   ],
 );
 

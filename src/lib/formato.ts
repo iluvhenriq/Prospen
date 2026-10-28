@@ -44,6 +44,27 @@ export function nomeParaExibir(nome: string): string {
     .join("");
 }
 
+// Data de hoje (AAAA-MM-DD) no fuso da empresa. A tela "Hoje" e as próximas
+// ações usam o dia do calendário da empresa, não o do servidor.
+export function hojeNoFuso(fuso: string = FUSO_PADRAO, agora: Date = new Date()): string {
+  // "en-CA" escreve a data já no formato AAAA-MM-DD.
+  return new Intl.DateTimeFormat("en-CA", { timeZone: fusoOuPadrao(fuso), year: "numeric", month: "2-digit", day: "2-digit" }).format(agora);
+}
+
+function fusoOuPadrao(fuso: string): string {
+  try {
+    new Intl.DateTimeFormat("en-CA", { timeZone: fuso });
+    return fuso;
+  } catch {
+    return FUSO_PADRAO;
+  }
+}
+
+// Dias entre duas datas AAAA-MM-DD (b menos a). Sem fuso: são datas do calendário.
+export function diasEntre(a: string, b: string): number {
+  return Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / 86_400_000);
+}
+
 export function formatarData(data: Date, fuso: string = FUSO_PADRAO): string {
   return formatador(fuso, { dateStyle: "short" }).format(data);
 }

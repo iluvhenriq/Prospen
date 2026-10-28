@@ -29,6 +29,12 @@ export const ICONES = {
       <rect x="3" y="11" width="6" height="6" rx="1" />
     </Icone>
   ),
+  hoje: (
+    <Icone>
+      <rect x="3" y="4.5" width="14" height="12.5" rx="1.5" />
+      <path d="M3 8.5h14M7 3v3M13 3v3M7.5 12.5l1.8 1.8 3.4-3.6" />
+    </Icone>
+  ),
   leads: (
     <Icone>
       <circle cx="7.5" cy="7" r="3" />

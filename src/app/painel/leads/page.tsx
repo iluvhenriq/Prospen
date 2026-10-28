@@ -64,7 +64,13 @@ async function ConteudoLeads({
             />
           ) : (
             <>
-              <ListaLeads leads={lista.leads} etiquetasPorLead={lista.etiquetasPorLead} />
+              <ListaLeads
+                leads={lista.leads}
+                etiquetasPorLead={lista.etiquetasPorLead}
+                contatosPorLead={lista.contatosPorLead}
+                fusoHorario={lista.fusoHorario}
+                hoje={lista.hoje}
+              />
               <Paginacao parametros={parametros} pagina={lista.pagina} paginas={lista.paginas} />
             </>
           )}

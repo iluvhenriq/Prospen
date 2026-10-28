@@ -51,13 +51,37 @@ export function telefoneValido(normalizado: string, pais = "BR"): boolean {
   return normalizado.length >= 6 && normalizado.length <= 15;
 }
 
+// Celular antigo, de antes do nono dígito (2016): DDD + 8 dígitos começando
+// com 9, comum na base da Receita. Ganha o 9 na frente. Só para mostrar e
+// para contatar; a regra de duplicados continua com o número como veio.
+function comNonoDigito(normalizado: string): string {
+  return /^[1-9]{2}9\d{7}$/.test(normalizado) ? `${normalizado.slice(0, 2)}9${normalizado.slice(2)}` : normalizado;
+}
+
+// Endereços para contatar o lead: "tel:" para ligar e, se for celular, o
+// número do WhatsApp (wa.me). Por enquanto só números do Brasil; de outro
+// país o código internacional não é guardado, então não dá para montar.
+export function telefoneParaContato(
+  telefone: string | null | undefined,
+  pais = "BR",
+): { ligar: string; whatsapp: string | null } | null {
+  if (!telefone || pais !== "BR") return null;
+  const normalizado = normalizarTelefone(telefone, "BR");
+  if (!normalizado) return null;
+  const numero = comNonoDigito(normalizado);
+  if (!telefoneValido(numero, "BR")) return null;
+  const celular = numero.length === 11;
+  return { ligar: `tel:+55${numero}`, whatsapp: celular ? `https://wa.me/55${numero}` : null };
+}
+
 // Telefone para mostrar na tela. Só formata números brasileiros válidos.
 export function formatarTelefone(
   telefone: string | null | undefined,
   pais = "BR",
 ): string {
   if (!telefone) return "";
-  const normalizado = normalizarTelefone(telefone, pais);
+  const bruto = normalizarTelefone(telefone, pais);
+  const normalizado = bruto && pais === "BR" ? comNonoDigito(bruto) : bruto;
   if (pais === "BR" && normalizado && telefoneValido(normalizado, "BR")) {
     const ddd = normalizado.slice(0, 2);
     const resto = normalizado.slice(2);
