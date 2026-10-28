@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
+import { AprendizadoDoPainel } from "@/components/painel/aprendizado";
 import { Barras } from "@/components/painel/barras";
 import { BotaoLink } from "@/components/ui/botao";
 import { Esqueleto } from "@/components/ui/carregando";
@@ -17,7 +18,7 @@ import { ptBR } from "@/lib/i18n/pt-BR";
 import { obterAgendaDoDia } from "@/modules/leads/consultas";
 import { formatarValor } from "@/modules/leads/valor";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
-import { DIAS_DE_LEADS_NOVOS, obterResumo } from "@/modules/painel/resumo";
+import { DIAS_DE_LEADS_NOVOS, obterAprendizado, obterResumo } from "@/modules/painel/resumo";
 
 export const metadata: Metadata = { title: ptBR.painel.titulo };
 
@@ -51,7 +52,11 @@ const classeAtalho = "text-sm font-semibold text-musgo-700 underline hover:text-
 async function ConteudoPainel() {
   // Exige login e empresa. Quem ainda não criou a empresa vai para essa etapa.
   const contexto = await exigirContexto();
-  const [painel, agenda] = await Promise.all([obterResumo(contexto), obterAgendaDoDia(contexto, 1)]);
+  const [painel, agenda, aprendizado] = await Promise.all([
+    obterResumo(contexto),
+    obterAgendaDoDia(contexto, 1),
+    obterAprendizado(contexto),
+  ]);
   const primeiroNome = contexto.usuario.nome.split(" ")[0];
   const t = ptBR.painel;
   const ti = t.indicadores;
@@ -209,6 +214,8 @@ async function ConteudoPainel() {
               </div>
             </div>
           </div>
+
+          <AprendizadoDoPainel aprendizado={aprendizado} />
 
           <p className="text-xs text-texto-suave">{ti.nota}</p>
         </>

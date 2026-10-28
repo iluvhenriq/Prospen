@@ -16,6 +16,7 @@ import {
   type SQL,
 } from "drizzle-orm";
 import {
+  contatos,
   ETAPAS_FUNIL,
   historicoEtapas,
   leadEtiquetas,
@@ -106,6 +107,12 @@ export class ErroLeadDuplicado extends Error {
 // Resultado de mudarEtapa. "mudou" é falso quando o lead já estava na etapa
 // pedida: nada é gravado e o histórico não ganha registro repetido.
 export type MudancaDeEtapa = { lead: Lead; mudou: boolean };
+
+// Negócio encerrado, só com o que o aprendizado do painel usa.
+export type LeadEncerrado = Pick<
+  Lead,
+  "motivoPerda" | "origem" | "telefone" | "email" | "dataAbertura" | "porte" | "matriz" | "naturezaJuridica"
+> & { etapa: "ganho" | "perdido"; tentativas: number };
 
 export type ColunaDoQuadro = {
   etapa: EtapaFunil;
@@ -363,6 +370,38 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
           .map((linha) => ({ moeda: linha.moeda, centavos: Number(linha.total), vendas: linha.vendas })),
         novos: novos?.total ?? 0,
       };
+    },
+
+    // Negócios encerrados (ganhos e perdidos), dos mais recentes, só com o que o
+    // aprendizado do painel usa, e quantas tentativas de contato cada um teve.
+    async encerrados(limite = 5000): Promise<LeadEncerrado[]> {
+      // Tentativas por lead, contadas uma vez e juntadas pelo identificador.
+      const tentativasPorLead = db
+        .select({ leadId: contatos.leadId, total: count().as("total") })
+        .from(contatos)
+        .where(eq(contatos.organizacaoId, organizacaoId))
+        .groupBy(contatos.leadId)
+        .as("tentativas_por_lead");
+      const linhas = await db
+        .select({
+          etapa: leads.etapa,
+          motivoPerda: leads.motivoPerda,
+          origem: leads.origem,
+          telefone: leads.telefone,
+          email: leads.email,
+          dataAbertura: leads.dataAbertura,
+          porte: leads.porte,
+          matriz: leads.matriz,
+          naturezaJuridica: leads.naturezaJuridica,
+          tentativas: sql<number>`coalesce(${tentativasPorLead.total}, 0)::int`,
+        })
+        .from(leads)
+        .leftJoin(tentativasPorLead, eq(tentativasPorLead.leadId, leads.id))
+        .where(and(daOrganizacao, inArray(leads.etapa, ["ganho", "perdido"])))
+        .orderBy(desc(leads.etapaAtualizadaEm))
+        .limit(Math.min(Math.max(limite, 1), 20000));
+      // O filtro acima garante que a etapa é "ganho" ou "perdido".
+      return linhas as LeadEncerrado[];
     },
 
     // Motivo da perda: só grava se o lead estiver em "perdido" AGORA (a

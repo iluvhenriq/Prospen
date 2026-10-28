@@ -40,4 +40,26 @@ test("registra valor da venda e motivo da perda, e limpa ao mudar de etapa", asy
 
   await page.goto("/painel/funil");
   await expect(page.getByText("Preço", { exact: true })).toBeVisible();
+
+  // Aprendizado (etapa 9d): com 1 negócio encerrado, nenhuma conclusão.
+  await page.goto("/painel");
+  await expect(page.getByText("Hoje são 1; faltam 4.", { exact: false })).toBeVisible();
+
+  // Mais 4 encerrados (2 ganhos, 2 perdidos): 5 no total, todos de prioridade
+  // baixa (cadastro manual sem contato). A taxa aparece só onde há casos.
+  for (const [nome, etapa] of [
+    ["Ganho A", "Ganho"],
+    ["Ganho B", "Ganho"],
+    ["Perdido A", "Perdido"],
+    ["Perdido B", "Perdido"],
+  ] as const) {
+    await cadastrarLead(page, { nome });
+    await page.getByLabel("Mudar para").selectOption({ label: etapa });
+    await page.getByRole("button", { name: "Mudar etapa" }).click();
+    await expect(page.getByText(`De Novo para ${etapa}`)).toBeVisible();
+  }
+  await page.goto("/painel");
+  const porPrioridade = page.getByRole("table", { name: "Fechamento por prioridade" });
+  await expect(porPrioridade.getByRole("row", { name: /Prioridade baixa/ })).toContainText("40%");
+  await expect(porPrioridade.getByRole("row", { name: /Prioridade alta/ })).toContainText("poucos casos");
 });

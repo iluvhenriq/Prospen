@@ -252,6 +252,29 @@ export const ptBR = {
       tabela: { item: "Item", quantidade: "Quantidade" },
       nota: "Os números consideram a etapa atual de cada lead, em todo o período.",
     },
+    // O que os negócios encerrados ensinam (etapa 9d). Sem conclusão com pouco dado.
+    aprendizado: {
+      titulo: "O que os seus resultados ensinam",
+      descricao: "Tirado dos seus negócios encerrados (ganhos e perdidos). Cada conclusão mostra quantos casos tem por trás.",
+      poucoDado: (encerrados: number, faltam: number) =>
+        `Os aprendizados aparecem a partir de 5 negócios encerrados. Hoje são ${encerrados}; ${faltam === 1 ? "falta 1" : `faltam ${faltam}`}. Marque Ganho ou Perdido no funil conforme as negociações terminarem.`,
+      semConclusao: "Ainda não há casos suficientes em nenhum grupo para tirar conclusão. Continue registrando os resultados.",
+      nota: (alta: number, baixa: number) =>
+        `Leads de prioridade alta fecharam ${alta}% dos negócios; os de prioridade baixa, ${baixa}%.`,
+      notaSepara: "A nota está separando bem quem compra.",
+      notaNaoSepara: "A nota ainda não separa bem quem compra para você. Vale revisar os critérios com os seus resultados.",
+      origem: (origem: string, taxa: number) => `Os leads de ${origem} são os que mais fecham: ${taxa}%.`,
+      motivoPorPorte: (porte: string, motivo: string, vezes: number, perdas: number) =>
+        `Com ${porte}, o motivo de perda mais comum é ${motivo} (${vezes} de ${perdas} perdas).`,
+      insistencia: (poucas: number, total: number) =>
+        `${poucas} de ${total} perdas por falta de resposta tiveram uma tentativa de contato ou nenhuma. Insistir mais pode recuperar parte delas.`,
+      tentativasNosGanhos: (media: string) => `Os negócios ganhos levaram, em média, ${media} tentativas de contato.`,
+      portes: { "01": "microempresas", "03": "empresas de pequeno porte", "05": "empresas de porte maior" } as Record<string, string>,
+      porPrioridade: "Fechamento por prioridade",
+      porOrigem: "Fechamento por origem",
+      colunas: { grupo: "Grupo", ganhos: "Ganhos", perdidos: "Perdidos", taxa: "Fecha" },
+      poucosCasos: "poucos casos",
+    },
   },
   menu: {
     principal: "Menu principal",

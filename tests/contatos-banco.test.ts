@@ -97,6 +97,26 @@ describe("contatos e próxima ação no banco", () => {
     });
   });
 
+  describe("negócios encerrados para o aprendizado", () => {
+    it("traz só ganhos e perdidos desta empresa, com as tentativas de cada um", async () => {
+      const perdido = await leadsA().criar({ nome: "Perdido por preço" }, ana.id);
+      await contatosA().registrar(perdido.id, "ligacao", "nao_atendeu", ana.id);
+      await contatosA().registrar(perdido.id, "ligacao", "sem_interesse", ana.id);
+      await leadsA().mudarEtapa(perdido.id, "perdido", ana.id);
+      await leadsA().registrarMotivoPerda(perdido.id, "preco");
+      // Um lead da B encerrado não pode aparecer para a A.
+      await leadsB().mudarEtapa(leadB, "ganho", bruno.id);
+
+      const encerrados = await leadsA().encerrados();
+      expect(encerrados).toHaveLength(1);
+      expect(encerrados[0]).toMatchObject({ etapa: "perdido", motivoPerda: "preco", tentativas: 2 });
+
+      const daB = await leadsB().encerrados();
+      expect(daB).toHaveLength(1);
+      expect(daB[0]).toMatchObject({ etapa: "ganho", tentativas: 0 });
+    });
+  });
+
   describe("próxima ação e agenda", () => {
     it("define, mostra na agenda até a data e apaga", async () => {
       const lead = await leadsA().definirProximaAcao(leadA, "2026-10-27", "  Mandar proposta  ");
