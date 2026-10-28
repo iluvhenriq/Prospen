@@ -119,6 +119,22 @@ describe("Radar: sinais entre dois meses da base", () => {
     await base().limparSinaisAntigos("2027-12");
     expect(await amb.db.select().from(baseCnpjSinais)).toEqual([]);
   });
+
+  it("base nova que encolheu demais não marca empresas como fechadas", async () => {
+    // De 5 para 2 empresas: parece arquivo da Receita faltando, não fechamento.
+    await carregar("2026-12", [
+      estab(IGUAL, "2026-12"),
+      estab(MUDOU_ATIVIDADE, "2026-12", { cnaePrincipal: "1091102" }),
+    ]);
+    const sinais = await amb.db.select().from(baseCnpjSinais);
+    expect(sinais.map((sinal) => [sinal.cnpj, sinal.tipo])).toEqual([[MUDOU_ATIVIDADE, "mudou_atividade"]]);
+  });
+
+  it("reimportar um mês mais antigo não gera sinal", async () => {
+    await amb.db.delete(baseCnpjSinais);
+    await carregar("2026-11", [estab(IGUAL, "2026-11", { municipioCodigo: "6291", municipioNome: "CAMPINAS" })]);
+    expect(await amb.db.select().from(baseCnpjSinais)).toEqual([]);
+  });
 });
 
 describe("Radar: sinais ligados aos leads", () => {

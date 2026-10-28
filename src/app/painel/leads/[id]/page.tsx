@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { CampanhasDoLead } from "@/components/campanhas/campanhas-do-lead";
+import { RadarDoLead } from "@/components/painel/radar";
 import { FormularioEtapa } from "@/components/funil/formulario-etapa";
 import { FormularioResultado } from "@/components/funil/formulario-resultado";
 import { HistoricoEtapas } from "@/components/funil/historico-etapas";
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/cartao";
 import { formatarData, formatarDataHora } from "@/lib/formato";
 import { ptBR } from "@/lib/i18n/pt-BR";
+import { obterSinaisDoLead } from "@/modules/base-cnpj/busca";
 import { obterCampanhasDoLead } from "@/modules/campanhas/consultas";
 import { atualizarLead, excluirLead } from "@/modules/leads/acoes";
 import { formatarCnpj } from "@/modules/leads/cnpj";
@@ -52,7 +54,10 @@ async function ConteudoDoLead({
   const { lead } = detalhe;
   const t = ptBR.leads;
   const pontuacao = pontuar(lead);
-  const campanhas = await obterCampanhasDoLead(contexto, lead.id);
+  const [campanhas, sinais] = await Promise.all([
+    obterCampanhasDoLead(contexto, lead.id),
+    obterSinaisDoLead(contexto, lead.cnpj ? { ...lead, cnpj: lead.cnpj } : null),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -149,6 +154,8 @@ async function ConteudoDoLead({
               <ProximaAcao leadId={lead.id} em={lead.proximaAcaoEm} texto={lead.proximaAcao} hoje={detalhe.hoje} />
             </CartaoConteudo>
           </Cartao>
+
+          <RadarDoLead sinais={sinais} />
 
           <Cartao>
             <CartaoCabecalho className="flex-row items-start justify-between gap-4">

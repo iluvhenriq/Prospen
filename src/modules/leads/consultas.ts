@@ -2,6 +2,7 @@ import "server-only";
 import { getDb } from "@/db/client";
 import type { Etiqueta, Importacao, Lead } from "@/db/schema";
 import { hojeNoFuso } from "@/lib/formato";
+import { ptBR } from "@/lib/i18n/pt-BR";
 import type { Contexto } from "@/modules/organizacoes/contexto";
 import { obterConfiguracao } from "@/modules/organizacoes/configuracao";
 import {
@@ -10,6 +11,7 @@ import {
   temFiltroAtivo,
   type ParametrosLista,
 } from "./parametros";
+import { gerarCsvDeLeads, LIMITE_DE_EXPORTACAO } from "./exportacao";
 import { repositorioContatos, type ContatoComAutor, type ResumoDeContatos } from "./repositorio-contatos";
 import { repositorioEtiquetas, type EtiquetaComTotal } from "./repositorio-etiquetas";
 import { repositorioHistorico, type RegistroEtapaComAutor } from "./repositorio-historico";
@@ -196,4 +198,25 @@ export async function obterHistoricoDeImportacoes(
     obterConfiguracao(db, contexto.organizacao.id),
   ]);
   return { importacoes, fusoHorario: configuracao.fusoHorario };
+}
+
+// Exportação em CSV com os mesmos filtros da lista. Quem chama já conferiu a
+// permissão (exportarLeads). Só leads desta empresa: o repositório é amarrado a ela.
+export async function obterExportacaoDeLeads(
+  contexto: Contexto,
+  parametros: ParametrosLista,
+): Promise<{ csv: string; nomeArquivo: string }> {
+  const db = getDb();
+  const itens = await repositorioLeads(db, contexto.organizacao.id).paraExportar(
+    filtrosDe(parametros),
+    LIMITE_DE_EXPORTACAO,
+  );
+  const [etiquetasPorLead, configuracao] = await Promise.all([
+    repositorioEtiquetas(db, contexto.organizacao.id).dosLeads(itens.map((lead) => lead.id)),
+    obterConfiguracao(db, contexto.organizacao.id),
+  ]);
+  return {
+    csv: gerarCsvDeLeads(itens, etiquetasPorLead, configuracao.fusoHorario),
+    nomeArquivo: ptBR.leads.exportar.nomeArquivo(hojeNoFuso(configuracao.fusoHorario)),
+  };
 }

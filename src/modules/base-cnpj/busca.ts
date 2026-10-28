@@ -2,7 +2,7 @@ import "server-only";
 import { getDb } from "@/db/client";
 import { diasAntes, hojeNoFuso } from "@/lib/formato";
 import { repositorioCampanhas } from "@/modules/campanhas/repositorio";
-import { repositorioLeads } from "@/modules/leads/repositorio";
+import { repositorioLeads, type LeadComCnpj } from "@/modules/leads/repositorio";
 import { obterConfiguracao } from "@/modules/organizacoes/configuracao";
 import type { Contexto } from "@/modules/organizacoes/contexto";
 import { consumirLimiteDeBusca } from "./limite-busca";
@@ -206,4 +206,18 @@ export async function obterRadarDosLeads(contexto: Contexto): Promise<RadarDosLe
   );
   const cruzados = cruzarSinaisComLeads(sinais, leads);
   return { sinais: cruzados.slice(0, SINAIS_NO_PAINEL), total: cruzados.length, acompanhados: leads.length };
+}
+
+// Página do lead (Radar): mudanças da Receita nesta empresa e novas unidades
+// da mesma raiz que ainda não são leads. Vazio para lead sem CNPJ.
+export async function obterSinaisDoLead(contexto: Contexto, lead: LeadComCnpj | null): Promise<SinalDoLead[]> {
+  if (!lead) return [];
+  const db = getDb();
+  const sinais = await repositorioBaseCnpj(db).sinaisDe([lead.cnpj], [lead.cnpj.slice(0, 8)], 50);
+  const unidades = sinais.filter((sinal) => sinal.tipo === "nova_unidade").map((sinal) => sinal.cnpj);
+  const jaSaoLeads = await repositorioLeads(db, contexto.organizacao.id).cnpjsQueJaSaoLeads(unidades);
+  return cruzarSinaisComLeads(
+    sinais.filter((sinal) => !jaSaoLeads.has(sinal.cnpj)),
+    [lead],
+  );
 }

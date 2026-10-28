@@ -67,6 +67,11 @@ function expressaoDaPontuacao(hoje: Date, s: typeof baseCnpjEstabCarga): SQL {
 
 // Quantos meses os sinais do Radar ficam guardados.
 export const MESES_DE_SINAIS = 12;
+// Queda máxima de empresas ativas de um mês para o outro que ainda parece
+// normal (em SP fecham menos de 1% por mês). Acima disso, a base nova
+// provavelmente veio incompleta (arquivo da Receita faltando ou cortado) e
+// "deixou de constar como ativa" seria um aviso falso em massa: não grava.
+export const QUEDA_MAXIMA_DE_ATIVAS = 0.05;
 
 // "SAO PAULO/SP": cidade (ou o código, se não houver nome) e estado.
 function local(t: { municipioNome: unknown; municipioCodigo: unknown; uf: unknown }): SQL {
@@ -88,7 +93,8 @@ async function detectarSinais(tx: Banco, uf: string): Promise<void> {
     .from(baseCnpjEstabCarga)
     .where(eq(baseCnpjEstabCarga.uf, uf))
     .limit(1);
-  if (!anterior || !nova || anterior.mesReferencia === nova.mes) return;
+  // Só mês mais novo que o anterior: reimportar um mês antigo não gera sinal ao contrário.
+  if (!anterior || !nova || nova.mes <= anterior.mesReferencia) return;
   const mes = nova.mes;
 
   const n = baseCnpjEstabCarga;
@@ -131,6 +137,12 @@ async function detectarSinais(tx: Banco, uf: string): Promise<void> {
     on conflict do nothing`);
 
   // Deixou de constar como ativa: estava no estado e não veio na base nova.
+  // Só se a base nova não encolheu demais (veja QUEDA_MAXIMA_DE_ATIVAS).
+  const [contagem] = await tx
+    .select({ antes: sql<number>`(select count(*) from ${o} where ${o.uf} = ${uf})`.mapWith(Number), depois: count() })
+    .from(n)
+    .where(eq(n.uf, uf));
+  if (contagem.antes > 0 && contagem.depois < contagem.antes * (1 - QUEDA_MAXIMA_DE_ATIVAS)) return;
   await tx.execute(sql`
     insert into ${s} ${colunas}
     select ${o.cnpj}, ${o.cnpjBasico}, ${o.uf}, 'deixou_ativa', ${local(o)}, null, ${mes}

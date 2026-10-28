@@ -73,3 +73,8 @@ export function enderecoDaLista(parametros: ParametrosLista, pagina: number): st
   const texto = consulta.toString();
   return texto ? `/painel/leads?${texto}` : "/painel/leads";
 }
+
+// Endereço da exportação em CSV com os mesmos filtros (sem a página: exporta todos).
+export function enderecoDaExportacao(parametros: ParametrosLista): string {
+  return enderecoDaLista(parametros, 1).replace("/painel/leads", "/painel/leads/exportar");
+}

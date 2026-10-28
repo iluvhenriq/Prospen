@@ -158,6 +158,19 @@ describe("arquitetura", () => {
     expect(infratores).toEqual([]);
   });
 
+  it("toda rota dentro de /painel começa conferindo a permissão", () => {
+    // Rotas (route.ts) não são ações do servidor, mas entregam dados do mesmo
+    // jeito (a exportação em CSV, por exemplo).
+    const rotas = todos.filter((arquivo) => /^src\/app\/painel\/.*route\.ts$/.test(caminho(arquivo)));
+    expect(rotas.length).toBeGreaterThanOrEqual(1);
+    const infratores = rotas.filter((arquivo) => {
+      const conteudo = readFileSync(arquivo, "utf8");
+      const metodos = [...conteudo.matchAll(/export async function (GET|POST|PUT|PATCH|DELETE)\([\s\S]*?\{\r?\n([\s\S]*?)\r?\n\}/g)];
+      return metodos.length === 0 || metodos.some(([, , corpo]) => !/^\s*(try \{\s*)?const \w+ = await exigirPermissao\(/.test(corpo));
+    });
+    expect(infratores.map(caminho)).toEqual([]);
+  });
+
   it("nenhum arquivo da interface importa a chave secreta do login", () => {
     const infratores = todos.filter((arquivo) => {
       const conteudo = readFileSync(arquivo, "utf8");

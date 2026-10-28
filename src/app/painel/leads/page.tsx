@@ -10,7 +10,9 @@ import { Esqueleto } from "@/components/ui/carregando";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { obterListaDeLeads } from "@/modules/leads/consultas";
-import { lerParametrosLista } from "@/modules/leads/parametros";
+import { LIMITE_DE_EXPORTACAO } from "@/modules/leads/exportacao";
+import { enderecoDaExportacao, lerParametrosLista } from "@/modules/leads/parametros";
+import { papelPode } from "@/modules/organizacoes/membros";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
 
 export const metadata: Metadata = { title: ptBR.leads.titulo };
@@ -27,9 +29,23 @@ async function ConteudoLeads({
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-sm text-texto-suave" aria-live="polite">
-        {t.total(lista.total)}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-texto-suave" aria-live="polite">
+          {t.total(lista.total)}
+        </p>
+        {/* Link comum (não o do Next): é um download, não uma página. */}
+        {lista.total > 0 && papelPode(contexto.papel, "exportarLeads") ? (
+          <a
+            href={enderecoDaExportacao(parametros)}
+            download
+            aria-label={t.exportar.rotulo(lista.temFiltro)}
+            title={t.exportar.limite(LIMITE_DE_EXPORTACAO)}
+            className="text-sm font-semibold text-musgo-700 underline hover:text-musgo-900"
+          >
+            {t.exportar.botao}
+          </a>
+        ) : null}
+      </div>
 
       {/* Sem nenhum lead na empresa, a busca não faz sentido: vai direto ao estado vazio. */}
       {lista.total === 0 && !lista.temFiltro ? (

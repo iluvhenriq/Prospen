@@ -30,7 +30,7 @@ PROSPEN é uma plataforma de aquisição de leads e gestão de marketing para em
 | 6 | Pontuação dos leads por regras simples, com dados da base pública (sem Google Places, decisão de 23/10/2026) | concluída (23/10/2026): regras em `src/modules/pontuacao/regras.ts`, pontuação na base (busca ordena pelos melhores, 3 a 358 ms em SP) e no lead (selo e motivos). Testada no navegador |
 | 7 | Campanhas manuais (sem integração com anúncios) e painel de indicadores | concluída (23/10/2026), testada no navegador: motivo da perda e valor da venda, painel de indicadores (`/painel`) e campanhas (`/painel/campanhas`: lista de trabalho e ação com custo; números vêm do funil). Henrique ainda vai testar as telas |
 | 8 | Revisão final: erros, estados vazios, testes dos fluxos críticos, segurança, celular | em andamento (23/10/2026): segurança revisada, telas revisadas no computador e no celular, testes de navegador novos, limite na importação, página "remover meus dados", política de privacidade (rascunho). Falta o que depende do Henrique: domínio e provedor de e-mail (recuperação de senha e confirmação de e-mail), hospedagem, identificação completa do responsável na política. Código no GitHub (`iluvhenriq/prospen`, privado), branch `master` |
-| 9 | Nova identidade e diferenciais | em andamento (27/10/2026): identidade nova, página de pré-venda ("mesa do vendedor"), telas internas, tema escuro, contato em um clique, registro de contato com próxima ação, tela "Hoje", aprendizado com os resultados, recém-abertas com buscas vigiadas e radar de mudanças na Receita (28/10/2026) concluídos. Próxima: pontuação ajustada ao cliente ideal (detalhes no `README.md`) |
+| 9 | Nova identidade e diferenciais | em andamento (27/10/2026): identidade nova, página de pré-venda ("mesa do vendedor"), telas internas, tema escuro, contato em um clique, registro de contato com próxima ação, tela "Hoje", aprendizado com os resultados, recém-abertas com buscas vigiadas e radar de mudanças na Receita (painel e página do lead) e exportação de leads em CSV (28/10/2026) concluídos. Próxima: pontuação ajustada ao cliente ideal (detalhes no `README.md`) |
 
 Fora do MVP, de propósito: Google Ads, Meta Ads, formulários de captação, automação, inteligência artificial, cobrança e planos. Não implemente antes da hora. Exceção decidida em 27/10/2026: um primeiro assistente de inteligência artificial entra logo depois de a pré-venda ser validada (não antes).
 
@@ -93,6 +93,7 @@ Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `np
 - A fonte vem do pacote `@fontsource-variable/schibsted-grotesk` (via `next/font/local`), não do Google Fonts.
 - `npm run dev` recarregando a página sem parar logo depois de um build, ou mudança no `globals.css` que não aparece (o CSS servido fica misturado com a versão antiga): pare o servidor e apague `.next\dev` (reiniciar sozinho não resolve).
 - Toda ação do servidor nova precisa começar por `exigirPermissao`, senão `tests/arquitetura.test.ts` falha. Ação pública entra na lista `PUBLICAS` desse teste, com motivo.
+- `npm run test:e2e` já usa os 10 cadastros por hora permitidos por endereço (`cadastroPorIp`). Teste de navegador novo que crie conta faz outro falhar com "Muitas tentativas": aproveite a conta de um teste existente (como a exportação, dentro de `e2e/importacao.spec.ts`).
 - O PGlite em modo servidor só aceita várias conexões com `maxConnections` maior que 1. Isso é só do ambiente de teste, não do produto.
 
 ## Pendências e riscos conhecidos
@@ -104,7 +105,7 @@ Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `np
 - O limite de tentativas de login vive na memória do servidor. Com mais de um servidor, mover para o banco. O limite por endereço depende do cabeçalho `x-forwarded-for`.
 - **Regra de duplicados (decidida em 22/10/2026, no banco e no repositório desde 23/10):** lead com CNPJ é único pelo CNPJ dentro da empresa. E-mail e telefone são únicos só entre leads sem CNPJ (manual e planilha). O CNPJ pode ser alfanumérico (regra da Receita desde 07/2026): use `src/modules/leads/cnpj.ts`, nunca "14 números". A página do lead avisa quando o e-mail ou telefone está em outros leads da empresa.
 - Mensagens de validação e erro geradas na lógica ficam em `ptBR.mensagens` (movidas em 23/10/2026). Não escreva texto visível solto em `src/modules`.
-- Ao criar exportação de leads, neutralizar células que começam com `=`, `+`, `-` ou `@`.
+- Exportação de leads em CSV (28/10/2026, `/painel/leads/exportar`, só administrador e dono, até 10.000 por vez): células que começam com `=`, `+`, `-` ou `@` saem com apóstrofo (`celulaSegura` em `src/modules/leads/exportacao.ts`). Toda rota (`route.ts`) dentro de `/painel` também começa por `exigirPermissao` (cobrado em `tests/arquitetura.test.ts`).
 - Limites de login e de importação (20 planilhas e 60 conferências por hora por empresa) vivem na memória do servidor.
 - Importação só aceita CSV, até 2 MB e 5.000 linhas.
 

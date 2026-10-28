@@ -304,6 +304,8 @@ export const ptBR = {
       verUnidade: "Ver unidade nova",
       mes: (mes: string) => `Base de ${mes.slice(5, 7)}/${mes.slice(0, 4)}`,
       mostrando: (mostradas: number, total: number) => `Mostrando as ${mostradas} mais recentes de ${total}.`,
+      doLeadTitulo: "Mudanças na Receita",
+      doLeadDescricao: "O que mudou nesta empresa entre uma base mensal da Receita e outra.",
     },
     // O que os negócios encerrados ensinam (etapa 9d). Sem conclusão com pouco dado.
     aprendizado: {
@@ -524,6 +526,31 @@ export const ptBR = {
     },
     total: (total: number) =>
       total === 1 ? "1 lead" : `${total.toLocaleString("pt-BR")} leads`,
+    // Exportação em CSV (28/10/2026). Separador ";" e vírgula decimal: o Excel em português abre direto.
+    exportar: {
+      botao: "Exportar CSV",
+      rotulo: (filtrado: boolean) => (filtrado ? "Exportar os leads filtrados em CSV" : "Exportar todos os leads em CSV"),
+      nomeArquivo: (data: string) => `leads-prospen-${data}.csv`,
+      limite: (limite: number) => `Exporta até ${limite.toLocaleString("pt-BR")} leads por vez.`,
+      semPermissao: "Só administradores e donos da empresa podem exportar leads.",
+      colunas: {
+        nome: "Nome",
+        empresa: "Empresa",
+        cnpj: "CNPJ",
+        email: "E-mail",
+        telefone: "Telefone",
+        pais: "País",
+        origem: "Origem",
+        etapa: "Etapa",
+        etiquetas: "Etiquetas",
+        proximaAcaoEm: "Próxima ação em",
+        proximaAcao: "Próxima ação",
+        valorVenda: "Valor da venda",
+        moeda: "Moeda",
+        motivoPerda: "Motivo da perda",
+        criadoEm: "Criado em",
+      },
+    },
     semNome: "Sem nome",
     vazioTitulo: "Você ainda não tem leads",
     vazioDescricao:

@@ -223,6 +223,16 @@ export function repositorioLeads(db: Banco, organizacaoId: string) {
         .offset(Math.max(deslocamento, 0));
     },
 
+    // Exportação em CSV: os mesmos filtros da lista, sem paginação, até o limite.
+    async paraExportar(filtros: FiltrosLeads, limite: number): Promise<Lead[]> {
+      return db
+        .select()
+        .from(leads)
+        .where(condicoes(filtros))
+        .orderBy(desc(leads.criadoEm), desc(leads.id))
+        .limit(Math.max(limite, 1));
+    },
+
     async contar(filtros: FiltrosLeads = {}): Promise<number> {
       const [linha] = await db
         .select({ total: count() })

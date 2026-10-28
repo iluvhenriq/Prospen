@@ -9,7 +9,7 @@ import {
   SITUACAO_ATIVA,
 } from "@/integrations/receita-cnpj/leitura";
 import { cnpjValido } from "@/modules/leads/cnpj";
-import type { RepositorioBaseCnpj } from "./repositorio";
+import { QUEDA_MAXIMA_DE_ATIVAS, type RepositorioBaseCnpj } from "./repositorio";
 
 // Carrega um estado da base pública de CNPJ a partir dos arquivos já baixados
 // (npm run cnpj:baixar). Só entram estabelecimentos ATIVOS do estado pedido, e
@@ -89,6 +89,12 @@ export async function importarEstado({
     try {
       resumo.gravados = await repositorio.concluirCarga(uf);
       avisar(`Dados trocados (${segundosDesde(inicio)} s).`);
+      if (apagadosAntes > 0 && resumo.gravados < apagadosAntes * (1 - QUEDA_MAXIMA_DE_ATIVAS)) {
+        avisar(
+          `ATENÇÃO: o estado caiu de ${apagadosAntes} para ${resumo.gravados} empresas ativas. ` +
+            "Confira se todos os arquivos da Receita baixaram inteiros. O radar não marcou empresas como fechadas neste mês.",
+        );
+      }
     } finally {
       // Volta os índices mesmo se a troca falhar no meio.
       avisar("Recriando os índices de busca...");

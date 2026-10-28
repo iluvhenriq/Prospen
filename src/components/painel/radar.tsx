@@ -9,7 +9,7 @@ function local(valor: string | null): string | null {
   return valor ? nomeParaExibir(valor) : null;
 }
 
-function descrever(sinal: SinalDoLead): string {
+export function descreverSinal(sinal: SinalDoLead): string {
   const t = ptBR.painel.radar.tipos;
   switch (sinal.tipo) {
     case "nova_unidade":
@@ -21,6 +21,11 @@ function descrever(sinal: SinalDoLead): string {
     case "deixou_ativa":
       return t.deixou_ativa();
   }
+}
+
+// Link para ver a unidade nova na busca (pelo CNPJ exato).
+export function enderecoDaUnidade(cnpj: string): string {
+  return enderecoDaBusca({ atividade: "", incluirMei: false, recentes: false, cnpjDigitado: cnpj });
 }
 
 // "Mudanças nas empresas dos seus leads", no painel: o que a Receita mudou
@@ -48,13 +53,13 @@ export function RadarDoPainel({ radar }: { radar: RadarDosLeads }) {
                   >
                     {sinal.lead.empresa ? `${sinal.lead.nome} (${sinal.lead.empresa})` : sinal.lead.nome}
                   </Link>
-                  <span className="text-sm text-texto">{descrever(sinal)}</span>
+                  <span className="text-sm text-texto">{descreverSinal(sinal)}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="numeros text-xs text-texto-suave">{t.mes(sinal.mesReferencia)}</span>
                   {sinal.tipo === "nova_unidade" ? (
                     <Link
-                      href={enderecoDaBusca({ atividade: "", incluirMei: false, recentes: false, cnpjDigitado: sinal.cnpj })}
+                      href={enderecoDaUnidade(sinal.cnpj)}
                       className="text-sm font-semibold text-musgo-700 underline hover:text-musgo-900"
                     >
                       {t.verUnidade}
@@ -69,6 +74,38 @@ export function RadarDoPainel({ radar }: { radar: RadarDosLeads }) {
           ) : null}
         </>
       )}
+    </section>
+  );
+}
+
+// Página do lead: as mudanças da Receita nesta empresa. Sem mudança, não aparece.
+export function RadarDoLead({ sinais }: { sinais: SinalDoLead[] }) {
+  const t = ptBR.painel.radar;
+  if (sinais.length === 0) return null;
+  return (
+    <section className="flex flex-col gap-3 rounded-painel border border-borda bg-superficie px-5 py-5">
+      <div>
+        <h2 className="text-base font-bold text-texto">{t.doLeadTitulo}</h2>
+        <p className="text-sm text-texto-suave">{t.doLeadDescricao}</p>
+      </div>
+      <ul className="flex flex-col divide-y divide-borda border-y border-borda">
+        {sinais.map((sinal) => (
+          <li key={sinal.id} className="flex flex-col gap-0.5 py-3">
+            <span className="text-sm text-texto">{descreverSinal(sinal)}</span>
+            <span className="flex flex-wrap items-center gap-3">
+              <span className="numeros text-xs text-texto-suave">{t.mes(sinal.mesReferencia)}</span>
+              {sinal.tipo === "nova_unidade" ? (
+                <Link
+                  href={enderecoDaUnidade(sinal.cnpj)}
+                  className="text-sm font-semibold text-musgo-700 underline hover:text-musgo-900"
+                >
+                  {t.verUnidade}
+                </Link>
+              ) : null}
+            </span>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }
