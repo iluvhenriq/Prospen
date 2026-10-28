@@ -14,7 +14,7 @@ import { adicionarDaBusca, type EstadoAdicionar } from "@/modules/base-cnpj/acoe
 import type { ResultadoDaBusca } from "@/modules/base-cnpj/repositorio";
 import { formatarCnpj } from "@/modules/leads/cnpj";
 import { formatarTelefone } from "@/modules/leads/normalizacao";
-import { pontuar } from "@/modules/pontuacao/regras";
+import { combinaComClienteIdeal, pontuar, type ClienteIdeal } from "@/modules/pontuacao/regras";
 
 const inicial: EstadoAdicionar = {};
 
@@ -27,7 +27,10 @@ export function ResultadosBusca({
   resultados,
   jaSaoLeads,
   campanhasAtivas,
+  perfil,
 }: {
+  // Cliente ideal da empresa: marca as que combinam. A nota é a geral (a ordem da busca).
+  perfil: ClienteIdeal | null;
   resultados: ResultadoDaBusca[];
   jaSaoLeads: string[];
   campanhasAtivas: { id: string; nome: string }[];
@@ -151,6 +154,13 @@ export function ResultadosBusca({
                 <NotaPontuacao {...pontuacao} />
                 {jaEhLead ? <Etiqueta variante="musgo">{t.jaEhLead}</Etiqueta> : null}
                 {linha.mei ? <Etiqueta>{t.mei}</Etiqueta> : null}
+                {perfil &&
+                combinaComClienteIdeal(
+                  { dataAbertura: linha.dataInicioAtividade, porte: linha.porte, naturezaJuridica: linha.naturezaJuridica },
+                  perfil,
+                ) ? (
+                  <Etiqueta variante="destaque">{ptBR.clienteIdeal.combina}</Etiqueta>
+                ) : null}
               </div>
               <div className="min-w-0">
                 <p className="truncate font-semibold text-texto">{nomeParaExibir(nome)}</p>

@@ -13,3 +13,4 @@ export * from "./campanhas";
 export * from "./buscas-vigiadas";
 export * from "./registros-acesso";
 export * from "./pre-cadastros";
+export * from "./cliente-ideal";

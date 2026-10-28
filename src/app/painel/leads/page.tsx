@@ -13,6 +13,7 @@ import { obterListaDeLeads } from "@/modules/leads/consultas";
 import { LIMITE_DE_EXPORTACAO } from "@/modules/leads/exportacao";
 import { enderecoDaExportacao, lerParametrosLista } from "@/modules/leads/parametros";
 import { papelPode } from "@/modules/organizacoes/membros";
+import { obterClienteIdeal } from "@/modules/pontuacao/cliente-ideal";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
 
 export const metadata: Metadata = { title: ptBR.leads.titulo };
@@ -24,7 +25,7 @@ async function ConteudoLeads({
 }) {
   const contexto = await exigirContexto();
   const parametros = lerParametrosLista(await searchParams);
-  const lista = await obterListaDeLeads(contexto, parametros);
+  const [lista, perfil] = await Promise.all([obterListaDeLeads(contexto, parametros), obterClienteIdeal(contexto)]);
   const t = ptBR.leads;
 
   return (
@@ -86,6 +87,7 @@ async function ConteudoLeads({
                 contatosPorLead={lista.contatosPorLead}
                 fusoHorario={lista.fusoHorario}
                 hoje={lista.hoje}
+                perfil={perfil}
               />
               <Paginacao parametros={parametros} pagina={lista.pagina} paginas={lista.paginas} />
             </>

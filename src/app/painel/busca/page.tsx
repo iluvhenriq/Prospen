@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { FiltrosBusca } from "@/components/busca/filtros-busca";
 import { ResultadosBusca } from "@/components/busca/resultados-busca";
@@ -9,6 +10,7 @@ import { Esqueleto } from "@/components/ui/carregando";
 import { EstadoVazio } from "@/components/ui/estado-vazio";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { obterTelaDeBusca } from "@/modules/base-cnpj/busca";
+import { obterClienteIdeal } from "@/modules/pontuacao/cliente-ideal";
 import { enderecoDaBusca, lerParametrosBusca } from "@/modules/base-cnpj/parametros";
 import { MAXIMO_DE_ATIVIDADES } from "@/modules/base-cnpj/repositorio";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
@@ -18,7 +20,7 @@ export const metadata: Metadata = { title: ptBR.busca.titulo };
 async function ConteudoBusca({ searchParams }: { searchParams: PageProps<"/painel/busca">["searchParams"] }) {
   const contexto = await exigirContexto();
   const parametros = lerParametrosBusca(await searchParams);
-  const tela = await obterTelaDeBusca(contexto, parametros);
+  const [tela, perfil] = await Promise.all([obterTelaDeBusca(contexto, parametros), obterClienteIdeal(contexto)]);
   const t = ptBR.busca;
 
   if (tela.estados.length === 0) {
@@ -77,7 +79,15 @@ async function ConteudoBusca({ searchParams }: { searchParams: PageProps<"/paine
             {t.mostrando(tela.resultados.length)}. {ptBR.pontuacao.ordemDaBusca}
           </p>
           {/* A chave troca a cada página: a marcação não passa de uma página para outra. */}
+          <p className="text-sm text-texto-suave">
+            {perfil ? ptBR.clienteIdeal.marcadasNaBusca : ptBR.clienteIdeal.semPerfilNaBusca}{" "}
+            <Link href="/painel/cliente-ideal" className="font-semibold text-musgo-700 underline hover:text-musgo-900">
+              {perfil ? ptBR.clienteIdeal.mudar : ptBR.clienteIdeal.definir}
+            </Link>
+            {perfil?.idade === "estabelecidas" ? <span className="block">{ptBR.clienteIdeal.contraOrdemGeral}</span> : null}
+          </p>
           <ResultadosBusca
+            perfil={perfil}
             key={`${parametros.depoisDe?.cnpj ?? ""}-${tela.resultados[0].cnpj}`}
             resultados={tela.resultados}
             jaSaoLeads={[...tela.jaSaoLeads]}

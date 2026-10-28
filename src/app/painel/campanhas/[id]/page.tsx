@@ -23,6 +23,7 @@ import { obterCampanha } from "@/modules/campanhas/consultas";
 import { MAXIMO_POR_ADICAO } from "@/modules/campanhas/repositorio";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
 import { papelPode } from "@/modules/organizacoes/membros";
+import { obterClienteIdeal } from "@/modules/pontuacao/cliente-ideal";
 import { pontuar } from "@/modules/pontuacao/regras";
 
 export const metadata: Metadata = { title: ptBR.campanhas.titulo };
@@ -30,7 +31,7 @@ export const metadata: Metadata = { title: ptBR.campanhas.titulo };
 async function ConteudoDaCampanha({ params }: { params: PageProps<"/painel/campanhas/[id]">["params"] }) {
   const { id } = await params;
   const contexto = await exigirContexto();
-  const detalhe = await obterCampanha(contexto, id);
+  const [detalhe, perfil] = await Promise.all([obterCampanha(contexto, id), obterClienteIdeal(contexto)]);
   // Identificador inválido, apagada ou de outra empresa: a resposta é a mesma.
   if (!detalhe) notFound();
   const { campanha, leads, moeda } = detalhe;
@@ -97,7 +98,7 @@ async function ConteudoDaCampanha({ params }: { params: PageProps<"/painel/campa
                       </Link>
                       {lead.empresa ? <p className="truncate text-xs text-texto-suave">{lead.empresa}</p> : null}
                     </div>
-                    <SeloPontuacao {...pontuar(lead)} />
+                    <SeloPontuacao {...pontuar(lead, undefined, perfil)} />
                     <SeloEtapa etapa={lead.etapa} />
                     <form action={removerLeadDaCampanha}>
                       <input type="hidden" name="campanhaId" value={campanha.id} />

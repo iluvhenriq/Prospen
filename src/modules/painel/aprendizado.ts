@@ -1,6 +1,6 @@
 import type { MotivoPerda, OrigemLead } from "@/modules/leads/tipos";
 import type { LeadEncerrado } from "@/modules/leads/repositorio";
-import { pontuar, type Faixa } from "@/modules/pontuacao/regras";
+import { pontuar, type ClienteIdeal, type Faixa } from "@/modules/pontuacao/regras";
 
 // Aprendizado com os resultados (etapa 9d, 27/10/2026). Conta pura, sem banco:
 // recebe os negócios encerrados (ganhos e perdidos) e devolve o que eles
@@ -57,12 +57,16 @@ function agrupar<C extends string>(linhas: LeadEncerrado[], chaveDe: (linha: Lea
 }
 
 // "hoje" entra como parâmetro: a nota depende da idade da empresa.
-export function aprenderComOsResultados(linhas: LeadEncerrado[], hoje: Date = new Date()): Aprendizado {
+export function aprenderComOsResultados(
+  linhas: LeadEncerrado[],
+  hoje: Date = new Date(),
+  perfil: ClienteIdeal | null = null,
+): Aprendizado {
   const ganhos = linhas.filter((linha) => linha.etapa === "ganho");
   const perdidos = linhas.filter((linha) => linha.etapa === "perdido");
 
-  // A nota de hoje de cada negócio (a mesma conta da lista de leads).
-  const porFaixaBruto = agrupar(linhas, (linha) => pontuar(linha, hoje).faixa);
+  // A nota de hoje de cada negócio (a mesma conta da lista de leads, com o cliente ideal).
+  const porFaixaBruto = agrupar(linhas, (linha) => pontuar(linha, hoje, perfil).faixa);
   const porFaixa = FAIXAS.map((faixa) => {
     const grupo = porFaixaBruto.get(faixa) ?? { ganhos: 0, perdidos: 0 };
     return fechamento(faixa, grupo.ganhos, grupo.perdidos);

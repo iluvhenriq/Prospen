@@ -16,7 +16,7 @@ import {
 } from "@/modules/leads/parametros";
 import { formatarTelefone } from "@/modules/leads/normalizacao";
 import type { ResumoDeContatos } from "@/modules/leads/repositorio-contatos";
-import { pontuar } from "@/modules/pontuacao/regras";
+import { pontuar, type ClienteIdeal } from "@/modules/pontuacao/regras";
 import {
   ETAPAS_FUNIL,
   ORIGENS_LEAD,
@@ -113,7 +113,10 @@ export function ListaLeads({
   contatosPorLead,
   fusoHorario,
   hoje,
+  perfil,
 }: {
+  // Cliente ideal da empresa: a nota segue o perfil. Nulo: nota geral.
+  perfil: ClienteIdeal | null;
   leads: Lead[];
   etiquetasPorLead: Map<string, EtiquetaDoLead[]>;
   contatosPorLead: Map<string, ResumoDeContatos>;
@@ -142,7 +145,7 @@ export function ListaLeads({
               key={lead.id}
               className={cn(GRADE_LEADS, "relative flex flex-col gap-1.5 px-4 py-3 transition-colors hover:bg-musgo-50 lg:grid lg:items-center")}
             >
-                <NotaPontuacao {...pontuar(lead)} />
+                <NotaPontuacao {...pontuar(lead, undefined, perfil)} />
                 <div className="min-w-0">
                   {/* O link é o nome, mas cobre a linha inteira (::after); os botões de contato ficam por cima dele. */}
                   <Link

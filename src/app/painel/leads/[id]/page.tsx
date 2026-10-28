@@ -35,6 +35,7 @@ import { atualizarLead, excluirLead } from "@/modules/leads/acoes";
 import { formatarCnpj } from "@/modules/leads/cnpj";
 import { obterDetalheDoLead } from "@/modules/leads/consultas";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
+import { obterClienteIdeal } from "@/modules/pontuacao/cliente-ideal";
 import { pontuar } from "@/modules/pontuacao/regras";
 import { papelPode } from "@/modules/organizacoes/membros";
 
@@ -53,11 +54,12 @@ async function ConteudoDoLead({
 
   const { lead } = detalhe;
   const t = ptBR.leads;
-  const pontuacao = pontuar(lead);
-  const [campanhas, sinais] = await Promise.all([
+  const [campanhas, sinais, perfil] = await Promise.all([
     obterCampanhasDoLead(contexto, lead.id),
     obterSinaisDoLead(contexto, lead.cnpj ? { ...lead, cnpj: lead.cnpj } : null),
+    obterClienteIdeal(contexto),
   ]);
+  const pontuacao = pontuar(lead, undefined, perfil);
 
   return (
     <div className="flex flex-col gap-6">
@@ -165,6 +167,12 @@ async function ConteudoDoLead({
             <CartaoConteudo className="flex flex-col gap-2 text-sm text-texto-suave">
               <ContaDaNota pontos={pontuacao.pontos} motivos={pontuacao.motivos} />
               {lead.cnpj ? null : <p className="text-xs">{ptBR.pontuacao.semDadosDaReceita}</p>}
+              <p className="text-xs">
+                {perfil ? ptBR.pontuacao.ajustada : ptBR.pontuacao.geral}{" "}
+                <Link href="/painel/cliente-ideal" className="font-semibold text-musgo-700 underline hover:text-musgo-900">
+                  {perfil ? ptBR.clienteIdeal.mudar : ptBR.pontuacao.ajustar}
+                </Link>
+              </p>
             </CartaoConteudo>
           </Cartao>
 

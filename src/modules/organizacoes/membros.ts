@@ -23,6 +23,8 @@ export const PAPEL_MINIMO = {
   // Exportar leva a base inteira para fora do sistema (risco clássico de quem
   // sai da equipe levando os contatos): só administrador e dono.
   exportarLeads: "admin",
+  // O cliente ideal muda a nota de todos os leads da empresa.
+  definirClienteIdeal: "admin",
   // Criar campanha e colocar leads nela é trabalho do dia a dia; apagar uma
   // campanha some com o histórico dela, então exige mais.
   trabalharComCampanhas: "member",

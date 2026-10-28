@@ -12,13 +12,24 @@ import { diasEntre, formatarData } from "@/lib/formato";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { obterAgendaDoDia, type AgendaDoDia } from "@/modules/leads/consultas";
 import { exigirContexto } from "@/modules/organizacoes/contexto";
-import { pontuar } from "@/modules/pontuacao/regras";
+import { obterClienteIdeal } from "@/modules/pontuacao/cliente-ideal";
+import { pontuar, type ClienteIdeal } from "@/modules/pontuacao/regras";
 
 export const metadata: Metadata = { title: ptBR.hoje.titulo };
 
 // Um grupo da agenda (atrasados ou do dia), como uma lista de trabalho: nota,
 // lead, o que fazer, contato em um clique.
-function Grupo({ titulo, leads, agenda }: { titulo: string; leads: AgendaDoDia["leads"]; agenda: AgendaDoDia }) {
+function Grupo({
+  titulo,
+  leads,
+  agenda,
+  perfil,
+}: {
+  titulo: string;
+  leads: AgendaDoDia["leads"];
+  agenda: AgendaDoDia;
+  perfil: ClienteIdeal | null;
+}) {
   const t = ptBR.hoje;
   const c = ptBR.contatos;
   if (leads.length === 0) return null;
@@ -37,7 +48,7 @@ function Grupo({ titulo, leads, agenda }: { titulo: string; leads: AgendaDoDia["
               key={lead.id}
               className="relative grid gap-x-5 gap-y-1.5 px-4 py-3 transition-colors hover:bg-musgo-50 lg:grid-cols-[6.5rem_minmax(0,1.2fr)_minmax(0,1.4fr)_auto] lg:items-center"
             >
-              <NotaPontuacao {...pontuar(lead)} />
+              <NotaPontuacao {...pontuar(lead, undefined, perfil)} />
               <div className="min-w-0">
                 {/* O link é o nome, mas cobre a linha inteira; os botões ficam por cima. */}
                 <Link href={`/painel/leads/${lead.id}`} className="block truncate font-semibold text-texto after:absolute after:inset-0 hover:underline">
@@ -74,7 +85,7 @@ function Grupo({ titulo, leads, agenda }: { titulo: string; leads: AgendaDoDia["
 
 async function ConteudoHoje() {
   const contexto = await exigirContexto();
-  const agenda = await obterAgendaDoDia(contexto);
+  const [agenda, perfil] = await Promise.all([obterAgendaDoDia(contexto), obterClienteIdeal(contexto)]);
   const t = ptBR.hoje;
 
   if (agenda.total === 0) {
@@ -92,8 +103,8 @@ async function ConteudoHoje() {
 
   return (
     <div className="flex flex-col gap-6">
-      <Grupo titulo={t.atrasados} leads={atrasados} agenda={agenda} />
-      <Grupo titulo={t.doDia} leads={doDia} agenda={agenda} />
+      <Grupo titulo={t.atrasados} leads={atrasados} agenda={agenda} perfil={perfil} />
+      <Grupo titulo={t.doDia} leads={doDia} agenda={agenda} perfil={perfil} />
       {agenda.total > agenda.leads.length ? (
         <p className="text-sm text-texto-suave">{t.mostrandoParte(agenda.leads.length, agenda.total)}</p>
       ) : null}

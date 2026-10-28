@@ -4,6 +4,7 @@ import type { Contexto } from "@/modules/organizacoes/contexto";
 import { hojeNoFuso } from "@/lib/formato";
 import { repositorioLeads } from "@/modules/leads/repositorio";
 import { obterConfiguracao } from "@/modules/organizacoes/configuracao";
+import { repositorioClienteIdeal } from "@/modules/pontuacao/repositorio-cliente-ideal";
 import { aprenderComOsResultados, type Aprendizado } from "./aprendizado";
 import { montarPainel, type Painel } from "./indicadores";
 
@@ -20,10 +21,11 @@ export async function obterResumo(contexto: Contexto): Promise<Painel> {
 // calendário da empresa, igual à da lista de leads.
 export async function obterAprendizado(contexto: Contexto): Promise<Aprendizado> {
   const db = getDb();
-  const [encerrados, configuracao] = await Promise.all([
+  const [encerrados, configuracao, perfil] = await Promise.all([
     repositorioLeads(db, contexto.organizacao.id).encerrados(),
     obterConfiguracao(db, contexto.organizacao.id),
+    repositorioClienteIdeal(db, contexto.organizacao.id).obter(),
   ]);
   const hoje = new Date(`${hojeNoFuso(configuracao.fusoHorario)}T12:00:00Z`);
-  return aprenderComOsResultados(encerrados, hoje);
+  return aprenderComOsResultados(encerrados, hoje, perfil);
 }
