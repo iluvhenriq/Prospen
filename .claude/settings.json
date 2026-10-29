@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git push)",
+      "Bash(git push -u origin redesenho-e-tema)",
+      "Bash(npm run no-ar)",
+      "PowerShell(npm run no-ar)",
+      "Bash(npm run lint)",
+      "PowerShell(npm run lint)",
+      "Bash(npm test)",
+      "PowerShell(npm test)",
+      "Bash(npx tsc --noEmit)",
+      "PowerShell(npx tsc --noEmit)",
+      "Bash(ffprobe *)",
+      "mcp__playwright__browser_snapshot",
+      "mcp__playwright__browser_take_screenshot",
+      "mcp__playwright__browser_wait_for",
+      "mcp__playwright__browser_console_messages",
+      "mcp__chrome-devtools__take_screenshot",
+      "mcp__chrome-devtools__take_snapshot",
+      "mcp__chrome-devtools__wait_for",
+      "mcp__chrome-devtools__list_pages",
+      "mcp__chrome-devtools__list_console_messages",
+      "mcp__apify__get-dataset-items",
+      "mcp__apify__fetch-actor-details",
+      "mcp__plugin_claude-mem_mcp-search__search"
+    ]
+  }
+}
