@@ -1,10 +1,12 @@
 import { PGlite } from "@electric-sql/pglite";
 import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
 import { unaccent } from "@electric-sql/pglite/contrib/unaccent";
+import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import * as schema from "@/db/schema";
 import { criarAuth } from "@/lib/auth-config";
+import type { Email } from "@/modules/contas/emails";
 
 // Banco PostgreSQL em memória, com as migrações reais aplicadas, mais um
 // login ligado a ele. Cada arquivo de teste cria o seu e o descarta no fim.
@@ -13,13 +15,18 @@ export async function criarAmbienteDeTeste() {
   const db = drizzle(pg, { schema });
   await migrate(db, { migrationsFolder: "./src/db/migrations" });
 
+  // Os e-mails não saem: ficam aqui para os testes conferirem.
+  const emails: Email[] = [];
   const auth = criarAuth(db, {
     secret: "segredo-so-para-testes-com-mais-de-32-caracteres",
     baseURL: "http://localhost:3000",
     cookiesDoNext: false,
+    enviarEmail: async (email) => {
+      emails.push(email);
+    },
   });
 
-  return { pg, db, auth, encerrar: () => pg.close() };
+  return { pg, db, auth, emails, encerrar: () => pg.close() };
 }
 
 export type AmbienteDeTeste = Awaited<ReturnType<typeof criarAmbienteDeTeste>>;
@@ -40,15 +47,20 @@ export type PessoaDeTeste = {
   cabecalhos: Headers;
 };
 
-// Cadastra uma pessoa e devolve o necessário para agir em nome dela.
+// Cadastra uma pessoa (com o e-mail já confirmado, como depois do clique no
+// link) e devolve o necessário para agir em nome dela.
 export async function cadastrarPessoa(
   ambiente: AmbienteDeTeste,
   nome: string,
   email: string,
   senha = "senha-de-teste-123",
 ): Promise<PessoaDeTeste> {
-  const { headers, response } = await ambiente.auth.api.signUpEmail({
+  const { user: criado } = await ambiente.auth.api.signUpEmail({
     body: { name: nome, email, password: senha },
+  });
+  await ambiente.db.update(schema.user).set({ emailVerified: true }).where(eq(schema.user.id, criado.id));
+  const { headers, response } = await ambiente.auth.api.signInEmail({
+    body: { email, password: senha },
     returnHeaders: true,
   });
   return {

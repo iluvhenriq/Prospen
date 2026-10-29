@@ -220,6 +220,9 @@ export const ptBR = {
       botao: "Entrar",
       semConta: "Ainda não tem conta?",
       linkCadastro: "Criar conta",
+      esqueci: "Esqueci minha senha",
+      senhaTrocada: "Senha trocada. Entre com a senha nova.",
+      jaConfirmado: "Seu e-mail já está confirmado. Entre com a sua senha.",
     },
     cadastro: {
       titulo: "Criar conta",
@@ -228,6 +231,33 @@ export const ptBR = {
       ajudaSenha: "Use pelo menos 8 caracteres.",
       temConta: "Já tem conta?",
       linkEntrar: "Entrar",
+      enviado: (email: string) =>
+        `Enviamos um link para ${email}. Abra o e-mail e clique no link para entrar. Não chegou? Confira o spam ou entre com a sua senha para receber outro.`,
+    },
+    // Link do e-mail de confirmação: um botão, não a entrada automática, porque
+    // alguns provedores de e-mail abrem os links sozinhos para conferir.
+    confirmar: {
+      titulo: "Confirmar e-mail",
+      descricao: "Falta um clique para entrar no PROSPEN.",
+      botao: "Confirmar e entrar",
+      semLink: "Link incompleto. Abra de novo o link que chegou no seu e-mail.",
+      invalido: "Este link venceu ou não vale mais. Entre com a sua senha e enviamos outro.",
+    },
+    esqueci: {
+      titulo: "Esqueci minha senha",
+      descricao: "Informe o e-mail da conta. Enviamos um link para criar uma senha nova.",
+      botao: "Enviar link",
+      enviado: "Se existir uma conta com este e-mail, o link chega em instantes e vale por 1 hora. Confira também o spam.",
+      voltar: "Voltar para entrar",
+    },
+    novaSenha: {
+      titulo: "Criar senha nova",
+      descricao: "Escolha a senha nova da sua conta. Quem estiver com a conta aberta em outro aparelho vai precisar entrar de novo.",
+      campo: "Senha nova",
+      botao: "Salvar senha nova",
+      semLink: "Link incompleto. Abra de novo o link que chegou no seu e-mail.",
+      invalido: "Este link venceu ou já foi usado. Peça outro.",
+      pedirOutro: "Pedir outro link",
     },
     organizacao: {
       titulo: "Qual é o nome da sua empresa?",
@@ -239,6 +269,47 @@ export const ptBR = {
     },
     limiteTentativas: (minutos: number) =>
       `Muitas tentativas. Tente de novo em ${minutos} ${minutos === 1 ? "minuto" : "minutos"}.`,
+  },
+  // E-mails da conta (src/modules/contas/emails.ts). Texto simples, sem imagem.
+  // As validades seguem VALIDADE_CONFIRMACAO_S e VALIDADE_NOVA_SENHA_S (auth-config.ts).
+  emails: {
+    assinatura: "Equipe PROSPEN",
+    confirmacao: {
+      assunto: "Confirme seu e-mail no PROSPEN",
+      linhas: (nome: string, link: string) => [
+        `Olá, ${nome}.`,
+        "",
+        "Para entrar no PROSPEN, confirme o seu e-mail abrindo o link abaixo:",
+        link,
+        "",
+        "O link vale por 24 horas.",
+        "Se você não criou uma conta no PROSPEN, ignore este e-mail.",
+      ],
+    },
+    novaSenha: {
+      assunto: "Senha nova no PROSPEN",
+      linhas: (nome: string, link: string) => [
+        `Olá, ${nome}.`,
+        "",
+        "Para criar uma senha nova, abra o link abaixo:",
+        link,
+        "",
+        "O link vale por 1 hora e só pode ser usado uma vez.",
+        "Se você não pediu, ignore este e-mail: a sua senha continua a mesma.",
+      ],
+    },
+    contaExistente: {
+      assunto: "Tentaram criar uma conta com o seu e-mail",
+      linhas: (nome: string, entrar: string, esqueci: string) => [
+        `Olá, ${nome}.`,
+        "",
+        "Alguém tentou criar uma conta no PROSPEN com o seu e-mail, mas você já tem uma.",
+        `Para entrar: ${entrar}`,
+        `Esqueceu a senha? ${esqueci}`,
+        "",
+        "Se não foi você, pode ignorar: nada mudou na sua conta.",
+      ],
+    },
   },
   painel: {
     titulo: "Painel",
@@ -1069,7 +1140,7 @@ export const ptBR = {
       emailOuSenhaIncorretos: "E-mail ou senha incorretos.",
       senhaCurtaDemais: "A senha é curta demais.",
       senhaLongaDemais: "A senha é longa demais.",
-      emailNaoConfirmado: "Confirme seu e-mail antes de entrar.",
+      emailNaoConfirmado: "Confirme seu e-mail antes de entrar. Enviamos um link novo para ele.",
       identificadorDeEmpresaEmUso: "Já existe uma empresa com este identificador. Tente de novo.",
       jaTemEmpresa: "Sua conta já tem uma empresa.",
       muitasTentativas: "Muitas tentativas. Aguarde um instante e tente de novo.",

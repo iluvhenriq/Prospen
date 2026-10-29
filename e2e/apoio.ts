@@ -1,6 +1,8 @@
 import { execFileSync } from "node:child_process";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import { expect, type Page } from "@playwright/test";
-import { urlDoBancoE2E } from "./ambiente";
+import { PASTA_EMAILS_E2E, urlDoBancoE2E } from "./ambiente";
 
 // Ações repetidas nos testes de navegador. Todos os dados são fictícios.
 
@@ -14,6 +16,34 @@ export function emailUnico(prefixo: string): string {
   return `${prefixo}-${Date.now()}-${contador}@exemplo.com.br`;
 }
 
+// Link do e-mail mais recente para este endereço com este assunto. O servidor
+// dos testes grava cada e-mail como arquivo (EMAIL_PASTA_LOCAL); o envio não
+// segura a resposta, então espera um pouco o arquivo aparecer.
+export async function linkDoEmail(para: string, assunto: string): Promise<string> {
+  let link: string | null = null;
+  await expect
+    .poll(
+      () => {
+        if (!existsSync(PASTA_EMAILS_E2E)) return null;
+        const achados = readdirSync(PASTA_EMAILS_E2E)
+          .sort()
+          .map((nome) => JSON.parse(readFileSync(join(PASTA_EMAILS_E2E, nome), "utf8")) as { para: string; assunto: string; texto: string })
+          .filter((email) => email.para === para && email.assunto === assunto);
+        link = /https?:\/\/\S+/.exec(achados.at(-1)?.texto ?? "")?.[0] ?? null;
+        return link;
+      },
+      { message: `e-mail "${assunto}" para ${para}`, timeout: 10_000 },
+    )
+    .not.toBeNull();
+  return link ?? "";
+}
+
+// Abre o link de confirmação que chegou por e-mail e confirma.
+export async function confirmarEmail(page: Page, email: string): Promise<void> {
+  await page.goto(await linkDoEmail(email, "Confirme seu e-mail no PROSPEN"));
+  await page.getByRole("button", { name: "Confirmar e entrar" }).click();
+}
+
 export async function criarConta(
   page: Page,
   { nome, email, empresa }: { nome: string; email: string; empresa: string },
@@ -23,6 +53,9 @@ export async function criarConta(
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha").fill(SENHA);
   await page.getByRole("button", { name: "Criar conta" }).click();
+  // A conta só abre depois de confirmar o e-mail.
+  await expect(page.getByText(`Enviamos um link para ${email}.`, { exact: false })).toBeVisible();
+  await confirmarEmail(page, email);
   await page.waitForURL("**/criar-organizacao");
   await page.getByLabel("Nome da empresa").fill(empresa);
   await page.getByRole("button", { name: "Continuar" }).click();

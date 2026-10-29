@@ -1,7 +1,8 @@
 import "server-only";
 import { getDb } from "@/db/client";
 import { criarAuth, type Auth } from "./auth-config";
-import { lerEnvLogin } from "./env";
+import { criarCarteiro } from "./carteiro";
+import { lerEnvEmail, lerEnvLogin } from "./env";
 
 // Uma única instância por processo, criada no primeiro uso (o build não
 // exige o banco nem o segredo).
@@ -13,6 +14,7 @@ export function getAuth(): Auth {
     global.__prospenAuth = criarAuth(getDb(), {
       secret: env.AUTH_SECRET,
       baseURL: env.APP_URL,
+      enviarEmail: criarCarteiro(lerEnvEmail()),
     });
   }
   return global.__prospenAuth;

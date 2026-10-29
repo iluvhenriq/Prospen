@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db/client";
 import { getAuth } from "@/lib/auth";
+import { ptBR } from "@/lib/i18n/pt-BR";
 import {
   registrarTentativa,
   verificarLimite,
@@ -12,14 +13,17 @@ import {
 import { exigirUsuario } from "@/modules/organizacoes/contexto";
 import { conviteIdValido } from "@/modules/organizacoes/equipe";
 import { resolverOrganizacao } from "@/modules/organizacoes/membros";
-import { traduzirErroLogin } from "./erros";
+import { emailDoToken, situacaoDoEmail } from "./confirmacao";
+import { codigoDoErro, traduzirErroLogin } from "./erros";
 import { registrarAcesso } from "./registros-acesso";
 import { ipDaRequisicao, LIMITES, mensagemDeEspera } from "./limites";
 import {
   errosPorCampo,
   esquemaCadastro,
   esquemaEntrada,
+  esquemaNovaSenha,
   esquemaOrganizacao,
+  esquemaPedidoDeSenha,
   gerarSlug,
   type EstadoFormulario,
 } from "./validacao";
@@ -39,6 +43,13 @@ function texto(dados: FormData, campo: string): string {
 function destinoDoConvite(dados: FormData): string | null {
   const convite = dados.get("convite");
   return conviteIdValido(convite) ? `/convite/${convite}` : null;
+}
+
+// O login leva este destino para o link do e-mail de confirmação: quem veio
+// de um convite volta para ele depois de confirmar.
+function destinoParaOLogin(dados: FormData): { callbackURL?: string } {
+  const destino = destinoDoConvite(dados);
+  return destino ? { callbackURL: destino } : {};
 }
 
 export async function cadastrar(
@@ -64,25 +75,25 @@ export async function cadastrar(
     registrarTentativa(chaveIp, LIMITES.cadastroPorIp.janelaMs);
   }
 
-  let novoUsuario: string;
   try {
-    const criado = await getAuth().api.signUpEmail({
+    // A conta só abre depois de confirmar o e-mail: o login manda o link.
+    // E-mail que já tem conta recebe a mesma resposta (e um aviso no e-mail),
+    // para a tela não revelar quem tem conta.
+    await getAuth().api.signUpEmail({
       body: {
         name: resultado.data.nome,
         email: resultado.data.email,
         password: resultado.data.senha,
+        ...destinoParaOLogin(dados),
       },
       headers: cabecalhos,
     });
-    novoUsuario = criado.user.id;
   } catch (erro) {
     console.error("Falha no cadastro:", erro instanceof Error ? erro.message : erro);
     return { mensagem: traduzirErroLogin(erro), valores };
   }
 
-  // O cadastro já entra na conta: conta como acesso (Marco Civil, art. 15).
-  await anotarAcesso(novoUsuario, ip);
-  redirect(destinoDoConvite(dados) ?? "/criar-organizacao");
+  return { sucesso: ptBR.acesso.cadastro.enviado(resultado.data.email) };
 }
 
 export async function entrar(
@@ -112,11 +123,16 @@ export async function entrar(
   let usuarioId: string;
   try {
     const entrada = await getAuth().api.signInEmail({
-      body: { email: resultado.data.email, password: resultado.data.senha },
+      body: { email: resultado.data.email, password: resultado.data.senha, ...destinoParaOLogin(dados) },
       headers: cabecalhos,
     });
     usuarioId = entrada.user.id;
   } catch (erro) {
+    // Senha certa, e-mail ainda não confirmado: o login já mandou um link novo.
+    // Não conta como tentativa errada.
+    if (codigoDoErro(erro) === "EMAIL_NOT_VERIFIED") {
+      return { mensagem: traduzirErroLogin(erro), valores };
+    }
     console.error("Falha na entrada:", erro instanceof Error ? erro.message : erro);
     registrarTentativa(chaveEmail, LIMITES.entradaPorEmail.janelaMs);
     if (chaveIp) registrarTentativa(chaveIp, LIMITES.entradaPorIp.janelaMs);
@@ -129,6 +145,90 @@ export async function entrar(
 
   // O painel manda para a criação da empresa se a pessoa ainda não tiver uma.
   redirect(destinoDoConvite(dados) ?? "/painel");
+}
+
+// Botão do link de confirmação. O login confere o token, marca o e-mail como
+// confirmado e já abre a sessão; o link vira inútil para entrar de novo.
+export async function confirmarEmail(
+  _anterior: EstadoFormulario,
+  dados: FormData,
+): Promise<EstadoFormulario> {
+  const t = ptBR.acesso.confirmar;
+  const token = texto(dados, "token");
+  const email = emailDoToken(token);
+  if (!email) return { mensagem: t.semLink };
+
+  const db = getDb();
+  // Lido antes: depois da confirmação não daria para saber se já estava confirmado.
+  const antes = await situacaoDoEmail(db, email);
+  const cabecalhos = await headers();
+  try {
+    await getAuth().api.verifyEmail({ query: { token }, headers: cabecalhos });
+  } catch (erro) {
+    console.error("Falha na confirmação do e-mail:", erro instanceof Error ? erro.message : erro);
+    return { mensagem: t.invalido };
+  }
+  if (!antes) return { mensagem: t.invalido };
+
+  const convite = dados.get("convite");
+  const comConvite = conviteIdValido(convite);
+  // Link já usado: não abre sessão (senão o link valeria como senha por 1 dia).
+  if (antes.confirmado) redirect(`/entrar?confirmado=1${comConvite ? `&convite=${convite}` : ""}`);
+
+  // A confirmação entra na conta: conta como acesso (Marco Civil, art. 15).
+  await anotarAcesso(antes.id, ipDaRequisicao(cabecalhos));
+  redirect(comConvite ? `/convite/${convite}` : "/criar-organizacao");
+}
+
+export async function pedirNovaSenha(
+  _anterior: EstadoFormulario,
+  dados: FormData,
+): Promise<EstadoFormulario> {
+  const bruto = { email: texto(dados, "email") };
+  const resultado = esquemaPedidoDeSenha.safeParse(bruto);
+  if (!resultado.success) {
+    return { erros: errosPorCampo(resultado.error), valores: bruto };
+  }
+
+  // Cada pedido manda um e-mail: limite por e-mail e por endereço.
+  const ip = ipDaRequisicao(await headers());
+  const chaves = [
+    { chave: `senha:email:${resultado.data.email}`, regra: LIMITES.novaSenhaPorEmail },
+    ...(ip ? [{ chave: `senha:ip:${ip}`, regra: LIMITES.novaSenhaPorIp }] : []),
+  ];
+  const bloqueio = chaves.map(({ chave, regra }) => verificarLimite(chave, regra)).find((s) => s.bloqueado);
+  if (bloqueio) return { mensagem: mensagemDeEspera(bloqueio.segundosParaLiberar), valores: bruto };
+  for (const { chave, regra } of chaves) registrarTentativa(chave, regra.janelaMs);
+
+  try {
+    await getAuth().api.requestPasswordReset({ body: { email: resultado.data.email } });
+  } catch (erro) {
+    console.error("Falha no pedido de senha nova:", erro instanceof Error ? erro.message : erro);
+  }
+  // Mesma resposta com ou sem conta: a tela não revela quem tem conta.
+  return { sucesso: ptBR.acesso.esqueci.enviado };
+}
+
+export async function definirNovaSenha(
+  _anterior: EstadoFormulario,
+  dados: FormData,
+): Promise<EstadoFormulario> {
+  const resultado = esquemaNovaSenha.safeParse({ token: texto(dados, "token"), senha: texto(dados, "senha") });
+  if (!resultado.success) {
+    const erros = errosPorCampo(resultado.error);
+    return erros.token ? { mensagem: ptBR.acesso.novaSenha.semLink } : { erros };
+  }
+
+  try {
+    await getAuth().api.resetPassword({ body: { token: resultado.data.token, newPassword: resultado.data.senha } });
+  } catch (erro) {
+    console.error("Falha ao trocar a senha:", erro instanceof Error ? erro.message : erro);
+    const codigo = codigoDoErro(erro);
+    if (codigo === "INVALID_TOKEN" || codigo === "USER_NOT_FOUND") return { mensagem: ptBR.acesso.novaSenha.invalido };
+    return { mensagem: traduzirErroLogin(erro) };
+  }
+
+  redirect("/entrar?senha=nova");
 }
 
 // Registro de acesso exigido pelo Marco Civil. Se falhar, a pessoa entra mesmo

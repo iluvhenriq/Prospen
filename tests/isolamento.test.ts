@@ -204,14 +204,23 @@ describe("isolamento entre empresas", () => {
       ).rejects.toThrow();
     });
 
-    it("cadastro repetido do mesmo e-mail é recusado com mensagem em português", async () => {
-      const erro = await amb.auth.api
-        .signUpEmail({
-          body: { name: "Ana de novo", email: "ANA@empresa-a.com.br", password: "outra-senha-123" },
-        })
-        .then(() => null, (e: unknown) => e);
-      expect(erro).not.toBeNull();
-      expect(traduzirErroLogin(erro)).toBe("Já existe uma conta com este e-mail. Tente entrar.");
+    it("cadastro repetido do mesmo e-mail não cria outra conta nem revela que ela existe", async () => {
+      const antes = amb.emails.length;
+      // Mesma resposta de um cadastro novo: a tela não conta quem tem conta.
+      await amb.auth.api.signUpEmail({
+        body: { name: "Ana de novo", email: "ANA@empresa-a.com.br", password: "outra-senha-123" },
+      });
+      const contas = await amb.pg.query(`select id from "user" where email = $1`, ["ana@empresa-a.com.br"]);
+      expect(contas.rows).toHaveLength(1);
+      // Quem avisa é o e-mail, só para o dono dele.
+      expect(amb.emails.slice(antes)).toEqual([
+        expect.objectContaining({ para: "ana@empresa-a.com.br", assunto: "Tentaram criar uma conta com o seu e-mail" }),
+      ]);
+      // A senha antiga continua valendo.
+      const entrada = await amb.auth.api.signInEmail({
+        body: { email: "ana@empresa-a.com.br", password: "senha-de-teste-123" },
+      });
+      expect(entrada.user.email).toBe("ana@empresa-a.com.br");
     });
 
     it("senha errada dá a mesma mensagem de e-mail inexistente", async () => {

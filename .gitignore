@@ -29,6 +29,7 @@
 # resultados dos testes de navegador (npm run test:e2e)
 /e2e-resultados/
 /e2e-relatorio/
+/e2e-emails/
 *.pem
 
 # debug

@@ -133,6 +133,9 @@ describe("arquitetura", () => {
     const PUBLICAS: Record<string, string> = {
       cadastrar: "criar conta: a pessoa ainda não existe",
       entrar: "login",
+      confirmarEmail: "link do e-mail de confirmação: a pessoa ainda não entrou; o login confere o token assinado",
+      pedirNovaSenha: "esqueceu a senha, não está logada; limite por e-mail e endereço, resposta igual com ou sem conta",
+      definirNovaSenha: "link do e-mail de senha nova: não está logada; o login confere o token (uso único, 1 hora)",
       sair: "encerra a própria sessão",
       criarOrganizacao: "a pessoa ainda não tem empresa; começa por exigirUsuario",
       pedirRemocaoDosDados: "LGPD: o titular não tem conta; só mexe na lista de exclusão da base pública",

@@ -2,8 +2,19 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import { organization } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
 import type { Banco } from "@/db/tipos";
 import * as schema from "@/db/schema";
+import {
+  conviteDoLinkDoLogin,
+  emailDeConfirmacao,
+  emailDeContaExistente,
+  emailDeNovaSenha,
+  linkDeConfirmacao,
+  linkDeNovaSenha,
+  type Email,
+  type EnviarEmail,
+} from "@/modules/contas/emails";
 import { garantirConfiguracao } from "@/modules/organizacoes/configuracao";
 import { REGRAS } from "@/modules/planos/planos";
 import { repositorioPlano } from "@/modules/planos/repositorio";
@@ -22,8 +33,9 @@ export const TAMANHO_MAXIMO_SENHA = 128;
 // acesso (Marco Civil) e as regras do produto (uma empresa por conta, convite
 // só com o link). Com a rota aberta, tudo isso podia ser pulado: o Better Auth
 // deixa testar 3 senhas a cada 10 segundos por endereço, contra 8 por e-mail a
-// cada 15 minutos nas telas. Quando houver provedor de e-mail, os links de
-// confirmação e de nova senha entram aqui (ex.: "/verify-email").
+// cada 15 minutos nas telas. Os links de confirmação e de nova senha também
+// não usam esta rota: apontam para /confirmar-email e /nova-senha, telas do
+// app que chamam o login pelo servidor.
 export const CAMINHOS_HTTP_LIBERADOS: readonly string[] = [];
 
 export function caminhoHttpLiberado(caminho: string, liberados: readonly string[] = CAMINHOS_HTTP_LIBERADOS): boolean {
@@ -38,11 +50,26 @@ type Opcoes = {
   baseURL: string;
   // Falso apenas nos testes, que rodam fora de uma requisição do Next.js.
   cookiesDoNext?: boolean;
+  enviarEmail: EnviarEmail;
 };
+
+// Validade dos links: confirmar o e-mail pode ficar para depois (1 dia);
+// trocar a senha é na hora (1 hora).
+export const VALIDADE_CONFIRMACAO_S = 24 * 60 * 60;
+export const VALIDADE_NOVA_SENHA_S = 60 * 60;
 
 // Configuração do login. Fica separada de src/lib/auth.ts para os testes
 // poderem criar um login ligado ao banco de teste.
-export function criarAuth(db: Banco, { secret, baseURL, cookiesDoNext = true }: Opcoes) {
+export function criarAuth(db: Banco, { secret, baseURL, cookiesDoNext = true, enviarEmail }: Opcoes) {
+  // O envio não segura a resposta: esperar o SMTP deixaria "e-mail que existe"
+  // mais lento que "e-mail que não existe" e revelaria quem tem conta. Falha de
+  // envio vai para o terminal; a pessoa pede outro link entrando com a senha.
+  const disparar = (email: Email) => {
+    enviarEmail(email).catch((erro: unknown) => {
+      console.error("Falha ao enviar e-mail:", erro instanceof Error ? erro.message : erro);
+    });
+  };
+
   return betterAuth({
     secret,
     baseURL,
@@ -53,8 +80,35 @@ export function criarAuth(db: Banco, { secret, baseURL, cookiesDoNext = true }: 
       enabled: true,
       minPasswordLength: TAMANHO_MINIMO_SENHA,
       maxPasswordLength: TAMANHO_MAXIMO_SENHA,
-      // Ligar quando houver provedor de e-mail configurado (veja docs/arquitetura.md).
-      requireEmailVerification: false,
+      // Só entra quem confirmou o e-mail: sem isso, qualquer um criava contas
+      // com e-mails dos outros (e entrava em equipes convidadas por e-mail).
+      requireEmailVerification: true,
+      resetPasswordTokenExpiresIn: VALIDADE_NOVA_SENHA_S,
+      // Trocou a senha: quem estava logado em outro aparelho sai.
+      revokeSessionsOnPasswordReset: true,
+      sendResetPassword: async ({ user, token }) => {
+        disparar(emailDeNovaSenha(user.email, user.name, linkDeNovaSenha(baseURL, token)));
+      },
+      // Quem abriu o link de nova senha provou que o e-mail é dele.
+      onPasswordReset: async ({ user }) => {
+        if (!user.emailVerified) {
+          await db.update(schema.user).set({ emailVerified: true }).where(eq(schema.user.id, user.id));
+        }
+      },
+      onExistingUserSignUp: async ({ user }) => {
+        disparar(emailDeContaExistente(user.email, user.name, baseURL));
+      },
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      // Tentou entrar sem ter confirmado (com a senha certa): vai um link novo.
+      sendOnSignIn: true,
+      autoSignInAfterVerification: true,
+      expiresIn: VALIDADE_CONFIRMACAO_S,
+      sendVerificationEmail: async ({ user, url, token }) => {
+        const link = linkDeConfirmacao(baseURL, token, conviteDoLinkDoLogin(url));
+        disparar(emailDeConfirmacao(user.email, user.name, link));
+      },
     },
     plugins: [
       organization({
@@ -70,6 +124,8 @@ export function criarAuth(db: Banco, { secret, baseURL, cookiesDoNext = true }: 
         // Sem provedor de e-mail, o link vai por WhatsApp ou e-mail de quem
         // convida; uma semana dá tempo de a pessoa abrir.
         invitationExpiresIn: 7 * 24 * 60 * 60,
+        // Só aceita o convite quem confirmou o e-mail convidado.
+        requireEmailVerificationOnInvitation: true,
         organizationHooks: {
           // Toda empresa nasce com a configuração regional padrão (Brasil).
           // Este arquivo é onde o login se liga ao restante do produto.

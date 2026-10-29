@@ -15,6 +15,9 @@ export const LIMITES = {
   entradaPorIp: { maximo: 30, janelaMs: QUINZE_MINUTOS },
   // Contas criadas pelo mesmo endereço.
   cadastroPorIp: { maximo: 10, janelaMs: UMA_HORA },
+  // Pedidos de link de senha nova: cada um manda um e-mail.
+  novaSenhaPorEmail: { maximo: 3, janelaMs: UMA_HORA },
+  novaSenhaPorIp: { maximo: 10, janelaMs: UMA_HORA },
 } as const satisfies Record<string, Regra>;
 
 // Endereço de quem fez a requisição, quando o servidor da frente informa.

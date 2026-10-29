@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { criarConta, definirPlano, emailUnico, SENHA } from "./apoio";
+import { confirmarEmail, criarConta, definirPlano, emailUnico, SENHA } from "./apoio";
 
 // Equipe e convite por link (planos, 28/10/2026). Cada pessoa tem o próprio
 // endereço (cabeçalho x-forwarded-for, faixa reservada para documentação):
@@ -55,6 +55,8 @@ test("convite por link: o plano limita a equipe e a pessoa convidada entra na em
   await campo("E-mail").fill(emailConvidada);
   await campo("Senha").fill(SENHA);
   await convidada.getByRole("button", { name: "Criar conta" }).click();
+  // Confirma o e-mail pelo link que chegou: ele leva de volta ao convite.
+  await confirmarEmail(convidada, emailConvidada);
   await convidada.waitForURL(`**${caminho}`);
   await convidada.getByRole("button", { name: "Aceitar e entrar" }).click();
   await convidada.waitForURL("**/painel");

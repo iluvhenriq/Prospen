@@ -1,5 +1,5 @@
 import { defineConfig } from "@playwright/test";
-import { URL_E2E, urlDoBancoE2E } from "./e2e/ambiente";
+import { PASTA_EMAILS_E2E, URL_E2E, urlDoBancoE2E } from "./e2e/ambiente";
 
 // Testes de navegador: rodam contra a versão de produção (build + start) na
 // porta 3100, com um banco só deles. Não atrapalham o `npm run dev` na 3000.
@@ -30,6 +30,6 @@ export default defineConfig({
     stdout: "pipe",
     reuseExistingServer: false,
     timeout: 300_000,
-    env: { DATABASE_URL: urlDoBancoE2E(), APP_URL: URL_E2E },
+    env: { DATABASE_URL: urlDoBancoE2E(), APP_URL: URL_E2E, EMAIL_PASTA_LOCAL: PASTA_EMAILS_E2E },
   },
 });

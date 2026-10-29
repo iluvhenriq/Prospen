@@ -13,6 +13,9 @@ const inicial: EstadoFormulario = {};
 export function FormularioCadastro({ convite }: { convite?: string } = {}) {
   const [estado, acao, pendente] = useActionState(cadastrar, inicial);
 
+  // Conta criada: falta só confirmar o e-mail.
+  if (estado.sucesso) return <Alerta variante="sucesso">{estado.sucesso}</Alerta>;
+
   return (
     <form action={acao} noValidate className="flex flex-col gap-4">
       {estado.mensagem ? <Alerta variante="erro">{estado.mensagem}</Alerta> : null}

@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { CartaoAcesso, conviteDoEndereco, LinkDaTelaIrma } from "@/components/conta/cartao-acesso";
+import { CartaoAcesso, classeLinkTexto, conviteDoEndereco, LinkDaTelaIrma } from "@/components/conta/cartao-acesso";
 import { FormularioEntrar } from "@/components/conta/formulario-entrar";
+import { Alerta } from "@/components/ui/alerta";
 import { Esqueleto } from "@/components/ui/carregando";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { obterSessao } from "@/modules/organizacoes/contexto";
@@ -18,6 +20,14 @@ async function RedirecionarSeLogado({ searchParams }: { searchParams: Busca }) {
   const convite = await conviteDoEndereco(searchParams);
   if (await obterSessao()) redirect(convite ? `/convite/${convite}` : "/painel");
   return null;
+}
+
+// Volta da troca de senha (?senha=nova) ou de um link de confirmação já usado (?confirmado=1).
+async function Aviso({ searchParams }: { searchParams: Busca }) {
+  const { senha, confirmado } = await searchParams;
+  const texto =
+    senha === "nova" ? ptBR.acesso.entrar.senhaTrocada : confirmado === "1" ? ptBR.acesso.entrar.jaConfirmado : null;
+  return texto ? <Alerta variante="sucesso">{texto}</Alerta> : null;
 }
 
 async function FormularioComConvite({ searchParams }: { searchParams: Busca }) {
@@ -41,10 +51,16 @@ export default function PaginaEntrar(props: PageProps<"/entrar">) {
       <Suspense fallback={null}>
         <RedirecionarSeLogado searchParams={props.searchParams} />
       </Suspense>
+      <Suspense fallback={null}>
+        <Aviso searchParams={props.searchParams} />
+      </Suspense>
       {/* A espera não é o formulário: trocar um pelo outro apagava o que já tinha sido digitado. */}
       <Suspense fallback={<Esqueleto className="h-48 w-full" />}>
         <FormularioComConvite searchParams={props.searchParams} />
       </Suspense>
+      <Link href="/esqueci-senha" className={`${classeLinkTexto} self-center text-sm`}>
+        {ptBR.acesso.entrar.esqueci}
+      </Link>
     </CartaoAcesso>
   );
 }

@@ -15,6 +15,11 @@ const email = z
   .pipe(z.email(ptBR.mensagens.conta.emailInvalido))
   .pipe(z.string().max(254, ptBR.mensagens.conta.emailLongo));
 
+const senhaNova = z
+  .string({ error: ptBR.mensagens.conta.informeSenhaNova })
+  .min(TAMANHO_MINIMO_SENHA, ptBR.mensagens.conta.senhaCurta(TAMANHO_MINIMO_SENHA))
+  .max(TAMANHO_MAXIMO_SENHA, ptBR.mensagens.conta.senhaLonga(TAMANHO_MAXIMO_SENHA));
+
 export const esquemaCadastro = z.object({
   nome: z
     .string({ error: ptBR.mensagens.conta.informeNome })
@@ -22,16 +27,14 @@ export const esquemaCadastro = z.object({
     .min(2, ptBR.mensagens.conta.informeNome)
     .max(80, ptBR.mensagens.conta.nomeLongo(80)),
   email,
-  senha: z
-    .string({ error: ptBR.mensagens.conta.informeSenhaNova })
-    .min(
-      TAMANHO_MINIMO_SENHA,
-      ptBR.mensagens.conta.senhaCurta(TAMANHO_MINIMO_SENHA),
-    )
-    .max(
-      TAMANHO_MAXIMO_SENHA,
-      ptBR.mensagens.conta.senhaLonga(TAMANHO_MAXIMO_SENHA),
-    ),
+  senha: senhaNova,
+});
+
+export const esquemaPedidoDeSenha = z.object({ email });
+
+export const esquemaNovaSenha = z.object({
+  token: z.string().min(1).max(200),
+  senha: senhaNova,
 });
 
 export const esquemaEntrada = z.object({
@@ -49,8 +52,10 @@ export const esquemaOrganizacao = z.object({
 });
 
 // Resultado que os formulários recebem de volta. Nunca inclui senhas.
+// `sucesso`: o pedido foi aceito e o formulário dá lugar a esta mensagem.
 export type EstadoFormulario = {
   mensagem?: string;
+  sucesso?: string;
   erros?: Partial<Record<string, string>>;
   valores?: Partial<Record<string, string>>;
 };

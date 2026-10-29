@@ -3,6 +3,8 @@
 // recriado a cada rodada. O banco de desenvolvimento nunca é tocado.
 export const PORTA_E2E = 3100;
 export const URL_E2E = `http://localhost:${PORTA_E2E}`;
+// Os e-mails do servidor dos testes viram arquivos aqui (nada sai por SMTP).
+export const PASTA_EMAILS_E2E = "e2e-emails";
 
 export function urlDoBancoE2E(): string {
   try {

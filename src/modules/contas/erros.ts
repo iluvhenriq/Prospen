@@ -27,8 +27,14 @@ function lerCampo(erro: unknown, caminho: string[]): unknown {
   return atual;
 }
 
-export function traduzirErroLogin(erro: unknown): string {
+// Código do erro do login (ex.: "EMAIL_NOT_VERIFIED"), quando houver.
+export function codigoDoErro(erro: unknown): string | null {
   const codigo = lerCampo(erro, ["body", "code"]);
+  return typeof codigo === "string" ? codigo : null;
+}
+
+export function traduzirErroLogin(erro: unknown): string {
+  const codigo = codigoDoErro(erro);
   if (typeof codigo === "string" && codigo in MENSAGENS) return MENSAGENS[codigo];
 
   const status = lerCampo(erro, ["statusCode"]) ?? lerCampo(erro, ["status"]);
