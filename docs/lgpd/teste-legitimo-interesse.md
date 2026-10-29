@@ -2,7 +2,7 @@
 
 Rascunho de 23/10/2026, a revisar com advogado. Segue as três fases do Guia Orientativo da ANPD sobre legítimo interesse (2024). Exigido pela LGPD, art. 10, e pode ser pedido pela ANPD (art. 10, § 3º).
 
-**Controlador:** responsável indicado em `src/lib/responsavel.ts` (hoje: Henrique, iluvhenriqdev@gmail.com).
+**Controlador:** responsável indicado em `src/lib/responsavel.ts` (hoje: Henrique, contato.henriqdev@gmail.com).
 **Tratamento avaliado:** importar os dados abertos do CNPJ da Receita Federal, guardar as empresas ativas, calcular uma pontuação e mostrá-las na busca do PROSPEN para empresas clientes, que podem salvá-las como leads.
 **Por que há dado pessoal:** a maior parte da base é de pessoa jurídica (não é dado pessoal), mas o microempreendedor individual (MEI, 56% dos ativos de SP) é uma pessoa natural, e o nome, o telefone e o e-mail do cadastro podem identificar pessoas.
 

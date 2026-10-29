@@ -17,8 +17,13 @@ export const CABECALHOS_DE_SEGURANCA = [
   { key: "Strict-Transport-Security", value: "max-age=31536000" },
 ];
 
+// A versão estática da página inicial (npm run pagina:exportar) é gerada em
+// outra pasta, para não trocar o build do app.
+export const PASTA_DA_PAGINA_ESTATICA = ".next-estatica";
+
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  distDir: process.env.PAGINA_ESTATICA === "1" ? PASTA_DA_PAGINA_ESTATICA : ".next",
   // Não anuncia "Next.js" em cada resposta.
   poweredByHeader: false,
   async headers() {

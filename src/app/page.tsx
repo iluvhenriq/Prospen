@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { EmailDePrivacidade } from "@/components/legal/documento-legal";
+import { EmailDePrivacidade, LinkDeRemocao } from "@/components/legal/documento-legal";
 import { DemonstracaoBusca } from "@/components/pre-venda/demonstracao-busca";
+import { ReservaPix } from "@/components/planos/reserva-pix";
 import { VagasDeFundador } from "@/components/planos/vagas-de-fundador";
 import { FormularioPreCadastro } from "@/components/pre-venda/formulario-pre-cadastro";
 import { BotaoLink } from "@/components/ui/botao";
 import { ptBR } from "@/lib/i18n/pt-BR";
-import { emPreVenda } from "@/lib/pre-venda";
+import { emPreVenda, paginaEstatica } from "@/lib/pre-venda";
+import { VENDAS } from "@/lib/vendas";
 import { EMPRESAS_SEM_PAGAMENTO, PLANOS, REGRAS, RECURSOS, VAGAS_DE_FUNDADOR } from "@/modules/planos/planos";
 import { RESPONSAVEL } from "@/lib/responsavel";
 
@@ -35,14 +37,17 @@ function formatarPreco(centavos: number): string {
 // Página de apresentação com pré-cadastro. Direção "a mesa do vendedor"
 // (27/10/2026): tudo sobre o forro verde-musgo, com papéis por cima (a lista
 // impressa, a fita da calculadora, a ficha do pré-cadastro). Estática: gerada
-// no build. No modo pré-venda (src/lib/pre-venda.ts) o link "Entrar" some e as
-// chamadas levam ao pré-cadastro; com o app aberto, levam a criar a conta.
+// no build. No modo pré-venda (src/lib/pre-venda.ts) o link "Entrar" some, as
+// chamadas levam aos planos e cada plano tem "Reservar no Pix" (29/10/2026);
+// com o app aberto, levam a criar a conta e o pagamento fica dentro do app.
+// Na versão estática (sem servidor) sai o pré-cadastro.
 export default function PaginaInicial() {
   const t = ptBR.preVenda;
   const appAberto = !emPreVenda();
   const etapas = ptBR.funil.etapas;
   const tp = ptBR.planos.pagina;
-  const destinoDaChamada = appAberto ? "/cadastrar" : "#pre-cadastro";
+  const estatica = paginaEstatica();
+  const destinoDaChamada = appAberto ? "/cadastrar" : "#planos";
 
   return (
     <div className="mesa flex min-h-screen flex-col">
@@ -229,6 +234,23 @@ export default function PaginaInicial() {
           </ul>
         </section>
 
+        {/* Vagas de fundador: na pré-venda, as 20 casas ainda livres. */}
+        {appAberto ? null : (
+          <section className="mx-auto w-full max-w-6xl px-4 pt-16 sm:px-6 md:pt-24">
+            <div className="grid gap-10 border-y border-mesa-linha py-12 md:grid-cols-2 md:items-center md:gap-14">
+              <div className="flex flex-col gap-4">
+                <h2 className={classeTituloMesa}>{t.fundador.titulo(VAGAS_DE_FUNDADOR)}</h2>
+                <p className="max-w-[34rem] text-lg leading-relaxed text-musgo-100">{t.fundador.texto(VAGAS_DE_FUNDADOR)}</p>
+              </div>
+              <div aria-hidden="true" className="grid w-full max-w-sm grid-cols-5 gap-2.5 sm:gap-3 md:justify-self-end">
+                {Array.from({ length: VAGAS_DE_FUNDADOR }, (_, i) => (
+                  <span key={i} className="aspect-square rounded-[3px] bg-marca-texto shadow-[0_1px_1px_rgb(0_0_0/0.3),0_6px_14px_-8px_rgb(0_0_0/0.6)]" />
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Planos: três folhas; a do Grande, marcada (decisão de 28/10/2026). */}
         <section id="planos" className="mx-auto w-full max-w-6xl scroll-mt-6 px-4 pt-16 sm:px-6 md:pt-24">
           <h2 className={classeTituloMesa}>{tp.titulo}</h2>
@@ -282,26 +304,34 @@ export default function PaginaInicial() {
                       ),
                     )}
                   </ul>
+                  {appAberto ? null : (
+                    <div className="mt-auto pt-2">
+                      <ReservaPix
+                        plano={ptBR.planos.nomes[plano]}
+                        precoCentavos={regras.precoCentavos}
+                        preco={formatarPreco(regras.precoCentavos)}
+                      />
+                    </div>
+                  )}
                 </li>
               );
             })}
           </ul>
-          <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <p className="max-w-[40rem] text-musgo-100">
-              <span className="rounded-[3px] bg-marca-texto px-1 font-semibold text-tinta">
-                {appAberto ? (
+          {/* Na pré-venda, as vagas já estão no bloco de fundador acima. */}
+          {appAberto ? (
+            <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <p className="max-w-[40rem] text-musgo-100">
+                <span className="rounded-[3px] bg-marca-texto px-1 font-semibold text-tinta">
                   <Suspense fallback={tp.fundadores(VAGAS_DE_FUNDADOR)}>
                     <VagasDeFundador />
                   </Suspense>
-                ) : (
-                  tp.fundadores(VAGAS_DE_FUNDADOR)
-                )}
-              </span>
-            </p>
-            <BotaoLink href={destinoDaChamada} variante="papel" tamanho="grande">
-              {tp.chamada}
-            </BotaoLink>
-          </div>
+                </span>
+              </p>
+              <BotaoLink href={destinoDaChamada} variante="papel" tamanho="grande">
+                {tp.chamada}
+              </BotaoLink>
+            </div>
+          ) : null}
           <p className="mt-4 text-xs text-musgo-300">{tp.limiteDiario}</p>
         </section>
 
@@ -357,12 +387,40 @@ export default function PaginaInicial() {
               </div>
             </div>
           ) : (
-            <div id="pre-cadastro" className="scroll-mt-6">
-              <div className="papel rotate-[0.6deg] rounded-[3px] p-6 sm:p-9 lg:sticky lg:top-8">
-                <h2 className="border-b-2 border-texto pb-3 text-2xl font-extrabold tracking-[-0.02em] text-musgo-900">{t.formulario.titulo}</h2>
-                <p className="mb-6 mt-3 text-texto-suave">{t.formulario.texto}</p>
-                <FormularioPreCadastro emailContato={RESPONSAVEL.emailPrivacidade} />
+            // Pré-venda: os passos da reserva por Pix e, com servidor, o pré-cadastro.
+            <div id="reservar" className="flex scroll-mt-6 flex-col gap-10">
+              <div className="papel rotate-[0.6deg] rounded-[3px] p-6 sm:p-9">
+                <h2 className="border-b-2 border-texto pb-3 text-2xl font-extrabold tracking-[-0.02em] text-musgo-900">{t.reserva.titulo}</h2>
+                <ol className="mb-7 mt-5 flex flex-col gap-4">
+                  {t.reserva.passos(VENDAS.emailComprovante).map((passo, i) => (
+                    <li key={passo.titulo} className="flex gap-3 text-texto">
+                      <span className="numeros flex size-7 shrink-0 items-center justify-center rounded-full bg-marca-texto text-sm font-extrabold text-tinta">
+                        {i + 1}
+                      </span>
+                      <span className="flex flex-col gap-0.5 pt-0.5">
+                        <span className="font-bold">{passo.titulo}</span>
+                        <span className="text-texto-suave">{passo.texto}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+                <BotaoLink href="#planos" tamanho="grande" className="w-full">
+                  {tp.chamada}
+                </BotaoLink>
+                <p className="mt-4 text-sm text-texto-suave">
+                  {t.reserva.duvida}{" "}
+                  <a href={`mailto:${VENDAS.emailComprovante}`} className="break-all font-semibold text-musgo-700 underline underline-offset-4">
+                    {VENDAS.emailComprovante}
+                  </a>
+                </p>
               </div>
+              {estatica ? null : (
+                <div id="pre-cadastro" className="papel -rotate-[0.4deg] scroll-mt-6 rounded-[3px] p-6 sm:p-9">
+                  <h2 className="border-b-2 border-texto pb-3 text-2xl font-extrabold tracking-[-0.02em] text-musgo-900">{t.formulario.titulo}</h2>
+                  <p className="mb-6 mt-3 text-texto-suave">{t.formulario.texto}</p>
+                  <FormularioPreCadastro emailContato={RESPONSAVEL.emailPrivacidade} />
+                </div>
+              )}
             </div>
           )}
         </section>
@@ -378,9 +436,7 @@ export default function PaginaInicial() {
             <Link href="/termos" className={classeLinkMesa}>
               {ptBR.termos.link}
             </Link>
-            <Link href="/remover-meus-dados" className={classeLinkMesa}>
-              {ptBR.remocao.link}
-            </Link>
+            <LinkDeRemocao className={classeLinkMesa} />
             <span>
               {t.rodape.contato} <EmailDePrivacidade className={`font-medium text-white ${classeLinkMesa}`} />
             </span>

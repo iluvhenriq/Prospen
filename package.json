@@ -23,7 +23,8 @@
     "pre-cadastro:excluir": "tsx scripts/pre-cadastro-excluir.ts",
     "plano:definir": "tsx scripts/plano-definir.ts",
     "banco:backup": "tsx scripts/banco-backup.ts",
-    "no-ar": "tsx scripts/no-ar.ts"
+    "no-ar": "tsx scripts/no-ar.ts",
+    "pagina:exportar": "tsx scripts/pagina-exportar.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.11",
@@ -36,6 +37,7 @@
     "nodemailer": "10.0.16",
     "papaparse": "^5.7.0",
     "pg": "^8.23.1",
+    "qrcode-generator": "2.0.4",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "^0.0.1",

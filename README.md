@@ -101,6 +101,7 @@ Nada é gravado até você clicar em "Importar". Se enviar o mesmo arquivo de no
 | `npm run pre-cadastro:excluir -- email` | Tira uma pessoa da lista de pré-cadastro |
 | `npm run plano:definir -- email-do-dono grande [--fundador]` | Libera o plano depois de conferir o pagamento (sem o plano, só mostra o atual) |
 | `npm run banco:backup` | Cópia do banco em `backups/` (sem os dados da base de CNPJ). Antes de colocar no ar e, com clientes, todo dia |
+| `npm run pagina:exportar -- --publicar` | Gera a página inicial estática (modo pré-venda, com a reserva por Pix) e publica em https://prospen.pages.dev. Sem `--publicar`, só gera em `pagina-estatica/` |
 | `npm run no-ar` | Coloca o app no ar a partir deste PC (túnel grátis da Cloudflare) e mostra o endereço. Exige o SMTP configurado e o cloudflared. O endereço muda a cada vez |
 | `iniciar-prospen.cmd` (dois cliques) | Abre o PROSPEN como app no computador (versão de produção). Depois de mudar o código, rode `npm run build` |
 

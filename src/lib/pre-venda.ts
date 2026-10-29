@@ -8,6 +8,14 @@ export function emPreVenda(origem: Record<string, string | undefined> = process.
   return origem.MODO_PRE_VENDA === "1";
 }
 
+// Versão estática da página inicial (29/10/2026), publicada sem servidor no
+// Cloudflare Pages por `npm run pagina:exportar`. Vale só junto com o modo
+// pré-venda: sai tudo que precisa de servidor (pré-cadastro, formulário de
+// remoção) e entra o que funciona no navegador (reserva por Pix, e-mail).
+export function paginaEstatica(origem: Record<string, string | undefined> = process.env): boolean {
+  return emPreVenda(origem) && origem.PAGINA_ESTATICA === "1";
+}
+
 // Caminhos do app que ficam fechados na pré-venda.
 const FECHADOS = [
   "/painel",

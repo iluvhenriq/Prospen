@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ptBR } from "@/lib/i18n/pt-BR";
+import { paginaEstatica } from "@/lib/pre-venda";
 import { RESPONSAVEL } from "@/lib/responsavel";
 
 export const classeLinkLegal = "font-medium text-musgo-700 underline underline-offset-4 hover:text-musgo-900";
@@ -54,9 +55,7 @@ export function DocumentoLegal({
         <Link href="/termos" className={classeLinkLegal}>
           {ptBR.termos.link}
         </Link>
-        <Link href="/remover-meus-dados" className={classeLinkLegal}>
-          {ptBR.remocao.link}
-        </Link>
+        <LinkDeRemocao />
         <EmailDePrivacidade />
       </p>
     </main>
@@ -69,5 +68,23 @@ export function EmailDePrivacidade({ className }: { className?: string } = {}) {
     <a href={`mailto:${RESPONSAVEL.emailPrivacidade}`} className={className ?? classeLinkLegal}>
       {RESPONSAVEL.emailPrivacidade}
     </a>
+  );
+}
+
+// Na versão estática da página (sem servidor) o formulário de remoção não
+// funciona: o pedido vai por e-mail ao responsável pelos dados.
+export function LinkDeRemocao({ className }: { className?: string } = {}) {
+  if (paginaEstatica()) {
+    const assunto = encodeURIComponent(ptBR.remocao.assuntoEmail);
+    return (
+      <a href={`mailto:${RESPONSAVEL.emailPrivacidade}?subject=${assunto}`} className={className ?? classeLinkLegal}>
+        {ptBR.remocao.link}
+      </a>
+    );
+  }
+  return (
+    <Link href="/remover-meus-dados" className={className ?? classeLinkLegal}>
+      {ptBR.remocao.link}
+    </Link>
   );
 }

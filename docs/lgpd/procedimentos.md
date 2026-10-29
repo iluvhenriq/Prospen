@@ -1,6 +1,6 @@
 # Procedimentos: pedidos de titulares e incidentes
 
-Para o responsável pelo PROSPEN. Rascunho de 23/10/2026. Todos os pedidos chegam pelo e-mail de privacidade (iluvhenriqdev@gmail.com). Guarde cada pedido e a resposta numa pasta própria do e-mail, por pelo menos 5 anos.
+Para o responsável pelo PROSPEN. Rascunho de 23/10/2026. Todos os pedidos chegam pelo e-mail de privacidade (contato.henriqdev@gmail.com). Guarde cada pedido e a resposta numa pasta própria do e-mail, por pelo menos 5 anos.
 
 ## 1. Pedidos de titulares (LGPD, arts. 18 e 19)
 

@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test";
 // dele é testada em tests/pre-cadastro.test.ts.
 test("página inicial com o app aberto: demonstração, segurança, como começar e perguntas", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Saiba para quem ligar primeiro");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Pare de ligar para empresa no chute");
 
   // Demonstração da busca: começa com a conta da empresa de maior nota aberta
   // e, ao clicar noutra linha, abre a conta dela na própria lista.
@@ -29,6 +29,8 @@ test("página inicial com o app aberto: demonstração, segurança, como começa
   await expect(page.getByRole("heading", { name: "Como começar" })).toBeVisible();
   await expect(page.getByText("Sem pagar, dá para salvar 20 empresas por mês.", { exact: false })).toBeVisible();
   await expect(page.getByRole("button", { name: "Fazer pré-cadastro" })).toHaveCount(0);
+  // Com o app aberto, o Pix fica dentro do app (tela Equipe), não na página.
+  await expect(page.getByRole("button", { name: "Reservar no Pix" })).toHaveCount(0);
 
   // Perguntas do app aberto; as da pré-venda ("Quando abre?") somem.
   await page.getByText("Preciso de cartão para testar?").click();

@@ -10,6 +10,9 @@ const eslintConfig = defineConfig([
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
+    // Versão estática da página inicial (npm run pagina:exportar).
+    ".next-estatica/**",
+    "pagina-estatica/**",
     "build/**",
     "next-env.d.ts",
     // Relatório e resultados gerados pelos testes de navegador.

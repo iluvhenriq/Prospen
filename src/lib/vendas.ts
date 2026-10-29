@@ -5,4 +5,7 @@
 export const VENDAS = {
   chavePix: "contaspablohenrique@gmail.com",
   emailComprovante: "contaspablohenrique@gmail.com",
+  // Nome e cidade que aparecem no Pix da página inicial (src/modules/planos/pix.ts).
+  nomePix: "PROSPEN",
+  cidadePix: "SAO PAULO",
 } as const;

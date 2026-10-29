@@ -20,13 +20,14 @@ export const ptBR = {
   // produto faz de verdade: sem números inventados nem depoimentos. Preços
   // desde 28/10/2026 (seção de planos, textos em `planos.pagina`).
   preVenda: {
-    tituloDaAba: "PROSPEN: saiba para quem ligar primeiro",
+    tituloDaAba: "PROSPEN: pare de ligar para empresa no chute",
     menu: { comoFunciona: "Como funciona", perguntas: "Perguntas", entrar: "Entrar" },
-    titulo: "Saiba para quem ligar primeiro.",
+    // Mesmo gancho do vídeo 5 (29/10/2026): quem chega do Instagram reconhece.
+    titulo: "Pare de ligar para empresa no chute.",
     subtitulo:
       "O PROSPEN busca empresas ativas na base oficial da Receita Federal e mostra quais valem o seu contato primeiro, com nota de 0 a 100 e o motivo de cada ponto. Depois, acompanha cada negociação até fechar.",
-    chamada: "Fazer pré-cadastro",
-    chamadaApoio: "Pré-venda aberta, sem custo e sem compromisso. Avisamos quando abrir.",
+    chamada: "Quero uma vaga de fundador",
+    chamadaApoio: "Pré-venda aberta: os 20 primeiros clientes ficam com o preço travado.",
     // Com o app aberto (sem MODO_PRE_VENDA), a chamada leva para criar a conta.
     chamadaAberto: "Criar conta grátis",
     chamadaApoioAberto: (limite: number) =>
@@ -180,12 +181,27 @@ export const ptBR = {
         {
           quando: "preVenda",
           pergunta: "Quanto custa?",
-          resposta: "Três planos: Pequeno (R$ 97 por mês), Médio (R$ 177) e Grande (R$ 197), na seção de planos acima. Os 20 primeiros clientes são fundadores e ficam com o preço travado. O pré-cadastro não tem custo nem compromisso.",
+          resposta: "Três planos: Pequeno (R$ 97 por mês), Médio (R$ 177) e Grande (R$ 197), na seção de planos acima. Os 20 primeiros clientes são fundadores e ficam com o preço travado enquanto a assinatura durar.",
+        },
+        {
+          quando: "preVenda",
+          pergunta: "Como eu pago?",
+          resposta: "Por Pix. Em cada plano, \"Reservar no Pix\" mostra o QR code e o copia e cola com o valor do primeiro mês. Depois, mande o comprovante por e-mail com o plano escolhido.",
+        },
+        {
+          quando: "preVenda",
+          pergunta: "O que eu recebo depois de pagar?",
+          resposta: "Em até 1 dia útil, a confirmação da sua vaga de fundador por e-mail, com o plano e o preço travado. O acesso ao PROSPEN chega no mesmo e-mail assim que ele abrir. O seu primeiro mês só começa a contar no dia em que o acesso for liberado: até lá, você não paga nada além da reserva.",
         },
         {
           quando: "preVenda",
           pergunta: "Quando abre?",
-          resposta: "Ainda sem data definida. Quem fizer o pré-cadastro recebe o aviso primeiro.",
+          resposta: "Ainda sem data definida. Quem reservou uma vaga de fundador recebe o acesso primeiro, no e-mail de onde mandou o comprovante.",
+        },
+        {
+          quando: "preVenda",
+          pergunta: "E se eu desistir?",
+          resposta: "Antes de receber o acesso, é só pedir por e-mail e o Pix volta inteiro. Depois de receber, você ainda tem 7 dias para desistir com o dinheiro de volta. Passado isso, a cobrança é mensal e sem fidelidade: é só não pagar o mês seguinte.",
         },
         {
           quando: "aberto",
@@ -226,7 +242,7 @@ export const ptBR = {
       ],
     },
     formulario: {
-      titulo: "Faça o seu pré-cadastro",
+      titulo: "Ainda não quer pagar? Faça o pré-cadastro",
       texto: "Deixe o seu contato e avisamos quando o PROSPEN abrir, com as condições da pré-venda.",
       nome: "Seu nome",
       email: "E-mail",
@@ -264,6 +280,43 @@ export const ptBR = {
       avisoInicio:
         "Usamos o seu nome e e-mail só para avisar sobre a abertura e as condições da pré-venda, e as respostas opcionais só para decidir o que construir. Para sair da lista, escreva para",
       avisoFim: "Veja a",
+    },
+    // Vagas de fundador e reserva por Pix (29/10/2026, só no modo pré-venda).
+    fundador: {
+      titulo: (vagas: number) => `${vagas} vagas de fundador`,
+      texto: (vagas: number) =>
+        `Os ${vagas} primeiros clientes viram fundadores: o preço que você fechar fica travado enquanto a assinatura durar. Depois das ${vagas} vagas, o preço pode subir. O seu, não.`,
+    },
+    reserva: {
+      botao: "Reservar no Pix",
+      titulo: "Como reservar",
+      passos: (email: string) => [
+        { titulo: "Escolha o plano", texto: "Clique em \"Reservar no Pix\" no plano que faz sentido para você." },
+        { titulo: "Pague o Pix", texto: "QR code ou copia e cola, já com o valor do primeiro mês." },
+        {
+          titulo: "Mande o comprovante",
+          texto: `Para ${email}, com o plano escolhido. Use o e-mail que vai usar no PROSPEN: é por ele que a sua vaga é liberada. Em até 1 dia útil você recebe a confirmação.`,
+        },
+      ],
+      duvida: "Quer tirar uma dúvida antes de pagar? Escreva para",
+      dialogo: {
+        titulo: (plano: string) => `Plano ${plano}`,
+        valor: (preco: string) => `${preco} (primeiro mês, preço de fundador)`,
+        qr: (plano: string) => `QR code do Pix do plano ${plano}`,
+        codigo: "Pix copia e cola",
+        copiar: "Copiar",
+        copiado: "Copiado",
+        depois: (email: string) =>
+          `Depois de pagar, mande o comprovante para ${email}, com o plano escolhido. O primeiro mês só conta a partir da liberação do acesso, e antes disso o Pix volta inteiro se você desistir.`,
+        mandar: "Mandar comprovante por e-mail",
+        fechar: "Fechar",
+        assunto: (plano: string) => `Reserva de fundador do PROSPEN: plano ${plano}`,
+        corpo: (plano: string) => `Plano escolhido: ${plano}
+Meu nome: 
+Minha empresa: 
+
+(anexe aqui o comprovante do Pix)`,
+      },
     },
     rodape: {
       contato: "Contato:",
@@ -1230,6 +1283,8 @@ export const ptBR = {
   },
   remocao: {
     link: "Remover meus dados",
+    // Versão estática da página inicial: sem servidor, o pedido vai por e-mail.
+    assuntoEmail: "Remover os dados da minha empresa do PROSPEN",
     titulo: "Remover os dados da sua empresa",
     descricao:
       "O PROSPEN mostra empresas ativas da base pública de CNPJ da Receita Federal, para que outras empresas encontrem possíveis clientes. Se você é responsável por uma empresa e não quer que ela apareça, peça a remoção aqui.",

@@ -85,7 +85,7 @@ test("busca por atividade sem MEI, adiciona como lead sem duplicar e respeita o 
   await publica.goto("/");
   await publica.getByRole("contentinfo").getByRole("link", { name: "Política de privacidade" }).click();
   await expect(publica.getByRole("heading", { level: 1, name: "Política de privacidade" })).toBeVisible();
-  await expect(publica.getByRole("link", { name: "iluvhenriqdev@gmail.com" }).first()).toBeVisible();
+  await expect(publica.getByRole("link", { name: "contato.henriqdev@gmail.com" }).first()).toBeVisible();
   await publica.getByRole("link", { name: "Remover meus dados" }).click();
   await publica.waitForURL("**/remover-meus-dados");
   await publica.getByLabel("CNPJ da empresa").fill("10.000.003/0001-89");

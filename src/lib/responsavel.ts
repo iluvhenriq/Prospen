@@ -6,5 +6,6 @@
 // pelo menos 6 meses, ciente dos riscos (docs/lgpd/README.md). Reavaliar em 04/2027.
 export const RESPONSAVEL = {
   nome: "Henrique, desenvolvedor do PROSPEN",
-  emailPrivacidade: "iluvhenriqdev@gmail.com",
+  // Também é o contato geral do site (29/10/2026; antes iluvhenriqdev@gmail.com).
+  emailPrivacidade: "contato.henriqdev@gmail.com",
 } as const;

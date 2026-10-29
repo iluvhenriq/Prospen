@@ -1,6 +1,6 @@
 # Registro das operações de tratamento (LGPD, art. 37)
 
-Rascunho de 23/10/2026. Atualize a cada tabela, finalidade ou fornecedor novo. Controlador e encarregado: responsável indicado em `src/lib/responsavel.ts` (contato: iluvhenriqdev@gmail.com).
+Rascunho de 23/10/2026. Atualize a cada tabela, finalidade ou fornecedor novo. Controlador e encarregado: responsável indicado em `src/lib/responsavel.ts` (contato: contato.henriqdev@gmail.com).
 
 | # | Operação | Titulares | Dados | Finalidade | Base legal | Papel do PROSPEN | Onde fica | Prazo de guarda | Compartilhamento |
 |---|---|---|---|---|---|---|---|---|---|
