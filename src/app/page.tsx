@@ -213,6 +213,22 @@ export default function PaginaInicial() {
           </div>
         </section>
 
+        {/* Segurança: o que protege a conta e os dados, só o que o app faz de verdade. */}
+        <section className="mx-auto w-full max-w-6xl px-4 pt-16 sm:px-6 md:pt-24">
+          <h2 className={`${classeTituloMesa} max-w-[24ch]`}>{t.seguranca.titulo}</h2>
+          <ul className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
+            {t.seguranca.itens.map((item) => (
+              <li key={item.titulo} className="flex flex-col gap-2 border-t border-mesa-linha pt-5">
+                <h3 className="flex items-center gap-2.5 text-lg font-bold text-white">
+                  <span aria-hidden="true" className="h-1.5 w-3 shrink-0 rounded-[1px] bg-marca-texto" />
+                  {item.titulo}
+                </h3>
+                <p className="text-musgo-100">{item.texto}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         {/* Planos: três folhas; a do Grande, marcada (decisão de 28/10/2026). */}
         <section id="planos" className="mx-auto w-full max-w-6xl scroll-mt-6 px-4 pt-16 sm:px-6 md:pt-24">
           <h2 className={classeTituloMesa}>{tp.titulo}</h2>
@@ -294,7 +310,9 @@ export default function PaginaInicial() {
           <div id="perguntas" className="scroll-mt-6">
             <h2 className={classeTituloMesa}>{t.perguntas.titulo}</h2>
             <div className="mt-8 flex flex-col divide-y divide-mesa-linha border-y border-mesa-linha">
-              {t.perguntas.itens.map((item) => (
+              {t.perguntas.itens
+                .filter((item) => !("quando" in item) || item.quando === (appAberto ? "aberto" : "preVenda"))
+                .map((item) => (
                 <details key={item.pergunta} className="group py-4">
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-white hover:text-marca-texto">
                     {item.pergunta}
@@ -312,13 +330,41 @@ export default function PaginaInicial() {
             </div>
           </div>
 
-          <div id="pre-cadastro" className="scroll-mt-6">
-            <div className="papel rotate-[0.6deg] rounded-[3px] p-6 sm:p-9 lg:sticky lg:top-8">
-              <h2 className="border-b-2 border-texto pb-3 text-2xl font-extrabold tracking-[-0.02em] text-musgo-900">{t.formulario.titulo}</h2>
-              <p className="mb-6 mt-3 text-texto-suave">{t.formulario.texto}</p>
-              <FormularioPreCadastro emailContato={RESPONSAVEL.emailPrivacidade} />
+          {appAberto ? (
+            // App aberto: no lugar do pré-cadastro, os passos para começar.
+            <div id="comecar" className="scroll-mt-6">
+              <div className="papel rotate-[0.6deg] rounded-[3px] p-6 sm:p-9 lg:sticky lg:top-8">
+                <h2 className="border-b-2 border-texto pb-3 text-2xl font-extrabold tracking-[-0.02em] text-musgo-900">{t.comecar.titulo}</h2>
+                <ol className="mb-7 mt-5 flex flex-col gap-4">
+                  {t.comecar.passos(EMPRESAS_SEM_PAGAMENTO).map((passo, i) => (
+                    <li key={passo} className="flex gap-3 text-texto">
+                      <span className="numeros flex size-7 shrink-0 items-center justify-center rounded-full bg-marca-texto text-sm font-extrabold text-tinta">
+                        {i + 1}
+                      </span>
+                      <span className="pt-0.5">{passo}</span>
+                    </li>
+                  ))}
+                </ol>
+                <BotaoLink href="/cadastrar" tamanho="grande" className="w-full">
+                  {t.comecar.botao}
+                </BotaoLink>
+                <p className="mt-4 text-center text-sm text-texto-suave">
+                  {t.comecar.temConta}{" "}
+                  <Link href="/entrar" className="font-semibold text-musgo-700 underline-offset-4 hover:underline">
+                    {t.comecar.entrar}
+                  </Link>
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div id="pre-cadastro" className="scroll-mt-6">
+              <div className="papel rotate-[0.6deg] rounded-[3px] p-6 sm:p-9 lg:sticky lg:top-8">
+                <h2 className="border-b-2 border-texto pb-3 text-2xl font-extrabold tracking-[-0.02em] text-musgo-900">{t.formulario.titulo}</h2>
+                <p className="mb-6 mt-3 text-texto-suave">{t.formulario.texto}</p>
+                <FormularioPreCadastro emailContato={RESPONSAVEL.emailPrivacidade} />
+              </div>
+            </div>
+          )}
         </section>
       </main>
 

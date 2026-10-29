@@ -36,6 +36,12 @@ export function criarCarteiro(config: ConfigEmail): EnviarEmail {
     auth: { user: config.usuario, pass: config.senha },
   });
   return async (email: Email) => {
-    await transporte.sendMail({ from: config.remetente, to: email.para, subject: email.assunto, text: email.texto });
+    await transporte.sendMail({
+      from: config.remetente,
+      to: email.para,
+      subject: email.assunto,
+      text: email.texto,
+      html: email.html,
+    });
   };
 }

@@ -1,7 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { lerEnvEmail } from "@/lib/env";
 import { emailDoToken, situacaoDoEmail } from "@/modules/contas/confirmacao";
-import { conviteDoLinkDoLogin, linkDeConfirmacao, linkDeNovaSenha } from "@/modules/contas/emails";
+import {
+  conviteDoLinkDoLogin,
+  emailDeConfirmacao,
+  linkDeConfirmacao,
+  linkDeNovaSenha,
+  primeiroNomeSeguro,
+} from "@/modules/contas/emails";
 import { codigoDoErro, traduzirErroLogin } from "@/modules/contas/erros";
 import { criarAmbienteDeTeste, type AmbienteDeTeste } from "./ajuda/banco-teste";
 
@@ -37,6 +43,33 @@ describe("links dos e-mails", () => {
     expect(emailDoToken(`cabeca.${meio}.assinatura`)).toBe("ana@exemplo.com.br");
     expect(emailDoToken("sem-pontos")).toBeNull();
     expect(emailDoToken("a.!!!.c")).toBeNull();
+  });
+});
+
+describe("conteúdo dos e-mails", () => {
+  it("usa só o primeiro nome, só com letras: um \"nome\" com link ou recado não passa", () => {
+    expect(primeiroNomeSeguro("Ana Paula Souza")).toBe("Ana");
+    expect(primeiroNomeSeguro("  joão-pedro d'Ávila ")).toBe("joão-pedro");
+    expect(primeiroNomeSeguro("www.golpe.com/pix")).toBe("wwwgolpecompix");
+    expect(primeiroNomeSeguro("https://golpe.com")).toBe("httpsgolpecom");
+    expect(primeiroNomeSeguro("<b>Oi</b>")).toBe("bOib");
+    expect(primeiroNomeSeguro("123 456")).toBe("");
+  });
+
+  it("sai em HTML e em texto, com o botão, o link e a saudação pelo primeiro nome", () => {
+    const link = "https://app.exemplo/confirmar-email?token=a.b.c&convite=x";
+    const email = emailDeConfirmacao("ana@exemplo.com.br", "Ana Paula", link);
+    expect(email.texto.split("\n")[0]).toBe("Olá, Ana!");
+    expect(email.texto).toContain(`Confirmar meu e-mail: ${link}`);
+    expect(email.html).toContain("Olá, Ana!");
+    expect(email.html).toContain("Confirmar meu e-mail");
+    // O & do endereço vai escapado no HTML (o leitor de e-mail desfaz).
+    expect(email.html).toContain("token=a.b.c&amp;convite=x");
+    expect(email.html).not.toContain("<script");
+  });
+
+  it("sem nome aproveitável, a saudação fica neutra", () => {
+    expect(emailDeConfirmacao("x@exemplo.com.br", "*** 123", "https://a.b/c").texto.startsWith("Olá!\n")).toBe(true);
   });
 });
 

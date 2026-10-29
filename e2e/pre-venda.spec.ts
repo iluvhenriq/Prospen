@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { emailUnico } from "./apoio";
 
-// Página de apresentação e pré-cadastro (pré-venda). Não cria conta.
-test("pré-cadastro pela página inicial, com erro claro e sucesso", async ({ page }) => {
+// Página de apresentação com o app aberto (como no servidor dos testes). Não
+// cria conta. O formulário de pré-cadastro só aparece no modo pré-venda; a ação
+// dele é testada em tests/pre-cadastro.test.ts.
+test("página inicial com o app aberto: demonstração, segurança, como começar e perguntas", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Saiba para quem ligar primeiro");
 
@@ -20,23 +21,19 @@ test("pré-cadastro pela página inicial, com erro claro e sucesso", async ({ pa
   // as vagas de fundador vêm do banco (zeradas a cada rodada dos testes).
   await expect(page.getByRole("link", { name: "Criar conta grátis" }).first()).toHaveAttribute("href", "/cadastrar");
   await expect(page.getByText("Restam 20 de 20 vagas de fundador", { exact: false })).toBeVisible();
-  // O pré-cadastro continua no fim da página.
-  await page.locator("#pre-cadastro").scrollIntoViewIfNeeded();
+  // Segurança: seção com o que o app faz de verdade.
+  await expect(page.getByRole("heading", { name: "Segurança da sua conta e dos seus dados" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Só entra quem confirmou o e-mail" })).toBeVisible();
 
-  // Envio vazio: mensagens do servidor, em português.
-  await page.getByRole("button", { name: "Fazer pré-cadastro" }).click();
-  await expect(page.getByText("Informe o seu nome.")).toBeVisible();
-  await expect(page.getByText("Confira o e-mail.")).toBeVisible();
+  // No lugar do pré-cadastro (que só aparece no modo pré-venda), os passos para começar.
+  await expect(page.getByRole("heading", { name: "Como começar" })).toBeVisible();
+  await expect(page.getByText("Sem pagar, dá para salvar 20 empresas por mês.", { exact: false })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Fazer pré-cadastro" })).toHaveCount(0);
 
-  await page.getByLabel("Seu nome").fill("Pessoa Interessada");
-  await page.getByLabel("E-mail").fill(emailUnico("pre-cadastro"));
-  await page.getByLabel("Empresa (opcional)").fill("Empresa Interessada");
-  // Perguntas opcionais: não estão prontas e o formulário diz isso.
-  await expect(page.getByText("Nada desta lista está pronto.")).toBeVisible();
-  await page.getByLabel("O que a sua empresa vende? (opcional)").selectOption({ label: "Contabilidade" });
-  await page.getByLabel(/Avisos de oportunidade/).check();
-  await page.getByRole("button", { name: "Fazer pré-cadastro" }).click();
-  await expect(page.getByText("Pronto, você está na lista.")).toBeVisible();
+  // Perguntas do app aberto; as da pré-venda ("Quando abre?") somem.
+  await page.getByText("Preciso de cartão para testar?").click();
+  await expect(page.getByText("A conta de teste não pede cartão", { exact: false })).toBeVisible();
+  await expect(page.getByText("Quando abre?")).toHaveCount(0);
 
   // Páginas legais no rodapé.
   await expect(page.getByRole("link", { name: "Política de privacidade" }).last()).toHaveAttribute("href", "/privacidade");

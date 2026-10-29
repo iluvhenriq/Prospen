@@ -131,16 +131,81 @@ export const ptBR = {
         "Os dados de cada cliente ficam separados e nunca aparecem para outro.",
       ],
     },
-    perguntas: {
-      titulo: "Perguntas frequentes",
+    // Só o que o app faz de verdade (auth-config.ts, limites.ts, next.config.ts).
+    seguranca: {
+      titulo: "Segurança da sua conta e dos seus dados",
       itens: [
         {
+          titulo: "Só entra quem confirmou o e-mail",
+          texto: "Toda conta nova recebe um link de confirmação. Sem ele, ninguém entra, nem com a senha certa.",
+        },
+        {
+          titulo: "Senha guardada embaralhada",
+          texto: "A senha é guardada de um jeito que não dá para ler de volta, nem pela equipe do PROSPEN.",
+        },
+        {
+          titulo: "Limite de tentativas",
+          texto: "Depois de 8 senhas erradas para o mesmo e-mail, as próximas tentativas esperam 15 minutos.",
+        },
+        {
+          titulo: "Cada empresa só vê o que é dela",
+          texto: "Leads, notas e campanhas ficam separados por empresa, e testes automáticos conferem isso a cada mudança no sistema.",
+        },
+        {
+          titulo: "Equipe só por convite",
+          texto: "Só entra na sua empresa quem recebeu o seu link de convite e confirmou o mesmo e-mail convidado.",
+        },
+        {
+          titulo: "Conexão protegida",
+          texto: "O site usa conexão cifrada (https), não abre dentro de outros sites e guarda os registros de acesso por 6 meses, como pede o Marco Civil da Internet.",
+        },
+      ],
+    },
+    // No lugar do pré-cadastro, com o app aberto.
+    comecar: {
+      titulo: "Como começar",
+      passos: (limite: number) => [
+        "Crie a conta grátis e confirme o e-mail pelo link que chega na hora.",
+        `Dê o nome da sua empresa e comece a buscar. Sem pagar, dá para salvar ${limite} empresas por mês.`,
+        "Gostou? Assine por Pix, pelo passo a passo dentro do app. O plano é liberado assim que o pagamento é conferido.",
+      ],
+      botao: "Criar conta grátis",
+      temConta: "Já tem conta?",
+      entrar: "Entrar",
+    },
+    perguntas: {
+      titulo: "Perguntas frequentes",
+      // `quando`: só no modo pré-venda ou só com o app aberto. Sem ele, nos dois.
+      itens: [
+        {
+          quando: "preVenda",
           pergunta: "Quanto custa?",
           resposta: "Três planos: Pequeno (R$ 97 por mês), Médio (R$ 177) e Grande (R$ 197), na seção de planos acima. Os 20 primeiros clientes são fundadores e ficam com o preço travado. O pré-cadastro não tem custo nem compromisso.",
         },
         {
+          quando: "preVenda",
           pergunta: "Quando abre?",
           resposta: "Ainda sem data definida. Quem fizer o pré-cadastro recebe o aviso primeiro.",
+        },
+        {
+          quando: "aberto",
+          pergunta: "Quanto custa?",
+          resposta: "Três planos: Pequeno (R$ 97 por mês), Médio (R$ 177) e Grande (R$ 197), na seção de planos acima. Os 20 primeiros clientes são fundadores e ficam com o preço travado enquanto a assinatura durar. Criar a conta e testar não custa nada.",
+        },
+        {
+          quando: "aberto",
+          pergunta: "Preciso de cartão para testar?",
+          resposta: "Não. A conta de teste não pede cartão nem nenhum dado de pagamento.",
+        },
+        {
+          quando: "aberto",
+          pergunta: "Como eu pago?",
+          resposta: "Por Pix. Dentro do app, na tela Equipe, aparece a chave e o passo a passo. Você manda o comprovante por e-mail e o plano é liberado assim que o pagamento é conferido.",
+        },
+        {
+          quando: "aberto",
+          pergunta: "Posso parar quando quiser?",
+          resposta: "Sim. A cobrança é mensal e sem fidelidade: é só não pagar o mês seguinte. Os leads que você já salvou continuam na sua conta.",
         },
         {
           pergunta: "Quais estados a busca cobre?",
@@ -274,45 +339,39 @@ export const ptBR = {
     limiteTentativas: (minutos: number) =>
       `Muitas tentativas. Tente de novo em ${minutos} ${minutos === 1 ? "minuto" : "minutos"}.`,
   },
-  // E-mails da conta (src/modules/contas/emails.ts). Texto simples, sem imagem.
-  // As validades seguem VALIDADE_CONFIRMACAO_S e VALIDADE_NOVA_SENHA_S (auth-config.ts).
+  // E-mails da conta (src/modules/contas/emails.ts): HTML com a marca e texto
+  // puro. As validades seguem VALIDADE_CONFIRMACAO_S e VALIDADE_NOVA_SENHA_S
+  // (auth-config.ts). O nome entra só como primeiro nome, só com letras.
   emails: {
+    saudacao: (nome: string) => (nome ? `Olá, ${nome}!` : "Olá!"),
     assinatura: "Equipe PROSPEN",
+    rodape: "Dúvidas? É só responder este e-mail. O PROSPEN nunca pede a sua senha por e-mail ou mensagem.",
+    copiarLink: "Se o botão não funcionar, copie este endereço e cole no navegador:",
+    abrir: "Abrir",
     confirmacao: {
       assunto: "Confirme seu e-mail no PROSPEN",
-      linhas: (nome: string, link: string) => [
-        `Olá, ${nome}.`,
-        "",
-        "Para entrar no PROSPEN, confirme o seu e-mail abrindo o link abaixo:",
-        link,
-        "",
-        "O link vale por 24 horas.",
-        "Se você não criou uma conta no PROSPEN, ignore este e-mail.",
+      previa: "Falta um clique para começar a usar o PROSPEN.",
+      paragrafos: [
+        "Falta só um passo para começar: confirme que este e-mail é seu.",
+        "Depois de confirmar, você dá o nome da sua empresa e já pode buscar empresas ativas na base da Receita Federal, com nota de 0 a 100 e o motivo de cada ponto.",
       ],
+      botao: "Confirmar meu e-mail",
+      aviso: "O link vale por 24 horas. Se você não criou uma conta no PROSPEN, pode ignorar este e-mail: nenhuma conta é aberta sem a confirmação.",
     },
     novaSenha: {
       assunto: "Senha nova no PROSPEN",
-      linhas: (nome: string, link: string) => [
-        `Olá, ${nome}.`,
-        "",
-        "Para criar uma senha nova, abra o link abaixo:",
-        link,
-        "",
-        "O link vale por 1 hora e só pode ser usado uma vez.",
-        "Se você não pediu, ignore este e-mail: a sua senha continua a mesma.",
-      ],
+      previa: "Use o link para criar uma senha nova.",
+      paragrafos: ["Recebemos um pedido para criar uma senha nova para a sua conta no PROSPEN."],
+      botao: "Criar senha nova",
+      aviso: "O link vale por 1 hora e só pode ser usado uma vez. Ao trocar a senha, quem estiver com a conta aberta em outro aparelho sai. Se você não pediu, ignore este e-mail: a sua senha continua a mesma.",
     },
     contaExistente: {
       assunto: "Tentaram criar uma conta com o seu e-mail",
-      linhas: (nome: string, entrar: string, esqueci: string) => [
-        `Olá, ${nome}.`,
-        "",
-        "Alguém tentou criar uma conta no PROSPEN com o seu e-mail, mas você já tem uma.",
-        `Para entrar: ${entrar}`,
-        `Esqueceu a senha? ${esqueci}`,
-        "",
-        "Se não foi você, pode ignorar: nada mudou na sua conta.",
-      ],
+      previa: "Você já tem uma conta no PROSPEN.",
+      paragrafos: ["Alguém tentou criar uma conta no PROSPEN com o seu e-mail, mas você já tem uma. Nenhuma conta nova foi criada."],
+      botao: "Entrar no PROSPEN",
+      esqueceu: "Esqueceu a senha?",
+      aviso: "Se não foi você, pode ignorar: nada mudou na sua conta.",
     },
   },
   painel: {
