@@ -30,6 +30,9 @@
 /e2e-resultados/
 /e2e-relatorio/
 /e2e-emails/
+
+# cópias do banco (npm run banco:backup): têm dados pessoais, nunca no Git
+/backups/
 *.pem
 
 # debug

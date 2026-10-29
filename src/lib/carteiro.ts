@@ -12,7 +12,14 @@ import type { ConfigEmail } from "./env";
 export function criarCarteiro(config: ConfigEmail): EnviarEmail {
   if (config.tipo === "local") {
     return async (email: Email) => {
-      console.log(`\n[e-mail não enviado: SMTP não configurado]\nPara: ${email.para}\nAssunto: ${email.assunto}\n\n${email.texto}\n`);
+      // O conteúdo (nome, e-mail, link) só aparece em desenvolvimento, para
+      // quem testa no próprio computador. Em produção, nada de dado pessoal no
+      // registro (regra 7 do CLAUDE.md): só o aviso de que o e-mail não saiu.
+      if (process.env.NODE_ENV === "production") {
+        console.error(`[e-mail não enviado: SMTP não configurado] ${email.assunto}`);
+      } else {
+        console.log(`\n[e-mail não enviado: SMTP não configurado]\nPara: ${email.para}\nAssunto: ${email.assunto}\n\n${email.texto}\n`);
+      }
       if (config.pasta) {
         mkdirSync(config.pasta, { recursive: true });
         const nome = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.json`;

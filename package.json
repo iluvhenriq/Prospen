@@ -21,7 +21,9 @@
     "conta:excluir": "tsx scripts/conta-excluir.ts",
     "pre-cadastro:listar": "tsx scripts/pre-cadastro-listar.ts",
     "pre-cadastro:excluir": "tsx scripts/pre-cadastro-excluir.ts",
-    "plano:definir": "tsx scripts/plano-definir.ts"
+    "plano:definir": "tsx scripts/plano-definir.ts",
+    "banco:backup": "tsx scripts/banco-backup.ts",
+    "no-ar": "tsx scripts/no-ar.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.7.11",

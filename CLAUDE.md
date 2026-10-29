@@ -63,6 +63,8 @@ TypeScript, Next.js (App Router, versão 16), PostgreSQL, Drizzle ORM, Better Au
 | `npm run pre-cadastro:listar > arquivo.csv` | Lista do pré-cadastro da pré-venda (dados pessoais: não compartilhe) |
 | `npm run pre-cadastro:excluir -- email` | Tira uma pessoa da lista de pré-cadastro |
 | `npm run plano:definir -- email-do-dono grande [--fundador]` | Libera o plano depois de conferir o pagamento (sem o plano, só mostra o atual) |
+| `npm run banco:backup` | Cópia do banco em `backups/` (sem os dados da base de CNPJ). Antes de colocar no ar e, com clientes, todo dia |
+| `npm run no-ar` | Coloca o app no ar a partir deste PC (túnel grátis da Cloudflare) e mostra o endereço. Exige o SMTP configurado e o cloudflared. O endereço muda a cada vez |
 
 Antes de dizer que uma etapa está pronta, rode lint, tipos, testes, build e `npm run test:e2e`. Teste também no navegador o que for tela nova (Playwright MCP) e, quando o fluxo for crítico, acrescente um teste em `e2e/`. Diga com clareza o que NÃO foi testado.
 
