@@ -27,6 +27,10 @@ export const ptBR = {
       "O PROSPEN busca empresas ativas na base oficial da Receita Federal e mostra quais valem o seu contato primeiro, com nota de 0 a 100 e o motivo de cada ponto. Depois, acompanha cada negociação até fechar.",
     chamada: "Fazer pré-cadastro",
     chamadaApoio: "Pré-venda aberta, sem custo e sem compromisso. Avisamos quando abrir.",
+    // Com o app aberto (sem MODO_PRE_VENDA), a chamada leva para criar a conta.
+    chamadaAberto: "Criar conta grátis",
+    chamadaApoioAberto: (limite: number) =>
+      `Teste com ${limite} empresas por mês, sem cartão. Para salvar mais, assine um plano.`,
     // Demonstração da abertura: a tela de busca com nomes ocultos. Cada linha é
     // um perfil, não uma empresa; os pontos saem de src/modules/pontuacao/regras.ts.
     demonstracao: {
@@ -1006,6 +1010,20 @@ export const ptBR = {
       semPagamento
         ? `Você já salvou as ${limite.toLocaleString("pt-BR")} empresas deste mês. Para salvar mais, assine um plano: depois do pagamento ele é liberado.`
         : `Você já salvou ${limite.toLocaleString("pt-BR")} empresas este mês, o limite do seu plano. Volta no dia 1º.`,
+    // Pagamento manual por Pix (src/lib/vendas.ts).
+    comoAssinar: {
+      titulo: "Como assinar",
+      link: "Ver como assinar",
+      passos: (precos: string, chave: string, email: string, emailDaConta: string) => [
+        `Escolha o plano: ${precos} por mês.`,
+        `Faça um Pix do valor para a chave ${chave} (e-mail).`,
+        `Mande o comprovante para ${email}, dizendo o plano e o e-mail da sua conta (${emailDaConta}).`,
+        "O plano é liberado assim que o pagamento for conferido. A cobrança é mensal: no mês seguinte, é só repetir.",
+      ],
+      botao: "Mandar o comprovante por e-mail",
+      assunto: "Comprovante do PROSPEN",
+      corpo: (emailDaConta: string) => `E-mail da minha conta no PROSPEN: ${emailDaConta}\nPlano escolhido: \n\n(anexe aqui o comprovante do Pix)`,
+    },
     semPagamento: (limite: number) =>
       `Plano ainda não liberado: até a confirmação do pagamento, a conta salva ${limite.toLocaleString("pt-BR")} empresas por mês.`,
     usuariosDoPlano: (membros: number, limite: number) =>
@@ -1023,6 +1041,10 @@ export const ptBR = {
       todos: "Busca, nota de 0 a 100 com motivos, funil, tela \"Hoje\" e contato em um clique",
       fundadores: (vagas: number) =>
         `Os ${vagas} primeiros clientes são fundadores: o preço fica travado enquanto a assinatura durar.`,
+      vagasRestantes: (restam: number, total: number) =>
+        restam === 0
+          ? `As ${total} vagas de fundador acabaram.`
+          : `Restam ${restam} de ${total} vagas de fundador: o preço fica travado enquanto a assinatura durar.`,
       chamada: "Quero uma vaga de fundador",
       limiteDiario: "Todos os planos têm um limite diário de páginas de busca, contra uso automatizado.",
     },

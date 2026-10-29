@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { EmailDePrivacidade } from "@/components/legal/documento-legal";
 import { DemonstracaoBusca } from "@/components/pre-venda/demonstracao-busca";
+import { VagasDeFundador } from "@/components/planos/vagas-de-fundador";
 import { FormularioPreCadastro } from "@/components/pre-venda/formulario-pre-cadastro";
 import { BotaoLink } from "@/components/ui/botao";
 import { ptBR } from "@/lib/i18n/pt-BR";
 import { emPreVenda } from "@/lib/pre-venda";
-import { PLANOS, REGRAS, RECURSOS, VAGAS_DE_FUNDADOR } from "@/modules/planos/planos";
+import { EMPRESAS_SEM_PAGAMENTO, PLANOS, REGRAS, RECURSOS, VAGAS_DE_FUNDADOR } from "@/modules/planos/planos";
 import { RESPONSAVEL } from "@/lib/responsavel";
 
 export const metadata: Metadata = {
@@ -33,12 +35,14 @@ function formatarPreco(centavos: number): string {
 // Página de apresentação com pré-cadastro. Direção "a mesa do vendedor"
 // (27/10/2026): tudo sobre o forro verde-musgo, com papéis por cima (a lista
 // impressa, a fita da calculadora, a ficha do pré-cadastro). Estática: gerada
-// no build. No modo pré-venda (src/lib/pre-venda.ts) o link "Entrar" some.
+// no build. No modo pré-venda (src/lib/pre-venda.ts) o link "Entrar" some e as
+// chamadas levam ao pré-cadastro; com o app aberto, levam a criar a conta.
 export default function PaginaInicial() {
   const t = ptBR.preVenda;
   const appAberto = !emPreVenda();
   const etapas = ptBR.funil.etapas;
   const tp = ptBR.planos.pagina;
+  const destinoDaChamada = appAberto ? "/cadastrar" : "#pre-cadastro";
 
   return (
     <div className="mesa flex min-h-screen flex-col">
@@ -69,8 +73,8 @@ export default function PaginaInicial() {
                 {t.menu.entrar}
               </Link>
             ) : null}
-            <BotaoLink href="#pre-cadastro" variante="papel" tamanho="pequeno" className="ml-1">
-              {t.chamada}
+            <BotaoLink href={destinoDaChamada} variante="papel" tamanho="pequeno" className="ml-1">
+              {appAberto ? t.chamadaAberto : t.chamada}
             </BotaoLink>
           </nav>
         </div>
@@ -85,10 +89,12 @@ export default function PaginaInicial() {
             </h1>
             <p className="max-w-[32rem] text-pretty text-lg leading-relaxed text-musgo-100">{t.subtitulo}</p>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
-              <BotaoLink href="#pre-cadastro" variante="papel" tamanho="grande">
-                {t.chamada}
+              <BotaoLink href={destinoDaChamada} variante="papel" tamanho="grande">
+                {appAberto ? t.chamadaAberto : t.chamada}
               </BotaoLink>
-              <p className="max-w-56 text-sm text-musgo-200">{t.chamadaApoio}</p>
+              <p className="max-w-56 text-sm text-musgo-200">
+                {appAberto ? t.chamadaApoioAberto(EMPRESAS_SEM_PAGAMENTO) : t.chamadaApoio}
+              </p>
             </div>
           </div>
 
@@ -266,9 +272,17 @@ export default function PaginaInicial() {
           </ul>
           <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <p className="max-w-[40rem] text-musgo-100">
-              <span className="rounded-[3px] bg-marca-texto px-1 font-semibold text-tinta">{tp.fundadores(VAGAS_DE_FUNDADOR)}</span>
+              <span className="rounded-[3px] bg-marca-texto px-1 font-semibold text-tinta">
+                {appAberto ? (
+                  <Suspense fallback={tp.fundadores(VAGAS_DE_FUNDADOR)}>
+                    <VagasDeFundador />
+                  </Suspense>
+                ) : (
+                  tp.fundadores(VAGAS_DE_FUNDADOR)
+                )}
+              </span>
             </p>
-            <BotaoLink href="#pre-cadastro" variante="papel" tamanho="grande">
+            <BotaoLink href={destinoDaChamada} variante="papel" tamanho="grande">
               {tp.chamada}
             </BotaoLink>
           </div>

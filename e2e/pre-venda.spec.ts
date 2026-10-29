@@ -16,9 +16,12 @@ test("pré-cadastro pela página inicial, com erro claro e sucesso", async ({ pa
   await expect(page.locator("#conta-40")).toContainText("= 40");
   await expect(page.locator("#conta-80")).toHaveCount(0);
 
-  // A chamada do topo leva ao formulário.
-  await page.getByRole("link", { name: "Fazer pré-cadastro" }).first().click();
-  await expect(page).toHaveURL(/#pre-cadastro$/);
+  // Com o app aberto (como neste servidor), a chamada leva a criar a conta, e
+  // as vagas de fundador vêm do banco (zeradas a cada rodada dos testes).
+  await expect(page.getByRole("link", { name: "Criar conta grátis" }).first()).toHaveAttribute("href", "/cadastrar");
+  await expect(page.getByText("Restam 20 de 20 vagas de fundador", { exact: false })).toBeVisible();
+  // O pré-cadastro continua no fim da página.
+  await page.locator("#pre-cadastro").scrollIntoViewIfNeeded();
 
   // Envio vazio: mensagens do servidor, em português.
   await page.getByRole("button", { name: "Fazer pré-cadastro" }).click();

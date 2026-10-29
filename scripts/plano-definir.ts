@@ -1,11 +1,11 @@
-import { and, count, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import * as schema from "../src/db/schema";
 import { lerEnv } from "../src/lib/env";
 import { explicarErroBanco } from "../src/lib/erros-banco";
 import { EMPRESAS_SEM_PAGAMENTO, PLANOS, planoValido, REGRAS, VAGAS_DE_FUNDADOR } from "../src/modules/planos/planos";
-import { repositorioPlano } from "../src/modules/planos/repositorio";
+import { fundadoresUsados, repositorioPlano } from "../src/modules/planos/repositorio";
 import { carregarEnvLocal } from "./carregar-env";
 
 // Libera o plano de uma empresa depois de conferir o pagamento (liberação
@@ -43,11 +43,7 @@ async function main(): Promise<void> {
     if (plano === undefined) return;
 
     if (fundador && !atual.fundador) {
-      const [{ total }] = await db
-        .select({ total: count() })
-        .from(schema.planoEmpresa)
-        .where(eq(schema.planoEmpresa.fundador, true));
-      if (total >= VAGAS_DE_FUNDADOR) {
+      if ((await fundadoresUsados(db)) >= VAGAS_DE_FUNDADOR) {
         throw new Error(`As ${VAGAS_DE_FUNDADOR} vagas de fundador já foram usadas.`);
       }
     }

@@ -1,9 +1,16 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import { planoEmpresa, usoMensal } from "@/db/schema";
 import type { Banco } from "@/db/tipos";
 import { PLANO_PADRAO, planoValido, type Plano } from "./planos";
 
 export type PlanoDaEmpresa = { plano: Plano; fundador: boolean; gravado: boolean };
+
+// Vagas de fundador já usadas, em todas as empresas (o total é público na
+// página inicial; nenhuma empresa é identificada).
+export async function fundadoresUsados(db: Banco): Promise<number> {
+  const [linha] = await db.select({ total: count() }).from(planoEmpresa).where(eq(planoEmpresa.fundador, true));
+  return linha?.total ?? 0;
+}
 
 // ÚNICO lugar que consulta o plano e o uso mensal. Amarrado a UMA empresa.
 export function repositorioPlano(db: Banco, organizacaoId: string) {

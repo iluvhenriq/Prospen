@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { CopiarLink, FormularioConvite } from "@/components/equipe/formulario-convite";
+import { ComoAssinar } from "@/components/planos/como-assinar";
 import { Alerta } from "@/components/ui/alerta";
 import { Botao } from "@/components/ui/botao";
 import { Esqueleto } from "@/components/ui/carregando";
@@ -46,6 +47,9 @@ async function ConteudoEquipe() {
         ) : null}
         <p className="text-sm text-texto-suave">{tp.usuariosDoPlano(tela.pessoas.length, tela.usuarios)}</p>
       </div>
+
+      {/* Plano ainda não liberado: como pagar, enquanto o pagamento é manual. */}
+      {tela.uso.semPagamento ? <ComoAssinar emailDaConta={contexto.usuario.email} /> : null}
 
       <Cartao>
         <CartaoCabecalho>
