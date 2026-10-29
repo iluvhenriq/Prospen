@@ -1,4 +1,4 @@
-import { execSync, spawn, type ChildProcess } from "node:child_process";
+import { execFileSync, execSync, spawn, type ChildProcess } from "node:child_process";
 import { lerEnvEmail } from "../src/lib/env";
 import { carregarEnvLocal } from "./carregar-env";
 
@@ -28,9 +28,22 @@ if (lerEnvEmail().tipo !== "smtp") {
   process.exit(1);
 }
 
-try {
-  execSync("cloudflared --version", { stdio: "ignore" });
-} catch {
+// O instalador do Windows (winget) nem sempre põe o cloudflared no PATH:
+// procura também na pasta onde ele instala.
+function acharCloudflared(): string | null {
+  const candidatos = ["cloudflared", "C:\\Program Files (x86)\\cloudflared\\cloudflared.exe", "C:\\Program Files\\cloudflared\\cloudflared.exe"];
+  for (const candidato of candidatos) {
+    try {
+      execFileSync(candidato, ["--version"], { stdio: "ignore" });
+      return candidato;
+    } catch {
+      // tenta o próximo
+    }
+  }
+  return null;
+}
+const cloudflared = acharCloudflared();
+if (!cloudflared) {
   console.error("O cloudflared não está instalado. Instale com:\n  winget install --id Cloudflare.cloudflared\nDepois feche e abra o terminal.");
   process.exit(1);
 }
@@ -38,7 +51,7 @@ try {
 if (!argumentos.includes("--sem-build")) execSync("npx next build", { stdio: "inherit" });
 
 let servidor: ChildProcess | null = null;
-const tunel = spawn("cloudflared", ["tunnel", "--no-autoupdate", "--url", `http://localhost:${PORTA}`], {
+const tunel = spawn(cloudflared, ["tunnel", "--no-autoupdate", "--url", `http://localhost:${PORTA}`], {
   stdio: ["ignore", "pipe", "pipe"],
 });
 
