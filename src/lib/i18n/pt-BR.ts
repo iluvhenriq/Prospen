@@ -48,10 +48,10 @@ export const ptBR = {
       dica: "Clique numa empresa da lista para ver a conta da nota.",
       legenda: "Ilustração: nomes ocultos, pontos calculados pelas regras reais do PROSPEN.",
     },
-    // Número real da base de SP (importação de outubro de 2026).
+    // Número real da base do Brasil (importação de outubro de 2026: 28.299.341).
     tamanhoDaBase: {
-      numero: "8,8 milhões",
-      titulo: "de empresas ativas só em São Paulo.",
+      numero: "28,3 milhões",
+      titulo: "de empresas ativas no Brasil, nos 27 estados.",
       texto: "Ninguém liga para todas. O PROSPEN ordena a lista para você começar pelas que valem o contato e deixar o resto para depois.",
       fonte: "Base pública de CNPJ da Receita Federal, outubro de 2026.",
     },
@@ -225,7 +225,7 @@ export const ptBR = {
         },
         {
           pergunta: "Quais estados a busca cobre?",
-          resposta: "Começamos por São Paulo: são 8,8 milhões de empresas ativas na base da Receita de outubro de 2026, das quais 56% são MEI (que ficam de fora, a menos que você queira). Os outros estados entram aos poucos. A Receita publica uma nova versão da base todo mês, e o PROSPEN é atualizado a partir dessas publicações.",
+          resposta: "Todos os 27 estados: são 28,3 milhões de empresas ativas na base da Receita de outubro de 2026, das quais 59% são MEI (que ficam de fora, a menos que você queira). A Receita publica uma nova versão da base todo mês, e o PROSPEN é atualizado a partir dessas publicações.",
         },
         {
           pergunta: "O telefone e o e-mail são do dono da empresa?",
@@ -1143,7 +1143,7 @@ Minha empresa:
     // Página inicial
     pagina: {
       titulo: "Planos",
-      subtitulo: "Busca na base de São Paulo em todos os planos. Os outros estados entram aos poucos.",
+      subtitulo: "Busca nos 27 estados do Brasil em todos os planos.",
       porMes: "/mês",
       melhorCustoBeneficio: "Melhor custo-benefício",
       naoIncluso: "(não incluso)",

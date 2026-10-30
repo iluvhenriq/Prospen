@@ -204,14 +204,21 @@ export function repositorioBaseCnpj(db: Banco) {
     // instrução, e apaga a temporária. Quem não tem empresa no arquivo de
     // Empresas (7 casos em SP) pontua só pelo próprio estabelecimento. CNPJ
     // repetido nos arquivos entra uma vez. Devolve quantos ficaram no estado.
-    async concluirCarga(uf: string, hoje: Date = new Date()): Promise<number> {
+    // Vários estados (ou o Brasil todo) trocam numa instrução só: um por vez
+    // varreria a tabela inteira 27 vezes, já que os índices estão fora.
+    async concluirCarga(ufOuUfs: string | readonly string[], hoje: Date = new Date()): Promise<number> {
+      const ufs = typeof ufOuUfs === "string" ? [ufOuUfs] : [...ufOuUfs];
       const colunas = Object.values(getTableColumns(baseCnpjEstabCarga));
+      if (ufs.length > 1) {
+        // O radar compara estado por estado: sem índice, cada um varreria a carga inteira.
+        await db.execute(sql`create index on ${baseCnpjEstabCarga} ("uf")`);
+      }
       await db.transaction(async (tx) => {
         // Só nesta transação: memória para cruzar milhões de linhas sem ir ao disco.
         await tx.execute(sql`set local work_mem = '512MB'`);
         // Radar: antes de apagar a base antiga, guarda o que mudou.
-        await detectarSinais(tx, uf);
-        await tx.delete(baseCnpjEstabelecimentos).where(eq(baseCnpjEstabelecimentos.uf, uf));
+        for (const uf of ufs) await detectarSinais(tx, uf);
+        await tx.delete(baseCnpjEstabelecimentos).where(inArray(baseCnpjEstabelecimentos.uf, ufs));
         await tx.execute(sql`
           insert into ${baseCnpjEstabelecimentos} (${sql.join(
             colunas.map((coluna) => sql.identifier(coluna.name)),
@@ -220,11 +227,13 @@ export function repositorioBaseCnpj(db: Banco) {
           select ${sql.join(colunas, sql`, `)}, ${expressaoDaPontuacao(hoje, baseCnpjEstabCarga)}
           from ${baseCnpjEstabCarga}
           left join ${baseCnpjEmpresas} on ${baseCnpjEmpresas.cnpjBasico} = ${baseCnpjEstabCarga.cnpjBasico}
-          where ${baseCnpjEstabCarga.uf} = ${uf}
+          where ${inArray(baseCnpjEstabCarga.uf, ufs)}
           on conflict ("cnpj") do nothing`);
       });
       await this.descartarCarga();
-      return this.contarEstabelecimentos(uf);
+      let total = 0;
+      for (const n of (await this.contarPorEstado(ufs)).values()) total += n;
+      return total;
     },
 
     async descartarCarga(): Promise<void> {
@@ -275,6 +284,17 @@ export function repositorioBaseCnpj(db: Banco) {
           set: { mesReferencia: mes, estabelecimentos, concluidaEm: sql`now()` },
         });
       await this.limparSinaisAntigos(mes);
+    },
+
+    // Uma leitura só para vários estados: sem os índices, cada contagem
+    // separada varreria a tabela inteira.
+    async contarPorEstado(ufs: readonly string[]): Promise<Map<string, number>> {
+      const linhas = await db
+        .select({ uf: baseCnpjEstabelecimentos.uf, total: count() })
+        .from(baseCnpjEstabelecimentos)
+        .where(inArray(baseCnpjEstabelecimentos.uf, [...ufs]))
+        .groupBy(baseCnpjEstabelecimentos.uf);
+      return new Map(linhas.map((linha) => [linha.uf, linha.total]));
     },
 
     async contarEstabelecimentos(uf: string): Promise<number> {

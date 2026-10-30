@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { baseCnpjEmpresas, baseCnpjEstabelecimentos } from "@/db/schema";
-import { importarEstado } from "@/modules/base-cnpj/importacao";
+import { importarEstado, importarEstados, UFS_DO_BRASIL } from "@/modules/base-cnpj/importacao";
 import { repositorioBaseCnpj } from "@/modules/base-cnpj/repositorio";
 import { criarAmbienteDeTeste, type AmbienteDeTeste } from "./ajuda/banco-teste";
 
@@ -55,7 +55,7 @@ describe("importação da base pública de CNPJ", () => {
       [
         estabelecimento("11222333000181", "02", "SP", "7107", "PADARIA SÃO JOÃO"), // ativo, SP: entra
         estabelecimento("11444777000161", "08", "SP", "7107", "BAIXADA"), // baixada: fica fora
-        estabelecimento("22333444000100", "02", "RJ", "6001", "OFICINA RIO"), // outro estado: fica fora
+        estabelecimento("22333444000181", "02", "RJ", "6001", "OFICINA RIO"), // outro estado: fica fora
         estabelecimento("11222333000182", "02", "SP", "7107", "CNPJ ERRADO"), // verificador errado
         // Linha quebrada que passa pelo filtro de UF e precisa ser recusada depois.
         linha(["SP", "quebrada"]),
@@ -146,6 +146,23 @@ describe("importação da base pública de CNPJ", () => {
       .where(eq(baseCnpjEstabelecimentos.cnpj, "11222333000181"));
     // Telefone 15 + e-mail próprio 25 + matriz 5 + microempresa 5.
     expect(padaria.pontuacao).toBe(50);
+  });
+
+  it("carrega o Brasil todo numa leitura só", async () => {
+    const base = repositorioBaseCnpj(amb.db);
+    const resumo = await importarEstados({ repositorio: base, pasta, mes: "2026-10", ufs: UFS_DO_BRASIL });
+
+    // Sem filtro de UF: todas as linhas são lidas.
+    expect(resumo).toMatchObject({ estabelecimentosLidos: 6, ativosDoEstado: 3, gravados: 3, apagadosAntes: 2 });
+    expect(await base.contarPorEstado(["SP", "RJ"])).toEqual(new Map([["SP", 2], ["RJ", 1]]));
+    // Cada estado fica registrado com as próprias cidades.
+    expect((await base.estadosCarregados()).map((c) => [c.uf, c.estabelecimentos])).toEqual(
+      expect.arrayContaining([["RJ", 1], ["SP", 2]]),
+    );
+    expect(await base.municipiosDoEstado("RJ")).toEqual([{ codigo: "6001", nome: "RIO DE JANEIRO" }]);
+    // Empresas com raiz alfanumérica continuam entrando.
+    expect(await amb.db.$count(baseCnpjEmpresas)).toBe(2);
+    expect(await indicesAtuais()).toEqual(indicesDaMigracao);
   });
 
   it("avisa quando faltam os arquivos baixados", async () => {

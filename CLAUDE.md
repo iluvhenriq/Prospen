@@ -53,7 +53,7 @@ TypeScript, Next.js (App Router, versão 16), PostgreSQL, Drizzle ORM, Better Au
 | `npm run db:criar` | Cria o banco da `DATABASE_URL` |
 | `npm run auth:segredo` | Gera o `AUTH_SECRET` |
 | `npm run cnpj:baixar` | Baixa a base pública de CNPJ do mês para `D:\prospen-dados\cnpj` (retoma de onde parou) |
-| `npm run cnpj:importar -- 2026-10 SP` | Carrega um estado no banco (apaga e refaz). Lê o país inteiro, leva horas |
+| `npm run cnpj:importar -- 2026-10 SP` | Carrega estados no banco (apaga e refaz): `SP`, `RJ,MG` ou `BR` (os 27 numa leitura só). Lê o país inteiro de qualquer jeito, leva horas. Para `BR`, rode com `NODE_OPTIONS=--max-old-space-size=6144` |
 | `npm run cnpj:registrar -- 2026-10 SP` | Registra atividades e cidades de um estado já carregado, sem importar de novo |
 | `npm run cnpj:excluir -- CNPJ` | Pedido do titular (LGPD): tira o CNPJ da busca para sempre |
 | `npm run conta:exportar -- email` | Pedido do titular: dados da conta em JSON (confira a identidade antes) |
